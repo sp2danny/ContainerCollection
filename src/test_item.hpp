@@ -32,11 +32,7 @@ namespace detail
 	unsigned char mf[8] = {89,78,67,56,45,34,23,12};
 	unsigned char dl[8] = {98,87,76,65,54,43,32,21};
 	std::vector<std::string> report;
-}
-
-const std::vector<std::string>& test_item::report()
-{
-	return detail::report;
+	unsigned long long cc = 0, dc = 0;
 }
 
 void add_report(std::string str)
@@ -45,6 +41,19 @@ void add_report(std::string str)
 }
 
 using namespace detail;
+using namespace std::literals;
+
+const std::vector<std::string>& test_item::report()
+{
+	if (cc!=dc)
+	{
+		if (cc>dc)
+			add_report("under-deleted : "s + std::to_string(cc-dc));
+		if (cc<dc)
+			add_report("over-deleted : "s + std::to_string(dc-cc));
+	}
+	return detail::report;
+}
 
 #include <cstring>
 
@@ -59,6 +68,7 @@ test_item::test_item()
 	
 	std::memcpy(magic, un, 8);
 	state = uninitialized;
+	++cc;
 }
 
 test_item::test_item(int i)
@@ -73,6 +83,7 @@ test_item::test_item(int i)
 	value = i;
 	std::memcpy(magic, pr, 8);
 	state = proper;
+	++cc;
 }
 
 test_item::test_item(const test_item& other)
@@ -96,6 +107,7 @@ test_item::test_item(const test_item& other)
 	value = other.value;
 	std::memcpy(magic, pr, 8);
 	state = proper;
+	++cc;
 }
 
 test_item::test_item(test_item&& other)
@@ -122,6 +134,7 @@ test_item::test_item(test_item&& other)
 
 	other.state = movedfrom;
 	std::memcpy(other.magic, mf, 8);
+	++cc;
 }
 
 test_item& test_item::operator=(const test_item& other)
@@ -181,6 +194,7 @@ test_item::~test_item()
 		add_report( "double delete");
 	std::memcpy(magic, dl, 8);
 	state = deleted;
+	++dc;
 }
 
 std::ostream& operator << (std::ostream& out, const test_item& item)

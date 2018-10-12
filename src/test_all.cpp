@@ -21,10 +21,10 @@ int main()
 		for (auto&& i : ivt)
 			std::cout << i << ' ';
 		std::cout << std::endl;
-		auto rep = test_item::report();
-		for (auto str : rep)
-			std::cout << str << std::endl;
 	}
+	auto rep = test_item::report();
+	for (auto str : rep)
+		std::cout << str << std::endl;
 
 }
 
