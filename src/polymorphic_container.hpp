@@ -70,7 +70,8 @@ namespace detail
 	};
 
 	template<typename T,typename underlying_iterator>
-	struct iterator< T, underlying_iterator, std::random_access_iterator_tag > : std::iterator< std::random_access_iterator_tag, T > , iterator_base<T,underlying_iterator>
+	struct iterator< T, underlying_iterator, std::random_access_iterator_tag >
+		: std::iterator< std::random_access_iterator_tag, T > , iterator_base<T,underlying_iterator>
 	{
 		iterator() = default;
 		iterator( const iterator_base<T,underlying_iterator>& ib )
@@ -256,7 +257,7 @@ public:
 	T& operator[](std::size_t idx)
 	{
 		static_assert(
-			std::is_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
+			detail::sub_or_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
 			"underlying container does not support random access"
 		);
 		return begin()[idx];
@@ -264,7 +265,7 @@ public:
 	const T& operator[](std::size_t idx) const
 	{
 		static_assert(
-			std::is_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
+			detail::sub_or_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
 			"underlying container does not support random access"
 		);
 		return begin()[idx];
@@ -273,7 +274,7 @@ public:
 	T& at(std::size_t idx)
 	{
 		static_assert(
-			std::is_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
+			detail::sub_or_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
 			"underlying container does not support random access"
 		);
 		if(idx>=size()) throw std::out_of_range{"index"};
@@ -282,12 +283,14 @@ public:
 	const T& at(std::size_t idx) const
 	{
 		static_assert(
-			std::is_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
+			detail::sub_or_same< underlying_iterator_category, std::random_access_iterator_tag >::value,
 			"underlying container does not support random access"
 		);
 		if(idx>=size()) throw std::out_of_range{"index"};
 		return begin()[idx];
 	}
+
+	int compare(const polymorphic_container&) const;
 
 
 private:
@@ -305,71 +308,62 @@ void swap(polymorphic_container<T,U,A>& lhs, polymorphic_container<T, U, A>& rhs
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
-bool operator == (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
+int polymorphic_container<T,Underlying,Allocator>::compare(const polymorphic_container& rhs) const
 {
 	auto li = lhs.begin();
 	auto ri = rhs.begin();
+	auto&& lhs = *this;
 	while(true)
 	{
-		bool le = li==lhs.end();
-		bool re = ri==rhs.end();
-		if(le&&re) return true;
-		if(le||re) return false;
-		if( *li != *ri ) return false;
-		++li; ++ri;
+		bool le = (li==lhs.end());
+		bool re = (ri==rhs.end());
+		if(le&&re) return 0;
+		if (le) return -1;
+		if (re) return +1;
+		if( *li == *ri )
+		{
+			++li; ++ri;
+		} else {
+			return (*li < *ri) ? -1 : +1;
+		}
 	}
+}
+
+
+template< typename T, template<typename...> class U, template<typename...> class A >
+bool operator == (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
+{
+	return lhs.compare(rhs) == 0;
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
 bool operator != (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
 {
-	return ! (lhs==rhs);
+	return lhs.compare(rhs) != 0;
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
 bool operator < (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
 {
-	auto li = lhs.begin();
-	auto ri = rhs.begin();
-	while(true)
-	{
-		bool le = li==lhs.end();
-		bool re = ri==rhs.end();
-		if(le&&re) return false;
-		if(le||re) return le;
-		if( *li < *ri ) return true;
-		if( *li > *ri ) return false;
-		++li; ++ri;
-	}
+	return lhs.compare(rhs) < 0;
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
 bool operator <= (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
 {
-	auto li = lhs.begin();
-	auto ri = rhs.begin();
-	while(true)
-	{
-		bool le = li==lhs.end();
-		bool re = ri==rhs.end();
-		if(le&&re) return true;
-		if(le||re) return le;
-		if( *li < *ri ) return true;
-		if( *li > *ri ) return false;
-		++li; ++ri;
-	}
+	return lhs.compare(rhs) <= 0;
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
 bool operator > (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
 {
-	return ! (lhs<=rhs);
+	return lhs.compare(rhs) > 0;
 }
 
 template< typename T, template<typename...> class U, template<typename...> class A >
 bool operator >= (polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& rhs)
 {
-	return ! (lhs<rhs);
+	return lhs.compare(rhs) >= 0;
 }
 
 // ----------------------------------------------------------------------------------------------
