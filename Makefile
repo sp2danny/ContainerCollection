@@ -9,4 +9,4 @@ bin/test_all.o: src/test_all.cpp src/inline_vector.hpp
 
 
 test.out: bin/test_all.o
-	$(CC) -o test.obj
+	$(CC) bin/test_all.o -o test.out
