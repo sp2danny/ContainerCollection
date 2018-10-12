@@ -127,7 +127,7 @@ private:
 };
 
 // construction
-	
+
 template<typename T, std::size_t N>
 inline_vector<T, N>::inline_vector() noexcept
 {
@@ -179,7 +179,7 @@ inline_vector<T, N>::inline_vector(inline_vector&& other) noexcept(cne)
     }
     other.hc.size = 0;
     other.hc.capa = 0;
-    other.hc.data = nullptr;    
+    other.hc.data = nullptr;
 }
 
 template<typename T, std::size_t N>
@@ -242,7 +242,7 @@ void inline_vector<T, N>::clear()
 		
 	hc.size = 0;
     hc.capa = 0;
-    hc.data = nullptr;    
+    hc.data = nullptr;
 }
 
 template<typename T, std::size_t N>
@@ -510,6 +510,7 @@ auto inline_vector<T, N>::insert(iterator where, T&& val) -> iterator
 		return dst + ii;
 	}
 }
+
 
 
 /*
