@@ -6,6 +6,7 @@
 #include <utility>
 #include <memory>
 #include <iterator>
+#include <cassert>
 
 template<typename T, std::size_t N>
 class inline_vector
@@ -363,7 +364,7 @@ void inline_vector<T, N>::resize(size_type sz, const T& val)
 template<typename T, std::size_t N>
 auto inline_vector<T, N>::size() const -> size_type
 {
-	return ic.size;	
+	return ic.size;
 }
 
 template<typename T, std::size_t N>
@@ -426,7 +427,7 @@ auto inline_vector<T, N>::insert(iterator where, const T& val) -> iterator
 	auto ptr = data();
 	if (cp >= (nn+1))
 	{
-		if (nn) for (size_type i = nn-1; i >= ii; --i)
+		if (nn) for (size_type i = nn; i > ii; --i)
 		{
 			if (i>=nn)
 				new (ptr+i) T(std::move(ptr[i-1]));
@@ -473,7 +474,7 @@ auto inline_vector<T, N>::insert(iterator where, T&& val) -> iterator
 	auto ptr = data();
 	if (cp >= (nn+1))
 	{
-		if (nn) for (size_type i = nn-1; i >= ii; --i)
+		if (nn) for (size_type i = nn; i > ii; --i)
 		{
 			if (i>=nn)
 				new (ptr+i) T(std::move(ptr[i-1]));
@@ -511,15 +512,25 @@ auto inline_vector<T, N>::insert(iterator where, T&& val) -> iterator
 	}
 }
 
+template<typename T, std::size_t N>
+auto inline_vector<T, N>::erase(iterator where) -> iterator
+{
+	auto e = end();
+	assert(where >= begin());
+	assert(where < e);
+	auto itr = where;
+	while (true)
+	{
+		auto nxt = itr + 1;
+		if (nxt >= e) break;
+		(*itr) = std::move(*nxt);
+		itr = nxt;
+	}
+	itr->~T();
+	ic.size -= 1;
+	return where;
+}
 
-
-/*
-iterator insert(iterator, size_type, const T&);
-template<typename It>
-iterator insert(iterator, It, It);
-iterator insert(iterator, std::initializer_list<T>);
-
-*/
 
 
 

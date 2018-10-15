@@ -62,9 +62,9 @@ test_item::test_item()
 	if (std::memcmp(magic, un, 8)==0)
 		add_report("creating object in other (uninitialized) object");
 	if (std::memcmp(magic, pr, 8)==0)
-		add_report( "creating object in other (proper) object");
+		add_report("creating object in other (proper) object");
 	if (std::memcmp(magic, mf, 8)==0)
-		add_report( "creating object in other (moved-from) object");
+		add_report("creating object in other (moved-from) object");
 	
 	std::memcpy(magic, un, 8);
 	state = uninitialized;
@@ -74,11 +74,11 @@ test_item::test_item()
 test_item::test_item(int i)
 {
 	if (std::memcmp(magic, un, 8)==0)
-		add_report( "creating object in other (uninitialized) object");
+		add_report("creating object in other (uninitialized) object");
 	if (std::memcmp(magic, pr, 8)==0)
-		add_report( "creating object in other (proper) object");
+		add_report("creating object in other (proper) object");
 	if (std::memcmp(magic, mf, 8)==0)
-		add_report( "creating object in other (moved-from) object");
+		add_report("creating object in other (moved-from) object");
 
 	value = i;
 	std::memcpy(magic, pr, 8);
@@ -89,20 +89,20 @@ test_item::test_item(int i)
 test_item::test_item(const test_item& other)
 {
 	if (std::memcmp(magic, un, 8)==0)
-		add_report( "creating object in other (uninitialized) object");
+		add_report("creating object in other (uninitialized) object");
 	if (std::memcmp(magic, pr, 8)==0)
-		add_report( "creating object in other (proper) object");
+		add_report("creating object in other (proper) object");
 	if (std::memcmp(magic, mf, 8)==0)
-		add_report( "creating object in other (moved-from) object");
+		add_report("creating object in other (moved-from) object");
 
 	if (other.state == uninitialized)
-		add_report( "copying uninitialized object");
+		add_report("copying uninitialized object");
 	if (other.state == movedfrom)
-		add_report( "copying movedfrom object");
+		add_report("copying movedfrom object");
 	if (other.state == deleted)
-		add_report( "copying deleted object");
+		add_report("copying deleted object");
 	if (std::memcmp(other.magic, pr, 8) != 0)
-		add_report( "copying garbled object");
+		add_report("copying garbled object");
 
 	value = other.value;
 	std::memcpy(magic, pr, 8);
@@ -113,20 +113,20 @@ test_item::test_item(const test_item& other)
 test_item::test_item(test_item&& other)
 {
 	if (std::memcmp(magic, un, 8)==0)
-		add_report( "creating object in other (uninitialized) object");
+		add_report("creating object in other (uninitialized) object");
 	if (std::memcmp(magic, pr, 8)==0)
-		add_report( "creating object in other (proper) object");
+		add_report("creating object in other (proper) object");
 	if (std::memcmp(magic, mf, 8)==0)
-		add_report( "creating object in other (moved-from) object");
+		add_report("creating object in other (moved-from) object");
 
 	if (other.state == uninitialized)
-		add_report( "copying uninitialized object");
+		add_report("copying uninitialized object");
 	if (other.state == movedfrom)
-		add_report( "copying movedfrom object");
+		add_report("copying movedfrom object");
 	if (other.state == deleted)
-		add_report( "copying deleted object");
+		add_report("copying deleted object");
 	if (std::memcmp(other.magic, pr, 8) != 0)
-		add_report( "copying garbled object");
+		add_report("copying garbled object");
 
 	value = other.value;
 	std::memcpy(magic, pr, 8);
@@ -140,18 +140,18 @@ test_item::test_item(test_item&& other)
 test_item& test_item::operator=(const test_item& other)
 {
 	if (std::memcmp(magic, dl, 8)==0)
-		add_report( "assigning object in deleted space");
+		add_report("assigning object in deleted space");
 	if (state == deleted)
-		add_report( "assigning object in deleted space");
+		add_report("assigning object in deleted space");
 
 	if (other.state == uninitialized)
-		add_report( "copying uninitialized object");
+		add_report("copying uninitialized object");
 	if (other.state == movedfrom)
-		add_report( "copying movedfrom object");
+		add_report("copying movedfrom object");
 	if (other.state == deleted)
-		add_report( "copying deleted object");
+		add_report("copying deleted object");
 	if (std::memcmp(other.magic, pr, 8) != 0)
-		add_report( "copying garbled object");
+		add_report("copying garbled object");
 
 	value = other.value;
 	std::memcpy(magic, pr, 8);
@@ -163,18 +163,18 @@ test_item& test_item::operator=(const test_item& other)
 test_item& test_item::operator=(test_item&& other) noexcept
 {
 	if (std::memcmp(magic, dl, 8)==0)
-		add_report( "assigning object in deleted space");
+		add_report("assigning object in deleted space");
 	if (state == deleted)
-		add_report( "assigning object in deleted space");
+		add_report("assigning object in deleted space");
 
 	if (other.state == uninitialized)
-		add_report( "copying uninitialized object");
+		add_report("copying uninitialized object");
 	if (other.state == movedfrom)
-		add_report( "copying movedfrom object");
+		add_report("copying movedfrom object");
 	if (other.state == deleted)
-		add_report( "copying deleted object");
+		add_report("copying deleted object");
 	if (std::memcmp(other.magic, pr, 8) != 0)
-		add_report( "copying garbled object");
+		add_report("copying garbled object");
 
 	value = other.value;
 	std::memcpy(magic, pr, 8);
@@ -189,9 +189,9 @@ test_item& test_item::operator=(test_item&& other) noexcept
 test_item::~test_item()
 {
 	if (std::memcmp(magic, dl, 8)==0)
-		add_report( "double delete");
+		add_report("double delete");
 	if (state == deleted)
-		add_report( "double delete");
+		add_report("double delete");
 	std::memcpy(magic, dl, 8);
 	state = deleted;
 	++dc;
@@ -200,13 +200,13 @@ test_item::~test_item()
 std::ostream& operator << (std::ostream& out, const test_item& item)
 {
 	if (item.state == test_item::uninitialized)
-		add_report( "reading uninitialized object");
+		add_report("reading uninitialized object");
 	if (item.state == test_item::movedfrom)
-		add_report( "reading movedfrom object");
+		add_report("reading movedfrom object");
 	if (item.state == test_item::deleted)
-		add_report( "reading deleted object");
+		add_report("reading deleted object");
 	if (std::memcmp(item.magic, pr, 8) != 0)
-		add_report( "reading garbled object");
+		add_report("reading garbled object");
 	out << item.value;
 	return out;
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <iterator>
 #include <string>
+#include <cassert>
 
 using namespace std::literals;
 
@@ -104,9 +105,9 @@ namespace CT
 void CT::init()
 {
 	if (inited) return;
+	inited = true;
 	auto tm = std::chrono::system_clock::now();
 	generator.seed((unsigned int)tm.time_since_epoch().count());
-	inited = true;
 }
 
 template<typename T>
@@ -129,7 +130,7 @@ void CT::copy_to<T>::operator()(const C1& from, C2& first, Args&... rest)
 {
 	init();
 #ifndef NDEBUG
-	cout << name() << " of " << nameof(first) << endl;
+	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
 	for (auto&& x : from)
 	{
@@ -163,7 +164,7 @@ void CT::insert_nth<T>::operator()(std::size_t idx, int val, C1& first, Args&...
 {
 	init();
 #ifndef NDEBUG
-	cout << name() << " of " << nameof(first) << endl;
+	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
 	auto itr = first.begin();
 	std::advance(itr, idx);
@@ -188,8 +189,9 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 {
 	init();
 #ifndef NDEBUG
-	cout << name() << " of " << nameof(first) << endl;
+	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
+	assert(idx < first.size());
 	auto itr = first.begin();
 	std::advance(itr, idx);
 	first.erase(itr);
