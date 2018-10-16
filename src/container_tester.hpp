@@ -245,7 +245,7 @@ template<typename C1, typename... Args>
 void CT::insert<T>::operator()(C1& first, Args&... rest)
 {
 	init();
-	int sz = first.size();
+	int sz = (int)first.size();
 	std::size_t idx = std::uniform_int_distribution<int>{0, sz}(generator);
 	auto num = distribution(generator);
 	insert_nth<>{}(idx, num, first, rest...);
@@ -280,7 +280,7 @@ template<typename C1, typename... Args>
 void CT::erase<T>::operator()(C1& first, Args&... rest)
 {
 	init();
-	int sz = first.size();
+	int sz = (int)first.size();
 	std::size_t idx = std::uniform_int_distribution<int>{0, sz-1}(generator);
 	erase_nth<>{}(idx, first, rest...);
 }

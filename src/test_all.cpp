@@ -10,6 +10,8 @@
 #include <vector>
 #include <list>
 
+// _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
+
 void testsuit()
 {
 	using namespace std;
@@ -69,6 +71,7 @@ void testsuit()
 int main()
 {
 	testsuit();
+	fgetc(stdin);
 }
 
 

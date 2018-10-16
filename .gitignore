@@ -5,6 +5,8 @@
 *.ilk
 *.pdb
 obj
+.vs
+*.idb
 
 # Prerequisites
 *.d

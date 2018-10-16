@@ -127,8 +127,8 @@ public:
 			node         = node->prev;
 			return tmp;
 		}
-		T&   operator*() { return node->value; }
-		T*   operator->() { return std::addressof(node->value); }
+		T&   operator*() const { return node->value; }
+		T*   operator->() const { return std::addressof(node->value); }
 		bool operator==(iterator rhs) const { return node == rhs.node; }
 		bool operator!=(iterator rhs) const { return node != rhs.node; }
 		friend class splice_list;
