@@ -93,6 +93,7 @@ public:
 	iterator emplace_back(Args&&...);
 
 	iterator erase(iterator);
+	iterator erase(iterator, iterator);
 
 	T& push_back(const T& val) { return *insert(end(), val); }
 	T& push_back(T&& val) { return *insert(end(), std::move(val)); }
@@ -380,25 +381,6 @@ auto inline_vector<T, N>::capacity() const -> size_type
 	}
 }
 
-/*
-// size
-bool empty() const;
-constexpr static size_type max_size() noexcept;
-void shrink_to_fit();
-*/
-
-/*
-// element access
-T& at(size_type);
-const T& at(size_type) const;
-T& operator[](size_type);
-const T& operator[](size_type) const;
-T& front();
-const T& front() const;
-T& back();
-const T& back() const;
-*/
-
 template<typename T, std::size_t N>
 T* inline_vector<T, N>::data()
 {
@@ -529,6 +511,29 @@ auto inline_vector<T, N>::erase(iterator where) -> iterator
 	itr->~T();
 	ic.size -= 1;
 	return where;
+}
+
+template<typename T, std::size_t N>
+auto inline_vector<T, N>::erase(iterator b, iterator e) -> iterator
+{
+	auto itr = b;
+	while (itr != e)
+	{
+		itr->~T();
+		++itr;
+		ic.size -= 1;
+	}
+	itr = b;
+	auto src = e;
+	while (true)
+	{
+		if (src == end()) break;
+		// move into destroyed
+		new (itr) T(std::move(*src));
+		src->~T();
+		++itr; ++src;
+	}
+	return b;
 }
 
 

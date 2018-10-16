@@ -1,10 +1,14 @@
 
 #include "inline_vector.hpp"
+#include "splice_list.hpp"
+#include "TreeVector.hpp"
 
 #include "test_item.hpp"
 #include "container_tester.hpp"
 
 #include <iostream>
+#include <vector>
+#include <list>
 
 void testsuit()
 {
@@ -12,51 +16,53 @@ void testsuit()
 	using namespace CT;
 
 	vector<int> vi;
-	inline_vector<int,25> ivi25;
-	inline_vector<int,50> ivi250;
-
-	fillup<>{}(10, vi, ivi25, ivi250);
-	for (int i=0; i<10; ++i)
-		insert<>{}(vi, ivi25, ivi250);
-	for (int i=0; i<15; ++i)
-		erase<>{}(vi, ivi25, ivi250);
-    bool ok = compare<>{}(vi, ivi25, ivi250);
-    cout << (ok?"test ok":"test failed") << endl;
-	if (!ok)
 	{
-		cout << "vi     : ";
-		for (auto i : vi) cout << i << ' ';
-		cout << endl;
-		cout << "ivi25  : ";
-		for (auto i : ivi25) cout << i << ' ';
-		cout << endl;
-		cout << "ivi250 : ";
-		for (auto i : ivi250) cout << i << ' ';
-		cout << endl;
-	}
-}
+		bool ok = true;
+		for (int i=0; ok && (i<100); ++i)
+		{
+			vi.clear();
+			vector<test_item> vti;
+			list<test_item> lti;
+			inline_vector<test_item,150> ivtis;
+			inline_vector<test_item,300> ivtib;
+			splice_list<test_item> slti;
+			//TreeVector<test_item> tvi;
 
-int main()
-{
-    inline_vector<int, 4> ivi;
-	for (int i=3; i<11; ++i)
-		ivi.push_back(i);
-	for (auto i : ivi) std::cout << i << ' ';
-	std::cout << std::endl;
+			#define ALL vi, vti, lti, ivtis, ivtib, slti
 
-	{
-		inline_vector<test_item, 4> ivt;
-		for (int i=3; i<11; ++i)
-			ivt.push_back({i});
-		for (auto&& i : ivt)
-			std::cout << i << ' ';
-		std::cout << std::endl;
+			fillup<>{}(100, ALL);
+			for (int i=0; i<100; ++i)
+				insert<>{}(ALL);
+			for (int i=0; i<150; ++i)
+				erase<>{}(ALL);
+			if (ok) ok = compare<>{}(ALL);
+			if (ok) sort_unique<>{}(ALL);
+			if (ok) ok = compare<>{}(ALL);
+
+			if (!ok)
+			{
+				print<>{}(std::cout, ALL);
+			}
+			#undef ALL
+
+		}
+		cout << (ok?"compare test ok":"compare test failed") << endl;
 	}
+
 	auto rep = test_item::report();
 	for (auto str : rep)
 		std::cout << str << std::endl;
 	if (rep.empty())
-		std::cout << "nothing to report" << std::endl;
+		std::cout << "move/delete: nothing to report" << std::endl;
+
+	cout << "vi     : ";
+	for (auto i : vi) cout << i << ' ';
+	cout << endl;
+
+}
+
+int main()
+{
 	testsuit();
 }
 

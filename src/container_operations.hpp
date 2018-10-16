@@ -5,6 +5,8 @@
 #include <iostream>
 #endif
 
+#include <algorithm>
+
 template<typename C1, typename C2, typename C3>
 void merge_unique(C1& c1, C2& c2, C3& c3)
 {
@@ -75,9 +77,9 @@ void merge_unique(C1& c1, C2& c2, C3& c3)
 
 namespace detail
 {
-	//struct pick_3 {};
-	//struct pick_2 : pick_3 {};
-	//struct pick_1 : pick_2 {};
+	struct pick_3 {};
+	struct pick_2 : pick_3 {};
+	struct pick_1 : pick_2 {};
 
 	template<typename C1>
 	auto sort(pick_1, C1& c1)
@@ -115,7 +117,7 @@ namespace detail
 	{
 		c1.remove(itm);
 	}
-	
+
 	template<typename Itm>
 	auto remove(pick_2, std::vector<Itm>& c1, const Itm& itm)
 	{

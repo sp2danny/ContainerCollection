@@ -14,7 +14,9 @@ public:
 	test_item(test_item&&);
 	test_item& operator=(const test_item&);
 	test_item& operator=(test_item&&) noexcept;
+	test_item& operator=(int i);
 	~test_item();
+	int compare(const test_item&) const;
 	friend
 	std::ostream& operator << (std::ostream&, const test_item&);
 private:
@@ -186,6 +188,20 @@ test_item& test_item::operator=(test_item&& other) noexcept
 	return *this;
 }
 
+test_item& test_item::operator=(int val)
+{
+	if (std::memcmp(magic, dl, 8)==0)
+		add_report("assigning object in deleted space");
+	if (state == deleted)
+		add_report("assigning object in deleted space");
+
+	value = val;
+	std::memcpy(magic, pr, 8);
+	state = proper;
+
+	return *this;
+}
+
 test_item::~test_item()
 {
 	if (std::memcmp(magic, dl, 8)==0)
@@ -211,9 +227,47 @@ std::ostream& operator << (std::ostream& out, const test_item& item)
 	return out;
 }
 
+int test_item::compare(const test_item& rhs) const
+{
+	auto& lhs = *this;
+	
+	if (lhs.state == test_item::uninitialized)
+		add_report("reading uninitialized object");
+	if (lhs.state == test_item::movedfrom)
+		add_report("reading movedfrom object");
+	if (lhs.state == test_item::deleted)
+		add_report("reading deleted object");
+	if (std::memcmp(lhs.magic, pr, 8) != 0)
+		add_report("reading garbled object");
+		
+	if (rhs.state == test_item::uninitialized)
+		add_report("reading uninitialized object");
+	if (rhs.state == test_item::movedfrom)
+		add_report("reading movedfrom object");
+	if (rhs.state == test_item::deleted)
+		add_report("reading deleted object");
+	if (std::memcmp(rhs.magic, pr, 8) != 0)
+		add_report("reading garbled object");
 
+	return lhs.value - rhs.value;
+}
 
+/**/ inline bool operator < (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) < 0; }
 
+/**/ inline bool operator <= (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) <= 0; }
 
+/**/ inline bool operator == (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) == 0; }
+
+/**/ inline bool operator != (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) != 0; }
+
+/**/ inline bool operator > (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) > 0; }
+
+/**/ inline bool operator >= (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs) >= 0; }
 
 

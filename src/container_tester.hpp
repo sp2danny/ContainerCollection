@@ -6,6 +6,9 @@
 #include <iterator>
 #include <string>
 #include <cassert>
+#include <iostream>
+
+#include "container_operations.hpp"
 
 using namespace std::literals;
 
@@ -86,6 +89,28 @@ namespace CT
 		void operator()(C1&, Args&...);
 
 		static std::string name() { return "erase"s; }
+	};
+
+	template<typename T = void>
+	struct sort_unique
+	{
+		void operator()() {}
+
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+
+		static std::string name() { return "sort_unique"s; }
+	};
+
+	template<typename T = void>
+	struct print
+	{
+		void operator()(std::ostream&) {}
+
+		template<typename C1, typename... Args>
+		void operator()(std::ostream&, C1&, Args&...);
+
+		static std::string name() { return "print"s; }
 	};
 
 }
@@ -206,6 +231,28 @@ void CT::erase<T>::operator()(C1& first, Args&... rest)
 	int sz = first.size();
 	std::size_t idx = std::uniform_int_distribution<int>{0, sz-1}(generator);
 	erase_nth<>{}(idx, first, rest...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::sort_unique<T>::operator()(C1& first, Args&... rest)
+{
+	sort(first);
+	unique(first);
+	sort_unique<>{}(rest...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::print<T>::operator()(std::ostream& out, C1& first, Args&... rest)
+{
+	out << nameof(first) << " : ";
+	for (auto&& x : first)
+	{
+		out << x << ' ';
+	}
+	out << std::endl;
+	print<>{}(out, rest...);
 }
 
 #ifdef STANDALONE
