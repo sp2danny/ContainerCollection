@@ -7,6 +7,8 @@
 
 #include <algorithm>
 
+namespace CO {
+
 template<typename C1, typename C2, typename C3>
 void merge_unique(C1& c1, C2& c2, C3& c3)
 {
@@ -85,12 +87,18 @@ namespace detail
 	auto sort(pick_1, C1& c1)
 		-> decltype(c1.sort(), void())
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: member sort <>\r";
+		#endif
 		c1.sort();
 	}
 
 	template<typename C1>
 	void sort(pick_2, C1& c1)
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: std::sort <>\r";
+		#endif
 		std::sort(c1.begin(), c1.end());
 	}
 
@@ -98,16 +106,25 @@ namespace detail
 	auto unique(pick_1, C1& c1)
 		-> decltype(c1.unique(), void())
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: member unique <>\r";
+		#endif
 		c1.unique();
 	}
 
 	template<typename C1>
 	void unique(pick_2, C1& c1)
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: std::unique <>\r";
+		#endif
 		typename C1::iterator b,e,i;
 		b = c1.begin();
 		e = c1.end();
 		i = std::unique(b, e);
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: member erase range <>\r";
+		#endif
 		c1.erase(i, e);
 	}
 
@@ -138,9 +155,10 @@ namespace detail
 	}
 
 	template<typename C1, typename Itm>
-	auto binary_find(pick_1, C1& c1, const Itm& itm)
-		-> std::pair<bool, typename C1::iterator>
+	auto binary_find(pick_1, C1&& c1, const Itm& itm)
+		-> std::pair<bool, decltype(c1.begin())>
 	{
+		using std::lower_bound;
 		auto iter = lower_bound(c1.begin(), c1.end(), itm);
 		if (iter == c1.end())
 			return {false,{}};
@@ -154,6 +172,7 @@ namespace detail
 	auto binary_find(pick_2, const C1& c1, const Itm& itm)
 		-> std::pair<bool, typename C1::const_iterator>
 	{
+		using std::lower_bound;
 		auto iter = lower_bound(c1.begin(), c1.end(), itm);
 		if (iter == c1.end())
 			return {false,{}};
@@ -177,7 +196,8 @@ void unique(C1& c1)
 }
 
 template<typename C1, typename Itm>
-void remove(C1& c1, const Itm& itm)
+auto remove(C1& c1, const Itm& itm)
+	-> decltype( std::begin(c1), void() )
 {
 	detail::remove(detail::pick_1{}, c1, itm);
 }
@@ -185,10 +205,12 @@ void remove(C1& c1, const Itm& itm)
 template<typename C1, typename Itm>
 auto binary_find(C1&& c1, const Itm& itm)
 {
-	detail::binary_find(detail::pick_1{}, c1, itm);
+	return detail::binary_find(detail::pick_1{}, c1, itm);
 }
 
+}
 
+using namespace CO;
 
 
 

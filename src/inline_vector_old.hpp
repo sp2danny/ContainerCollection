@@ -73,7 +73,6 @@ public:
 	void reserve(std::size_t);
 	std::size_t capacity();
 
-	template<typename = std::enable_if_t<TPOD>>
 	void pod_resize(std::size_t);
 
 	void best_resize(std::size_t n) { best_resize_helper(select_1{}, n); }
@@ -134,7 +133,6 @@ public:
 	bool operator  > (const inline_vector& other) const;
 	bool operator >= (const inline_vector& other) const;
 
-
 private:
 
 	struct select_4 {};
@@ -143,18 +141,30 @@ private:
 	struct select_1 : select_2 {};
 	static constexpr const select_1 choose{};
 
-	template<typename = std::enable_if_t<TPOD>>
-	void copychunk_helper(select_1, T* src, T* dst, std::size_t sz);
+	#if 0
+	template<typename = void>
+	auto item_compare(select_1, const T& a, const T& b)
+		-> decltype( a.compare(b), int() );
+	template<typename = void>
+	auto item_compare(select_2, const T& a, const T& b)
+		-> decltype( a-b, int() );
+	template<typename = void>
+	auto item_compare(select_3, const T& a, const T& b)
+		-> decltype( a<b, a==b, int() );
+	#endif
+	
+	template<typename U = T, typename = std::enable_if_t<std::is_pod<U>::value>>
+	void copychunk_helper(select_1, T* src, T* dst, std::size_t sz, U* = nullptr);
 	void copychunk_helper(select_2, T* src, T* dst, std::size_t sz);
 	void copychunk_helper(T* src, T* dst, std::size_t sz);
 
-	template<typename = std::enable_if_t<TPOD>>
-	void movechunk_helper(select_1, T* src, T* dst, std::size_t sz);
+	template<typename U = T, typename = std::enable_if_t<std::is_pod<U>::value>>
+	void movechunk_helper(select_1, T* src, T* dst, std::size_t sz, U* = nullptr);
 	void movechunk_helper(select_2, T* src, T* dst, std::size_t sz);
 	void movechunk_helper(T* src, T* dst, std::size_t sz);
 
-	template<typename = std::enable_if_t<TPOD>>
-	void makechunk_helper(select_1, T* src, T* dst, std::size_t sz);
+	template<typename U = T, typename = std::enable_if_t<std::is_pod<U>::value>>
+	void makechunk_helper(select_1, T* src, T* dst, std::size_t sz, U* = nullptr);
 	void makechunk_helper(select_2, T* src, T* dst, std::size_t sz);
 	void makechunk_helper(T* src, T* dst, std::size_t sz);
 
@@ -166,8 +176,8 @@ private:
 	template<typename It>
 	void assign_helper(It, It, ...);
 
-	template<typename = std::enable_if_t<TPOD>>
-	void best_resize_helper(select_1, std::size_t n)
+	template<typename U = T, typename = std::enable_if_t<std::is_pod<U>::value>>
+	void best_resize_helper(select_1, std::size_t n, U* = nullptr)
 	{
 		pod_resize(n);
 	}
@@ -180,8 +190,8 @@ private:
 
 	void make_unpacked();
 
-	template<typename = std::enable_if_t<TPOD>>
-	void swap_helper(select_1, inline_vector&);
+	template<typename U = T, typename = std::enable_if_t<std::is_pod<U>::value>>
+	void swap_helper(select_1, inline_vector&, U* = nullptr);
 
 	void swap_helper(select_2, inline_vector&);
 
@@ -224,8 +234,8 @@ inline_vector<T, SZ, A>::inline_vector() noexcept
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
-template<typename>
-void inline_vector<T, SZ, A>::copychunk_helper(select_1, T* src, T* dst, std::size_t n)
+template<typename U, typename>
+void inline_vector<T, SZ, A>::copychunk_helper(select_1, T* src, T* dst, std::size_t n, U*)
 {
 	std::memcpy(dst, src, sizeof(T)*n);
 }
@@ -246,8 +256,8 @@ void inline_vector<T, SZ, A>::copychunk_helper(T* src, T* dst, std::size_t n)
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
-template<typename>
-void inline_vector<T, SZ, A>::movechunk_helper(select_1, T* src, T* dst, std::size_t n)
+template<typename U, typename>
+void inline_vector<T, SZ, A>::movechunk_helper(select_1, T* src, T* dst, std::size_t n, U*)
 {
 	std::memmove(dst, src, sizeof(T)*n);
 }
@@ -269,8 +279,8 @@ void inline_vector<T, SZ, A>::movechunk_helper(T* src, T* dst, std::size_t n)
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
-template<typename>
-void inline_vector<T, SZ, A>::makechunk_helper(select_1, T* src, T* dst, std::size_t n)
+template<typename U, typename>
+void inline_vector<T, SZ, A>::makechunk_helper(select_1, T* src, T* dst, std::size_t n, U*)
 {
 	std::memmove(dst, src, sizeof(T)*n);
 }
@@ -278,7 +288,7 @@ void inline_vector<T, SZ, A>::makechunk_helper(select_1, T* src, T* dst, std::si
 template<typename T, std::size_t SZ, template<typename...> class A>
 void inline_vector<T, SZ, A>::makechunk_helper(select_2, T* src, T* dst, std::size_t n)
 {
-	std::size_t  diff = abs(src - dst);
+	std::size_t diff = (src>dst) ? (src-dst) : (dst-src);
 	if (diff > n) // no overlap
 	{
 		while (n--)
@@ -463,8 +473,8 @@ template<typename T, std::size_t SZ, template<typename...> class A>
 auto inline_vector<T, SZ, A>::at(std::size_t idx) const -> const T&
 {
 	if (idx >= sz.size)
-	throw std::out_of_range{"idx"};
-return base()[idx];
+		throw std::out_of_range{"idx"};
+	return base()[idx];
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
@@ -490,7 +500,7 @@ template<typename T, std::size_t SZ, template<typename...> class A>
 auto inline_vector<T, SZ, A>::back() const -> const T&
 {
 	assert(!empty());
-return base()[size() - 1];
+	return base()[size() - 1];
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
@@ -504,7 +514,7 @@ template<typename T, std::size_t SZ, template<typename...> class A>
 auto inline_vector<T, SZ, A>::front() const -> const T&
 {
 	assert(!empty());
-return base()[0];
+	return base()[0];
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
@@ -582,7 +592,6 @@ void inline_vector<T, SZ, A>::resize(std::size_t newsz, const T& t)
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
-template<typename>
 void inline_vector<T, SZ, A>::pod_resize(std::size_t newsz)
 {
 	if (newsz == sz.size)
@@ -708,8 +717,8 @@ void inline_vector<T, SZ, A>::assign_helper(It b, It e, ...)
 }
 
 template<typename T, std::size_t SZ, template<typename...> class A>
-template<typename>
-void inline_vector<T, SZ, A>::swap_helper(select_1, inline_vector& other)
+template<typename U, typename>
+void inline_vector<T, SZ, A>::swap_helper(select_1, inline_vector& other, U*)
 {
 	// is_pod == true
 	{
@@ -838,6 +847,33 @@ auto inline_vector<T, SZ, A>::erase(iterator what) -> iterator
 
 // ----------------------------------------------------------------------------
 
+#if 0
+template<typename T, std::size_t SZ, template<typename...> class A>
+template<typename>
+auto inline_vector<T, SZ, A>::item_compare(select_1, const T& a, const T& b)
+	-> decltype( a.compare(b), int() )
+{
+	return a.compare(b);
+}
+
+template<typename T, std::size_t SZ, template<typename...> class A>
+template<typename>
+auto inline_vector<T, SZ, A>::item_compare(select_2, const T& a, const T& b)
+	-> decltype( a-b, int() )
+{
+	return a-b;
+}
+
+template<typename T, std::size_t SZ, template<typename...> class A>
+template<typename>
+auto inline_vector<T, SZ, A>::item_compare(select_3, const T& a, const T& b)
+	-> decltype( a<b, a==b, int() )
+{
+	/**/ if (a==b) return  0;
+	else if (a<b)  return -1;
+	               return +1;
+}
+#endif
 
 template<typename T, std::size_t SZ, template<typename...> class A>
 int inline_vector<T, SZ, A>::compare(const inline_vector& other) const
@@ -852,8 +888,10 @@ int inline_vector<T, SZ, A>::compare(const inline_vector& other) const
 			return 0;
 		if (me_ate) return -1;
 		if (ot_ate) return +1;
-		if ((*me_iter) < (*ot_iter)) return -1;
-		if ((*ot_iter) < (*me_iter)) return +1;
+		//int res = item_compare<>(select, *me_iter, *ot_iter);
+		//if (res) return res;
+		if ( (*me_iter) < (*ot_iter) ) return -1;
+		if ( (*ot_iter) < (*me_iter) ) return +1;
 		++me_iter; ++ot_iter;
 	}
 }

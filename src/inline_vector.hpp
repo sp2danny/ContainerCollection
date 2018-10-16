@@ -516,7 +516,9 @@ auto inline_vector<T, N>::erase(iterator where) -> iterator
 template<typename T, std::size_t N>
 auto inline_vector<T, N>::erase(iterator b, iterator e) -> iterator
 {
+	if (b>=e) return b;
 	auto itr = b;
+	auto ee = end();
 	while (itr != e)
 	{
 		itr->~T();
@@ -527,7 +529,7 @@ auto inline_vector<T, N>::erase(iterator b, iterator e) -> iterator
 	auto src = e;
 	while (true)
 	{
-		if (src == end()) break;
+		if (src == ee) break;
 		// move into destroyed
 		new (itr) T(std::move(*src));
 		src->~T();

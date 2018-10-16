@@ -29,6 +29,7 @@ void testsuit()
 			//TreeVector<test_item> tvi;
 
 			#define ALL vi, vti, lti, ivtis, ivtib, slti
+			//, slti, tvi
 
 			fillup<>{}(100, ALL);
 			for (int i=0; i<100; ++i)
@@ -39,14 +40,19 @@ void testsuit()
 			if (ok) sort_unique<>{}(ALL);
 			if (ok) ok = compare<>{}(ALL);
 
+			if (ok) CT::remove<>{}(test_item{55}, ALL);
+			if (ok) CT::binary_find_swap<>{}(test_item{33}, test_item{66}, ALL);
+			if (ok) ok = compare<>{}(ALL);
+
 			if (!ok)
 			{
+				cout << "compare test failed" << endl;
 				print<>{}(std::cout, ALL);
 			}
 			#undef ALL
 
 		}
-		cout << (ok?"compare test ok":"compare test failed") << endl;
+		if (ok) cout << "compare test ok" << endl;
 	}
 
 	auto rep = test_item::report();
@@ -55,10 +61,9 @@ void testsuit()
 	if (rep.empty())
 		std::cout << "move/delete: nothing to report" << std::endl;
 
-	cout << "vi     : ";
+	cout << "vi (sz:" << vi.size() << ") : ";
 	for (auto i : vi) cout << i << ' ';
 	cout << endl;
-
 }
 
 int main()

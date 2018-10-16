@@ -113,6 +113,30 @@ namespace CT
 		static std::string name() { return "print"s; }
 	};
 
+	template<typename T = void>
+	struct remove
+	{
+		template<typename Itm>
+		void operator()(const Itm&) {}
+
+		template<typename Itm, typename C1, typename... Args>
+		void operator()(const Itm&, C1&, Args&...);
+
+		static std::string name() { return "remove"s; }
+	};
+	
+	template<typename T = void>
+	struct binary_find_swap
+	{
+		template<typename Itm>
+		void operator()(const Itm&, const Itm&) {}
+
+		template<typename Itm, typename C1, typename... Args>
+		void operator()(const Itm&, const Itm&, C1&, Args&...);
+
+		static std::string name() { return "binary_find_swap"s; }
+	};
+
 }
 
 // ----------------------------------------------------------------------------
@@ -123,7 +147,7 @@ namespace CT
 	{
 		static bool inited = false;
 		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution(1, 10'000);
+		std::uniform_int_distribution<int> distribution(1, 100);
 	}
 }
 
@@ -149,6 +173,8 @@ void CT::fillup<T>::operator()(std::size_t sz, Args&... args)
 	copy_to<T>{}(vi, args...);
 }
 
+static const auto clr = "                                                  \r";
+
 template<typename T>
 template<typename C1, typename C2, typename... Args>
 void CT::copy_to<T>::operator()(const C1& from, C2& first, Args&... rest)
@@ -159,6 +185,13 @@ void CT::copy_to<T>::operator()(const C1& from, C2& first, Args&... rest)
 #endif
 	for (auto&& x : from)
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: "
+			<< "push_back of "
+			<< x << " into "
+			<< nameof(first)
+			<< clr;
+		#endif
 		first.push_back(x);
 	}
 	copy_to<>{}(from, rest...);
@@ -191,6 +224,16 @@ void CT::insert_nth<T>::operator()(std::size_t idx, int val, C1& first, Args&...
 #ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
+
+	#ifdef FULL_DIAG
+	std::cerr << "attempting: "
+		<< "insert_nth of "
+		<< val << " into "
+		<< nameof(first) << " (sz:" << first.size() << ")"
+		<< " at pos " << idx
+		<< clr;
+	#endif
+
 	auto itr = first.begin();
 	std::advance(itr, idx);
 	first.insert(itr, val);
@@ -217,6 +260,15 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
 	assert(idx < first.size());
+	
+	#ifdef FULL_DIAG
+	std::cerr << "attempting: "
+		<< "erase_nth in "
+		<< nameof(first) << " (sz:" << first.size() << ")"
+		<< " at pos " << idx
+		<< clr;
+	#endif
+
 	auto itr = first.begin();
 	std::advance(itr, idx);
 	first.erase(itr);
@@ -237,6 +289,13 @@ template<typename T>
 template<typename C1, typename... Args>
 void CT::sort_unique<T>::operator()(C1& first, Args&... rest)
 {
+	#ifdef FULL_DIAG
+	std::cerr << "attempting: "
+		<< "sort_unique of "
+		<< nameof(first) << " (sz:" << first.size() << ")"
+		<< clr;
+	#endif
+
 	sort(first);
 	unique(first);
 	sort_unique<>{}(rest...);
@@ -254,6 +313,29 @@ void CT::print<T>::operator()(std::ostream& out, C1& first, Args&... rest)
 	out << std::endl;
 	print<>{}(out, rest...);
 }
+
+template<typename T>
+template<typename Itm, typename C1, typename... Args>
+void CT::remove<T>::operator()(const Itm& itm, C1& first, Args&... rest)
+{
+	CO::remove(first, itm);
+	CT::remove<>{}(itm, rest...);
+}
+
+template<typename T>
+template<typename Itm, typename C1, typename... Args>
+void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& first, Args&... rest)
+{
+	auto r1 = binary_find(first, itm1);
+	auto r2 = binary_find(first, itm2);
+	if (r1.first && r2.first)
+	{
+		using std::swap;
+		swap(*r1.second, *r2.second);
+	}
+	binary_find_swap<>{}(itm1, itm2, rest...);
+}
+
 
 #ifdef STANDALONE
 
