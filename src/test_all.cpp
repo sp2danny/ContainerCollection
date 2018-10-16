@@ -18,7 +18,7 @@ void testsuit()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok && (i<100); ++i)
+		for (int i=0; ok && (i<2'500); ++i)
 		{
 			vi.clear();
 			vector<test_item> vti;
