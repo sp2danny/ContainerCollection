@@ -1,27 +1,20 @@
 
-#include <algorithm>
+
 #include <cstddef>
-#include <cassert>
-#include <functional>
 #include <iterator>
-#include <iostream>
-#include <initializer_list>
-#include <limits>
 #include <memory>
+#include <initializer_list>
+#include <utility>
+#include <iostream>
+#include <functional>
+
+#include <cassert>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
-#include <utility>
 #include <vector>
-#include <cstdint>
 
-#define BALANCE_ON_HEIGHT
-
-#ifdef BALANCE_ON_HEIGHT
- #define W_BITS 26
- #define H_BITS (32-W_BITS)
-#else
- #define W_BITS 32
-#endif
+#include <algorithm>
 
 template<typename T, template<typename...> class Alloc = std::allocator>
 class TreeVector
@@ -58,23 +51,23 @@ public:
 	{
 		iterator() = default;
 		T& operator*() const;
-		T* operator->() const;
-		T& operator[](int) const;
+		T* operator->();
+		T& operator[](int);
 		iterator& operator++();
 		iterator& operator--();
 		iterator operator++(int);
 		iterator operator--(int);
 		iterator& operator+=(std::ptrdiff_t);
 		iterator& operator-=(std::ptrdiff_t);
-		std::ptrdiff_t operator-(iterator) const;
-		iterator operator+(std::ptrdiff_t) const;
-		iterator operator-(std::ptrdiff_t) const;
-		bool operator==(iterator) const;
-		bool operator!=(iterator) const;
-		bool operator<(iterator) const;
-		bool operator<=(iterator) const;
-		bool operator>(iterator) const;
-		bool operator>=(iterator) const;
+		std::ptrdiff_t operator-(iterator);
+		iterator operator+(std::ptrdiff_t);
+		iterator operator-(std::ptrdiff_t);
+		bool operator==(iterator);
+		bool operator!=(iterator);
+		bool operator<(iterator);
+		bool operator<=(iterator);
+		bool operator>(iterator);
+		bool operator>=(iterator);
 
 	private:
 		iterator(NodeP n, TreeVector* o) : node(n), owner(o) {}
@@ -87,24 +80,24 @@ public:
 	struct const_iterator : std::iterator<std::random_access_iterator_tag, const T>
 	{
 		const_iterator() = default;
-		const T& operator*() const;
-		const T* operator->() const;
-		const T& operator[](int) const;
+		const T& operator*();
+		const T* operator->();
+		const T& operator[](int);
 		const_iterator& operator++();
 		const_iterator& operator--();
 		const_iterator operator++(int);
 		const_iterator operator--(int);
 		const_iterator& operator+=(std::ptrdiff_t);
 		const_iterator& operator-=(std::ptrdiff_t);
-		std::ptrdiff_t operator-(const_iterator) const;
-		const_iterator operator+(std::ptrdiff_t) const;
-		const_iterator operator-(std::ptrdiff_t) const;
-		bool operator==(const_iterator) const;
-		bool operator!=(const_iterator) const;
-		bool operator<(const_iterator) const;
-		bool operator<=(const_iterator) const;
-		bool operator>(const_iterator) const;
-		bool operator>=(const_iterator) const;
+		std::ptrdiff_t operator-(const_iterator);
+		const_iterator operator+(std::ptrdiff_t);
+		const_iterator operator-(std::ptrdiff_t);
+		bool operator==(const_iterator);
+		bool operator!=(const_iterator);
+		bool operator<(const_iterator);
+		bool operator<=(const_iterator);
+		bool operator>(const_iterator);
+		bool operator>=(const_iterator);
 
 		const_iterator(typename TreeVector::iterator i) : node(i.node), owner(i.owner) {}
 
@@ -204,7 +197,10 @@ public:
 	void merge(TreeVector&, Op&&);
 	void merge(TreeVector&& other) { merge(other, std::less<T>()); }
 	template<typename Op>
-	void merge(TreeVector&& other, Op&& op) { merge(other, op); }
+	void merge(TreeVector&& other, Op&& op)
+	{
+		merge(other, op);
+	}
 
 	bool is_sorted() const { return is_sorted(std::less<T>()); }
 	template<typename Op>
@@ -260,12 +256,7 @@ private:
 
 	struct NodeS
 	{
-		#ifdef BALANCE_ON_HEIGHT
-		uint32_t weight : W_BITS;
-		uint32_t height : H_BITS;
-		#else
-		uint32_t weight;
-		#endif
+		int   weight, height;
 		NodeP parent, left, right;
 		T     item;
 		template<typename... Args>
@@ -276,12 +267,7 @@ private:
 
 	struct SentryS
 	{
-		#ifdef BALANCE_ON_HEIGHT
-		uint32_t weight : W_BITS;
-		uint32_t height : H_BITS;
-		#else
-		uint32_t weight;
-		#endif
+		int   weight, height;
 		NodeP parent, left, right;
 	};
 
@@ -293,14 +279,6 @@ private:
 	};
 
 	union Node {
-		struct {
-			#ifdef BALANCE_ON_HEIGHT
-			uint32_t weight : W_BITS;
-			uint32_t height : H_BITS;
-			#else
-			uint32_t weight;
-			#endif
-		};
 		NodeS   n;
 		SentryS s;
 		Node(sentry_tag);
@@ -310,10 +288,8 @@ private:
 
 		int    balance();
 		bool   sentry();
-		//int&   weight();
-		//#ifdef BALANCE_ON_HEIGHT
-		//int&   height();
-		//#endif
+		int&   weight();
+		int&   height();
 		NodeP& parent();
 		NodeP& left();
 		NodeP& right();
@@ -457,10 +433,8 @@ std::string to_string(const TreeVector<T, A>& tv)
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::setEmpty()
 {
-	#ifdef BALANCE_ON_HEIGHT
-	root->height = nil->height = 0;
-	#endif
-	root->weight = nil->weight = 0;
+	root->height() = root->weight() = 0;
+	nil->height() = nil->weight() = 0;
 	root->parent() = root->left() = root->right() = nil;
 	nil->parent() = nil->left() = nil->right() = nil;
 }
@@ -474,8 +448,7 @@ TreeVector<T, A>::TreeVector()
 }
 
 template<typename T, template<typename...> class A>
-TreeVector<T, A>::TreeVector(const allocator_type& a)
-	: alloc(a)
+TreeVector<T, A>::TreeVector(const allocator_type& a) : alloc(a)
 {
 	root = makeSentry();
 	nil  = makeSentry();
@@ -483,15 +456,13 @@ TreeVector<T, A>::TreeVector(const allocator_type& a)
 }
 
 template<typename T, template<typename...> class A>
-TreeVector<T, A>::TreeVector(const TreeVector& other)
-	: TreeVector()
+TreeVector<T, A>::TreeVector(const TreeVector& other) : TreeVector()
 {
 	construct(other.begin(), other.end());
 }
 
 template<typename T, template<typename...> class A>
 TreeVector<T, A>::TreeVector(TreeVector&& other)
-	: TreeVector()
 {
 	swap(other);
 }
@@ -531,9 +502,7 @@ void TreeVector<T, A>::swap(TreeVector& other) noexcept
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::clear()
 {
-	static void (*rec_clr)(NodeP, TreeVector*, NodeP);
-	rec_clr = [](NodeP node, TreeVector* me, NodeP nil)
-	{
+	static void (*rec_clr)(NodeP, TreeVector*, NodeP) = [](NodeP node, TreeVector* me, NodeP nil) {
 		if (node == nil)
 			return;
 		rec_clr(node->left(), me, nil);
@@ -674,12 +643,12 @@ auto TreeVector<T, A>::getIdx(NodeP p, std::size_t idx) const -> NodeP
 
 	assert(!p->sentry());
 
-	auto lw = p->left()->weight;
+	auto lw = p->left()->weight();
 
-	if (lw == idx)
+	if (lw == (int)idx)
 		return p;
 
-	if (idx < lw)
+	if (int(idx) < lw)
 		return getIdx(p->left(), idx);
 
 	idx -= lw + 1;
@@ -703,9 +672,7 @@ auto TreeVector<T, A>::at(std::size_t idx) -> T&
 {
 	if (idx >= size())
 		throw std::out_of_range("index");
-	auto node = getIdx(head(), idx);
-	assert(!node->sentry());
-	return node->item();
+	return getIdx(head(), idx)->item();
 }
 
 template<typename T, template<typename...> class A>
@@ -713,9 +680,7 @@ auto TreeVector<T, A>::at(std::size_t idx) const -> const T&
 {
 	if (idx >= size())
 		throw std::out_of_range("index");
-	auto node = getIdx(head(), idx);
-	assert(!node->sentry());
-	return node->item();
+	return getIdx(head(), idx)->item();
 }
 
 template<typename T, template<typename...> class A>
@@ -765,16 +730,16 @@ auto TreeVector<T, A>::iterator::operator*() const -> T&
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator-> () const -> T*
+auto TreeVector<T, A>::iterator::operator-> () -> T*
 {
 	return std::addressof(node->item());
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator[](int idx) const -> T&
+auto TreeVector<T, A>::iterator::operator[](int idx) -> T&
 {
 	idx += owner->nodeIdx(node);
-	NodeP n = owner->getIdx(owner->head(), idx);
+	NodeP n = owner->getIdx(owner->root->left(), idx);
 	return n->item();
 }
 
@@ -813,7 +778,7 @@ auto TreeVector<T, A>::iterator::operator+=(std::ptrdiff_t dst) -> iterator&
 {
 	int idx = owner->nodeIdx(node);
 	idx += dst;
-	node = owner->getIdx(owner->head(), idx);
+	node = owner->getIdx(owner->root->left(), idx);
 	return *this;
 }
 
@@ -827,7 +792,7 @@ auto TreeVector<T, A>::iterator::operator-=(std::ptrdiff_t dst) -> iterator&
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator-(iterator other) const -> std::ptrdiff_t
+auto TreeVector<T, A>::iterator::operator-(iterator other) -> std::ptrdiff_t
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -836,7 +801,7 @@ auto TreeVector<T, A>::iterator::operator-(iterator other) const -> std::ptrdiff
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator+(std::ptrdiff_t dst) const -> iterator
+auto TreeVector<T, A>::iterator::operator+(std::ptrdiff_t dst) -> iterator
 {
 	iterator temp = *this;
 	temp += dst;
@@ -844,7 +809,7 @@ auto TreeVector<T, A>::iterator::operator+(std::ptrdiff_t dst) const -> iterator
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator-(std::ptrdiff_t dst) const -> iterator
+auto TreeVector<T, A>::iterator::operator-(std::ptrdiff_t dst) -> iterator
 {
 	iterator temp = *this;
 	temp -= dst;
@@ -852,21 +817,21 @@ auto TreeVector<T, A>::iterator::operator-(std::ptrdiff_t dst) const -> iterator
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator==(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator==(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	return node == other.node;
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator!=(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator!=(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	return node != other.node;
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator<(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator<(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -875,7 +840,7 @@ auto TreeVector<T, A>::iterator::operator<(iterator other) const -> bool
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator<=(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator<=(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -884,7 +849,7 @@ auto TreeVector<T, A>::iterator::operator<=(iterator other) const -> bool
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator>(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator>(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -893,7 +858,7 @@ auto TreeVector<T, A>::iterator::operator>(iterator other) const -> bool
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::iterator::operator>=(iterator other) const -> bool
+auto TreeVector<T, A>::iterator::operator>=(iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -902,19 +867,19 @@ auto TreeVector<T, A>::iterator::operator>=(iterator other) const -> bool
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator*() const -> const T&
+auto TreeVector<T, A>::const_iterator::operator*() -> const T&
 {
 	return node->item();
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator-> () const -> const T*
+auto TreeVector<T, A>::const_iterator::operator-> () -> const T*
 {
 	return std::addressof(node->item());
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator[](int idx) const -> const T&
+auto TreeVector<T, A>::const_iterator::operator[](int idx) -> const T&
 {
 	idx += owner->nodeIdx(node);
 	NodeP n = owner->getIdx(owner->root->left(), idx);
@@ -970,7 +935,7 @@ auto TreeVector<T, A>::const_iterator::operator-=(std::ptrdiff_t dst) -> const_i
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator-(const_iterator other) const -> std::ptrdiff_t
+auto TreeVector<T, A>::const_iterator::operator-(const_iterator other) -> std::ptrdiff_t
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -979,7 +944,7 @@ auto TreeVector<T, A>::const_iterator::operator-(const_iterator other) const -> 
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator+(std::ptrdiff_t dst) const -> const_iterator
+auto TreeVector<T, A>::const_iterator::operator+(std::ptrdiff_t dst) -> const_iterator
 {
 	const_iterator temp = *this;
 	temp += dst;
@@ -987,7 +952,7 @@ auto TreeVector<T, A>::const_iterator::operator+(std::ptrdiff_t dst) const -> co
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator-(std::ptrdiff_t dst) const -> const_iterator
+auto TreeVector<T, A>::const_iterator::operator-(std::ptrdiff_t dst) -> const_iterator
 {
 	const_iterator temp = *this;
 	temp -= dst;
@@ -995,21 +960,21 @@ auto TreeVector<T, A>::const_iterator::operator-(std::ptrdiff_t dst) const -> co
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator==(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator==(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	return node == other.node;
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator!=(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator!=(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	return node != other.node;
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator<(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator<(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -1018,7 +983,7 @@ auto TreeVector<T, A>::const_iterator::operator<(const_iterator other) const -> 
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator<=(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator<=(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -1027,7 +992,7 @@ auto TreeVector<T, A>::const_iterator::operator<=(const_iterator other) const ->
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator>(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator>(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -1036,7 +1001,7 @@ auto TreeVector<T, A>::const_iterator::operator>(const_iterator other) const -> 
 }
 
 template<typename T, template<typename...> class A>
-auto TreeVector<T, A>::const_iterator::operator>=(const_iterator other) const -> bool
+auto TreeVector<T, A>::const_iterator::operator>=(const_iterator other) -> bool
 {
 	assert(owner == other.owner);
 	int idx1 = owner->nodeIdx(node);
@@ -1047,19 +1012,13 @@ auto TreeVector<T, A>::const_iterator::operator>=(const_iterator other) const ->
 // ----------------------------------------------------------------------------
 
 template<typename T, template<typename...> class A>
-TreeVector<T, A>::Node::Node(sentry_tag)
-#ifdef BALANCE_ON_HEIGHT
-	: s{0, 0, nullptr, nullptr, nullptr}
-#else
-	: s{0, nullptr, nullptr, nullptr}
-#endif
+TreeVector<T, A>::Node::Node(sentry_tag) : s{0, 0}
 {
 }
 
 template<typename T, template<typename...> class A>
 template<typename... Args>
-TreeVector<T, A>::Node::Node(node_tag, Args&&... args)
-	: n(std::forward<Args>(args)...)
+TreeVector<T, A>::Node::Node(node_tag, Args&&... args) : n(std::forward<Args>(args)...)
 {
 }
 
@@ -1068,6 +1027,18 @@ TreeVector<T, A>::Node::~Node()
 {
 	if (s.weight)
 		n.item.~T();
+}
+
+template<typename T, template<typename...> class A>
+int& TreeVector<T, A>::Node::weight()
+{
+	return s.weight;
+}
+
+template<typename T, template<typename...> class A>
+int& TreeVector<T, A>::Node::height()
+{
+	return s.height;
 }
 
 template<typename T, template<typename...> class A>
@@ -1104,15 +1075,7 @@ bool TreeVector<T, A>::Node::sentry()
 template<typename T, template<typename...> class A>
 int TreeVector<T, A>::Node::balance()
 {
-#ifdef BALANCE_ON_HEIGHT
-	return right()->height - left()->height;
-#else
-	int rw = right()->weight;
-	int lw = left()->weight;
-	if (lw>rw) return rw ? -(lw/rw) : -lw;
-	if (rw>lw) return lw ? +(rw/lw) : +rw;
-	return 0;
-#endif
+	return right()->height() - left()->height();
 }
 
 // ----------------------------------------------------------------------------
@@ -1143,37 +1106,32 @@ void TreeVector<T, A>::printTree(OS& out, NodeP n, Trunk* prev, bool is_left) co
 	if (n == nil)
 		return;
 
-	Trunk this_disp = {prev, "    "};
+	Trunk this_disp = {prev, "     "};
 	auto  prev_str  = this_disp.str;
 	printTree(out, n->right(), &this_disp, true);
 
 	if (!prev)
 	{
-		this_disp.str = "--";
+		this_disp.str = "---";
 	} else if (is_left)
 	{
-		this_disp.str = ".-";
-		prev_str      = "   |";
+		this_disp.str = ".--";
+		prev_str      = "    |";
 	} else
 	{
-		this_disp.str = "`-";
+		this_disp.str = "`--";
 		prev->str     = prev_str;
 	}
 
 	printTrunks(out, &this_disp);
 	out << " " << n->item();
-	//out << " (" << std::showpos << n->balance() << std::noshowpos << "," << n->weight;
-	//#ifdef BALANCE_ON_HEIGHT
-	//out << "," << n->height;
-	//#endif
-	//out << ")";
-	out << "\n";
+	out << " (" << std::showpos << n->balance() << std::noshowpos << "," << n->weight() << "," << n->height() << ")\n";
 
 	if (prev)
 	{
 		prev->str = prev_str;
 	}
-	this_disp.str = "   |";
+	this_disp.str = "    |";
 
 	printTree(out, n->left(), &this_disp, false);
 	if (!prev)
@@ -1253,13 +1211,7 @@ void TreeVector<T, A>::toStr(NodeP p, RV& rv) const
 	me << ((ln && rn) ? "-- <" : "-+-- <");
 	me << p->item() << ">";
 	if (!(ln && rn))
-	{
-		me << " w:" << p->weight;
-		#ifdef BALANCE_ON_HEIGHT
-		me << " h:" << p->height;
-		#endif
-		me << " b:" << std::showpos << p->balance() << std::noshowpos;
-	}
+		me << " w:" << p->weight() << " h:" << p->height() << " b:" << std::showpos << p->balance() << std::noshowpos;
 	res.trunk = res.sv.size();
 	res.sv.push_back(me.str());
 
@@ -1290,9 +1242,9 @@ template<typename T, template<typename...> class A>
 std::size_t TreeVector<T, A>::nodeIdx(NodeP n) const
 {
 	if (n == root)
-		return head()->weight;
+		return head()->weight();
 	bool lft;
-	int  idx = n->left()->weight;
+	int  idx = n->left()->weight();
 	while (true)
 	{
 		lft = isLeft(n);
@@ -1300,7 +1252,7 @@ std::size_t TreeVector<T, A>::nodeIdx(NodeP n) const
 		if (n == root)
 			break;
 		if (!lft)
-			idx += 1 + n->left()->weight;
+			idx += 1 + n->left()->weight();
 	}
 	return idx;
 }
@@ -1352,10 +1304,8 @@ bool TreeVector<T, A>::isLeft(NodeP n) const
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::fixHW(NodeP p)
 {
-#ifdef BALANCE_ON_HEIGHT
-	p->height = 1 + std::max(p->left()->height, p->right()->height);
-#endif
-	p->weight = 1 + p->left()->weight + p->right()->weight;
+	p->height() = 1 + std::max(p->left()->height(), p->right()->height());
+	p->weight() = 1 + p->left()->weight() + p->right()->weight();
 }
 
 template<typename T, template<typename...> class A>
@@ -1411,9 +1361,8 @@ template<typename T, template<typename...> class A>
 template<typename It>
 void TreeVector<T, A>::construct(It b, It e, std::random_access_iterator_tag)
 {
-	static void (*ra)(TreeVector*, NodeP, NodeP&, It, It, NodeP);
-	ra = [](TreeVector* self, NodeP par, NodeP& me, It a, It b, NodeP nil)
-	{
+	static void (*ra)(TreeVector*, NodeP, NodeP&, It, It, NodeP) = [](TreeVector* self, NodeP par, NodeP& me, It a,
+	                                                                  It b, NodeP nil) {
 		auto sz = b - a;
 		if (sz == 0)
 		{
@@ -1424,20 +1373,17 @@ void TreeVector<T, A>::construct(It b, It e, std::random_access_iterator_tag)
 		{
 			me           = self->makeNode(*a);
 			me->parent() = par;
-			me->left()   = me->right()  = nil;
-			me->weight   = 1;
-			#ifdef BALANCE_ON_HEIGHT
-			me->height   = 1;
-			#endif
+			me->left() = me->right() = nil;
+			me->weight() = me->height() = 1;
 			return;
 		}
 		auto p       = sz / 2;
 		me           = self->makeNode(a[p]);
 		me->parent() = par;
+		me->weight() = me->height() = -1;
 		ra(self, me, me->left(), a, a + p, nil);
 		ra(self, me, me->right(), a + p + 1, b, nil);
 		self->fixHW(me);
-		assert( self->integrity(me) );
 	};
 
 	ra(this, root, head(), b, e, nil);
@@ -1457,9 +1403,8 @@ void TreeVector<T, A>::construct(It b, It e, std::forward_iterator_tag)
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::construct(std::size_t n, const T& t)
 {
-	static void (*ra)(TreeVector*, NodeP, NodeP&, std::size_t, const T&, NodeP);
-	ra = [](TreeVector* self, NodeP par, NodeP& me, std::size_t sz, const T& t, NodeP nil)
-	{
+	static void (*ra)(TreeVector*, NodeP, NodeP&, std::size_t, const T&,
+	                  NodeP) = [](TreeVector* self, NodeP par, NodeP& me, std::size_t sz, const T& t, NodeP nil) {
 		if (sz == 0)
 		{
 			me = nil;
@@ -1469,11 +1414,7 @@ void TreeVector<T, A>::construct(std::size_t n, const T& t)
 		{
 			me           = self->makeNode(t);
 			me->parent() = par;
-			me->left()   = me->right() = nil;
-			me->weight   = 1;
-			#ifdef BALANCE_ON_HEIGHT
-			me->height   = 1;
-			#endif
+			me->left() = me->right() = nil;
 			return;
 		}
 		auto p = sz / 2;
@@ -1481,7 +1422,6 @@ void TreeVector<T, A>::construct(std::size_t n, const T& t)
 		ra(self, me, me->left(), p, t, nil);
 		ra(self, me, me->right(), p - 1, t, nil);
 		self->fixHW(me);
-		assert( self->integrity(me) );
 	};
 
 	ra(this, root, head(), n, t, nil);
@@ -1491,9 +1431,8 @@ template<typename T, template<typename...> class A>
 template<typename It>
 void TreeVector<T, A>::construct_p(It b, It e)
 {
-	static void (*ra)(TreeVector*, NodeP, NodeP&, It, It, NodeP);
-	ra = [](TreeVector* self, NodeP par, NodeP& me, It a, It b, NodeP nil)
-	{
+	static void (*ra)(TreeVector*, NodeP, NodeP&, It, It, NodeP) = [](TreeVector* self, NodeP par, NodeP& me, It a,
+	                                                                  It b, NodeP nil) {
 		auto sz = b - a;
 		assert(sz >= 0);
 		if (sz == 0)
@@ -1505,11 +1444,8 @@ void TreeVector<T, A>::construct_p(It b, It e)
 		{
 			me           = *a;
 			me->parent() = par;
-			me->left()   = me->right() = nil;
-			me->weight   = 1;
-			#ifdef BALANCE_ON_HEIGHT
-			me->height   = 1;
-			#endif
+			me->left() = me->right() = nil;
+			me->weight() = me->height() = 1;
 			return;
 		}
 		auto p       = sz / 2;
@@ -1518,7 +1454,6 @@ void TreeVector<T, A>::construct_p(It b, It e)
 		ra(self, me, me->left(), a, a + p, nil);
 		ra(self, me, me->right(), a + p + 1, b, nil);
 		self->fixHW(me);
-		assert( self->integrity(me) );
 	};
 
 	ra(this, root, head(), b, e, nil);
@@ -1737,10 +1672,7 @@ void TreeVector<T, A>::sort(Op&& op)
 
 	recursiveFlatten(head(), vec);
 
-	auto NodeLess = [&op](NodeP lhs, NodeP rhs) -> bool
-	{
-		return op(lhs->item(), rhs->item());
-	};
+	auto NodeLess = [&op](NodeP lhs, NodeP rhs) -> bool { return op(lhs->item(), rhs->item()); };
 
 	std::sort(vec.begin(), vec.end(), NodeLess);
 
@@ -1756,10 +1688,7 @@ void TreeVector<T, A>::stable_sort(Op&& op)
 
 	recursiveFlatten(head(), vec);
 
-	auto NodeLess = [&op](NodeP lhs, NodeP rhs) -> bool
-	{
-		return op(lhs->item(), rhs->item());
-	};
+	auto NodeLess = [&op](NodeP lhs, NodeP rhs) -> bool { return op(lhs->item(), rhs->item()); };
 
 	std::stable_sort(vec.begin(), vec.end(), NodeLess);
 
@@ -2103,17 +2032,13 @@ void TreeVector<T, A>::remove_if(Op&& op)
 template<typename T, template<typename...> class A>
 std::size_t TreeVector<T, A>::size() const
 {
-	return head()->weight;
+	return head()->weight();
 }
 
 template<typename T, template<typename...> class A>
 std::size_t TreeVector<T, A>::max_size() const
 {
-	#ifdef BALANCE_ON_HEIGHT
-	return (1ul<<W_BITS) - 1;
-	#else
-	return std::numeric_limits<std::uint32_t>::max();
-	#endif
+	return std::numeric_limits<int>::max();
 }
 
 template<typename T, template<typename...> class A>
@@ -2133,7 +2058,7 @@ void TreeVector<T, A>::helperUnlink(NodeP node)
 			linkR(n1->parent(), n2);
 	};
 
-	bool ln = node->left()  == nil;
+	bool ln = node->left() == nil;
 	bool rn = node->right() == nil;
 
 	if (ln && rn)
@@ -2181,10 +2106,7 @@ void TreeVector<T, A>::treeDeleteNode(NodeP node)
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::treeInsert(NodeP where, NodeP newnode)
 {
-	newnode->weight   = 1;
-	#ifdef BALANCE_ON_HEIGHT
-	newnode->height   = 1;
-	#endif
+	newnode->weight() = newnode->height() = 1;
 	newnode->left() = newnode->right() = nil;
 
 	if (where->left() == nil)
@@ -2206,24 +2128,22 @@ void TreeVector<T, A>::treeInsert(NodeP where, NodeP newnode)
 template<typename T, template<typename...> class A>
 void TreeVector<T, A>::treeBalance(NodeP node)
 {
-	while (!node->sentry())
+	while (node != root)
 	{
 		fixHW(node);
 
 		int balance = node->balance();
 
-		#ifdef BALANCE_ON_HEIGHT
 		assert((balance >= -2) && (balance <= +2));
-		#endif
 
-		if (balance <= -2)
+		if (balance == -2)
 		{
 			int lb = node->left()->balance();
 			if (lb == -1)
 				treeRotateRight(node);
 			else
 				treeRotateLeftRight(node);
-		} else if (balance >= +2)
+		} else if (balance == +2)
 		{
 			int rb = node->right()->balance();
 			if (rb == +1)
@@ -2233,6 +2153,8 @@ void TreeVector<T, A>::treeBalance(NodeP node)
 		}
 
 		node = node->parent();
+		if (node == nil)
+			break;
 	}
 }
 
@@ -2305,55 +2227,39 @@ bool TreeVector<T, A>::integrity(NodeP node) const
 	bool amleft  = node->parent()->left() == node;
 	bool amright = node->parent()->right() == node;
 
-	if (node->weight   < 1)
+	if (node->weight() < 1)
 		return false;
-	#ifdef BALANCE_ON_HEIGHT
-	if (node->height   < 1)
+	if (node->height() < 1)
 		return false;
-	#endif
 
 	if (amleft == amright)
 		return false;
 
-	#ifdef BALANCE_ON_HEIGHT
-	int lh = node->left()->height;
-	int rh = node->right()->height;
+	int lh = node->left()->height();
+	int rh = node->right()->height();
 
 	if (std::abs(lh - rh) > 1)
 		return false;
-	#endif
 
-	int lw = node->left()->weight;
-	int rw = node->right()->weight;
+	int lw = node->left()->weight();
+	int rw = node->right()->weight();
 
-	#ifdef BALANCE_ON_HEIGHT
 	int h = std::max(lh, rh) + 1;
-	#endif
 	int w = lw + rw + 1;
 
-	#ifdef BALANCE_ON_HEIGHT
-	if (h != (int)node->height)
+	if (h != node->height())
 		return false;
-	#endif
-	if (w != (int)node->weight)
+	if (w != node->weight())
 		return false;
 
 	bool lrn = (node->left() == nil) && (node->right() == nil);
 
-	if (
-		(w == 1) || 
-		#ifdef BALANCE_ON_HEIGHT
-		(h == 1) || 
-		#endif
-		lrn
-	   )
+	if ((w == 1) || (h == 1) || lrn)
 	{
 		if (w != 1)
 			return false;
-		#ifdef BALANCE_ON_HEIGHT
 		if (h != 1)
 			return false;
-		#endif
 		if (!lrn)
 			return false;
 	}
@@ -2382,11 +2288,9 @@ bool TreeVector<T, A>::integrity() const
 {
 	if (!nil)
 		return false;
-	#ifdef BALANCE_ON_HEIGHT
-	if (nil->height != 0)
+	if (nil->height() != 0)
 		return false;
-	#endif
-	if (nil->weight != 0)
+	if (nil->weight() != 0)
 		return false;
 	if (nil->left() != nil)
 		return false;
@@ -2399,11 +2303,9 @@ bool TreeVector<T, A>::integrity() const
 		return false;
 	if (root->right() != nil)
 		return false;
-	#ifdef BALANCE_ON_HEIGHT
-	if (root->height != 0)
+	if (root->height() != 0)
 		return false;
-	#endif
-	if (root->weight != 0)
+	if (root->weight() != 0)
 		return false;
 
 	if (root->left() != head())
@@ -2421,8 +2323,6 @@ bool TreeVector<T, A>::integrity() const
 			return false;
 		++i;
 		++iter;
-		if (i>n)
-			return false;
 	}
 	if (i != n)
 		return false;
@@ -2431,4 +2331,3 @@ bool TreeVector<T, A>::integrity() const
 }
 
 #endif
-
