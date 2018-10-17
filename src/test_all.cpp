@@ -20,7 +20,7 @@ void testsuit()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok && (i<2'500); ++i)
+		for (int i=0; ok; ++i)
 		{
 			vi.clear();
 			vector<test_item> vti;
@@ -52,6 +52,8 @@ void testsuit()
 				print<>{}(std::cout, ALL);
 			}
 			#undef ALL
+			
+			if ( (i>1000) && !std::is_sorted(vi.begin(), vi.end())) break;
 
 		}
 		if (ok) cout << "compare test ok" << endl;
@@ -71,7 +73,7 @@ void testsuit()
 int main()
 {
 	testsuit();
-	fgetc(stdin);
+	//fgetc(stdin);
 }
 
 
