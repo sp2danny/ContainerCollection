@@ -2210,31 +2210,28 @@ auto TreeVector<T, A>::treeRotateRightLeft(NodeP node) -> NodeP
 
 #ifndef NDEBUG
 
+#define LOG(y) std::cerr << y << std::endl
+#define TEST(x) if (x) { LOG(#x); return false; }
+
 template<typename T, template<typename...> class A>
 bool TreeVector<T, A>::integrity(NodeP node) const
 {
 	if (node == nil)
 		return true;
-	if (node == root)
-		return false;
+	TEST (node == root)
 
 	bool amleft  = node->parent()->left() == node;
 	bool amright = node->parent()->right() == node;
 
-	if (node->weight() < 1)
-		return false;
-	if (node->height() < 1)
-		return false;
-
-	if (amleft == amright)
-		return false;
+	TEST (node->weight() < 1)
+	TEST (node->height() < 1)
+	TEST (amleft == amright)
 
 	uint lh = node->left()->height();
 	uint rh = node->right()->height();
 
 	auto df = (lh>rh) ? (lh-rh) : (rh-lh);
-	if (df > 1)
-		return false;
+	TEST (df > 1)
 
 	uint lw = node->left()->weight();
 	uint rw = node->right()->weight();
@@ -2242,37 +2239,28 @@ bool TreeVector<T, A>::integrity(NodeP node) const
 	uint h = std::max(lh, rh) + 1;
 	uint w = lw + rw + 1;
 
-	if (h != node->height())
-		return false;
-	if (w != node->weight())
-		return false;
+	TEST (h != node->height())
+	TEST (w != node->weight())
 
 	bool lrn = (node->left() == nil) && (node->right() == nil);
 
 	if ((w == 1) || (h == 1) || lrn)
 	{
-		if (w != 1)
-			return false;
-		if (h != 1)
-			return false;
-		if (!lrn)
-			return false;
+		TEST (w != 1)
+		TEST (h != 1)
+		TEST (!lrn)
 	}
 
 	if (node->left() != nil)
 	{
-		if (node->left()->parent() != node)
-			return false;
-		if (!integrity(node->left()))
-			return false;
+		TEST (node->left()->parent() != node)
+		TEST (!integrity(node->left()))
 	}
 
 	if (node->right() != nil)
 	{
-		if (node->right()->parent() != node)
-			return false;
-		if (!integrity(node->right()))
-			return false;
+		TEST (node->right()->parent() != node)
+		TEST (!integrity(node->right()))
 	}
 
 	return true;
@@ -2281,48 +2269,36 @@ bool TreeVector<T, A>::integrity(NodeP node) const
 template<typename T, template<typename...> class A>
 bool TreeVector<T, A>::integrity() const
 {
-	if (!nil)
-		return false;
-	if (nil->height() != 0)
-		return false;
-	if (nil->weight() != 0)
-		return false;
-	if (nil->left() != nil)
-		return false;
-	if (nil->right() != nil)
-		return false;
-
-	if (!root)
-		return false;
-	if (root->parent() != nil)
-		return false;
-	if (root->right() != nil)
-		return false;
-	if (root->height() != 0)
-		return false;
-	if (root->weight() != 0)
-		return false;
-
-	if (root->left() != head())
-		return false;
-	if (!integrity(head()))
-		return false;
+	TEST (!nil)
+	TEST (nil->height() != 0)
+	TEST (nil->weight() != 0)
+	TEST (nil->left() != nil)
+	TEST (nil->right() != nil)
+	TEST (!root)
+	TEST (root->parent() != nil)
+	TEST (root->right() != nil)
+	TEST (root->height() != 0)
+	TEST (root->weight() != 0)
+	TEST (root->left() != head())
+	TEST (!integrity(head()))
 
 	size_t i = 0, n = size();
 	auto iter = begin();
 	while (iter != end())
 	{
-		if (iter != nth(i))
-			return false;
-		if (index_of(iter) != i)
-			return false;
+		TEST (iter != nth(i))
+		TEST (index_of(iter) != i)
 		++i;
 		++iter;
 	}
-	if (i != n)
-		return false;
+	TEST (i != n)
 
 	return true;
 }
 
+#undef TEST
+#undef LOG
+
+
 #endif
+

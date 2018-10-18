@@ -35,14 +35,22 @@ void testsuit()
 		auto i = rand() % n;
 		auto itr = tvi.begin() + i;
 		std::cout << "\r" << i << "/" << n << "   ";
-		tvi.erase(itr);
+		if (i==95 && n==757)
+		{
+			std::cout << "\nabout to do something stupid\n";
+			std::cout << tvi << std::endl;
+			tvi.erase(itr);
+			std::cout << "\ndid the stupid\n";
+			std::cout << tvi << std::endl;
+		}
+		else
+			tvi.erase(itr);
 		if (!tvi.integrity())
 		{
 			std::cout << "\n\n";
 			assert(false);
 		}
 	}
-
 }
 
 int main()
