@@ -669,10 +669,9 @@ auto TreeVector<T, A>::lastNode() const -> NodeP
 template<typename T, template<typename...> class A>
 auto TreeVector<T, A>::getIdx(NodeP p, std::size_t idx) const -> NodeP
 {
-	if ((p==head()) && (idx==size()))
-		return root;
-
 	assert(!p->sentry());
+
+	if (idx == p->weight) return root;
 
 	auto lw = p->left()->weight;
 

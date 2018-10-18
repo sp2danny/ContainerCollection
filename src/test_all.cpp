@@ -29,9 +29,9 @@ void testsuit()
 			inline_vector<test_item,150> ivtis;
 			inline_vector<test_item,300> ivtib;
 			splice_list<test_item> slti;
-			//TreeVector<test_item> tvi;
+			TreeVector<test_item> tvi;
 
-			#define ALL vi, vti, lti, ivtis, ivtib, slti
+			#define ALL vi, vti, lti, ivtis, ivtib, slti, tvi
 			//, slti, tvi
 
 			fillup<>{}(100, ALL);
