@@ -2,7 +2,8 @@
 #include "inline_vector.hpp"
 #include "splice_list.hpp"
 
-#include "TreeVector_allinone.hpp"
+//#include "TreeVector_allinone.hpp"
+//#include "TreeVector.hpp"
 
 #include "test_item.hpp"
 #include "container_tester.hpp"
@@ -10,8 +11,6 @@
 #include <iostream>
 #include <vector>
 #include <list>
-
-// _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 
 void testsuit()
 {
@@ -29,10 +28,13 @@ void testsuit()
 			inline_vector<test_item,150> ivtis;
 			inline_vector<test_item,300> ivtib;
 			splice_list<test_item> slti;
-			TreeVector<test_item> tvi;
+			//TreeVector<test_item> tvti;
+			//mkr::avl_array<int> aati;
+			//mkr::avl_array<int> aai;
 
-			#define ALL vi, vti, lti, ivtis, ivtib, slti, tvi
-			//, slti, tvi
+			#define ALL vi, vti, lti, slti, ivtis, ivtib
+			//#define ALL vi, vti, lti, ivtis, ivtib, slti
+			//#define ALL vi, aai
 
 			fillup<>{}(100, ALL);
 			for (int i=0; i<100; ++i)
@@ -42,6 +44,10 @@ void testsuit()
 			if (ok) ok = compare<>{}(ALL);
 			if (ok) sort_unique<>{}(ALL);
 			if (ok) ok = compare<>{}(ALL);
+
+			if (ok) splice_merge<>{}(ALL);
+			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = std::is_sorted(vi.begin(), vi.end());
 
 			if (ok) CT::remove<>{}(test_item{55}, ALL);
 			if (ok) binary_find_swap<>{}(test_item{33}, test_item{66}, ALL);

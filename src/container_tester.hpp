@@ -67,7 +67,7 @@ namespace CT
 	{
 		template<typename C1, typename... Args>
 		void operator()(C1&, Args&...);
-
+	
 		static std::string name() { return "insert"s; }
 	};
 
@@ -123,6 +123,17 @@ namespace CT
 		void operator()(const Itm&, C1&, Args&...);
 
 		static std::string name() { return "remove"s; }
+	};
+
+	template<typename T = void>
+	struct splice_merge
+	{
+		void operator()() {}
+
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+
+		static std::string name() { return "splice_merge"s; }
 	};
 	
 	template<typename T = void>
@@ -323,6 +334,23 @@ void CT::remove<T>::operator()(const Itm& itm, C1& first, Args&... rest)
 }
 
 template<typename T>
+template<typename C1, typename... Args>
+void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
+{
+	init();
+	int sz = (int)first.size();
+	std::size_t idx1 = std::uniform_int_distribution<int>{0, sz-1}(generator);
+	std::size_t idx2 = std::uniform_int_distribution<int>{0, sz-1}(generator);
+	if (idx1>idx2) std::swap(idx1, idx2);
+	auto itr1 = std::next(first.begin(), idx1);
+	auto itr2 = std::next(first.begin(), idx2);
+	C1 other;
+	splice(first, itr1, itr2, other, other.begin());
+	merge(first, other);
+	splice_merge<>{}(rest...);
+}
+
+template<typename T>
 template<typename Itm, typename C1, typename... Args>
 void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& first, Args&... rest)
 {
@@ -335,7 +363,6 @@ void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& f
 	}
 	binary_find_swap<>{}(itm1, itm2, rest...);
 }
-
 
 #ifdef STANDALONE
 

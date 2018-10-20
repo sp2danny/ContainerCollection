@@ -181,6 +181,43 @@ namespace detail
 		else
 			return {false,{}};
 	}
+
+	template<typename Cont, typename It>
+	auto splice(pick_1, Cont& src, It sb, It se, Cont& dst, It d)
+		-> decltype(dst.splice(d,src,sb,se), void())
+	{
+		dst.splice(d,src,sb,se);
+	}
+
+	template<typename Cont, typename It>
+	auto splice(pick_2, Cont& src, It sb, It se, Cont& dst, It d)
+		-> void
+	{
+		It i = sb;
+		while (i != se)
+		{
+			d = dst.insert(d, std::move(*i));
+			++d; ++i;
+		}
+		src.erase(sb, se);
+	}
+
+	template<typename Cont>
+	auto merge(pick_1, Cont& c1, Cont& c2)
+		-> decltype(c1.merge(c2), void())
+	{
+		c1.merge(c2);
+	}
+
+	template<typename Cont>
+	auto merge(pick_2, Cont& c1, Cont& c2)
+		-> void
+	{
+		Cont dst;
+		std::merge(c1.begin(), c1.end(), c2.begin(), c2.end(), std::back_inserter(dst));
+		c1.swap(dst);
+	}
+
 }
 
 template<typename C1>
@@ -207,6 +244,19 @@ auto binary_find(C1&& c1, const Itm& itm)
 {
 	return detail::binary_find(detail::pick_1{}, c1, itm);
 }
+
+template<typename Cont, typename It>
+void splice(Cont& src, It sb, It se, Cont& dst, It d)
+{
+	detail::splice(detail::pick_1{}, src, sb, se, dst, d);
+}
+
+template<typename Cont>
+void merge(Cont& c1, Cont& c2)
+{
+	detail::merge(detail::pick_1{}, c1, c2);
+}
+
 
 }
 

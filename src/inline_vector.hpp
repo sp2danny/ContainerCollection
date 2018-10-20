@@ -109,6 +109,8 @@ private:
 
 	void create_gap(size_type, size_type);
 
+	void make_heap();
+
 	struct heap_content
 	{
 		size_type size, capa;
@@ -220,13 +222,32 @@ inline_vector<T, N>::inline_vector(std::initializer_list<T> il)
 {
 }
 
+template<typename T, std::size_t N>
+void inline_vector<T, N>::make_heap()
+{
+	if (ic.capa!=0) return;
+	auto sz = ic.size;
+	auto cp = sz+1;
+	T* ptr = std::allocator<T>{}.allocate(cp);
+	T* src = data();
+	for (size_type i=0; i<sz; ++i)
+	{
+		new (ptr+i) T(std::move(src[i]));
+		src[i].~T();
+	}
+	hc.size = sz;
+	hc.capa = cp;
+	hc.data = ptr;
+}
+
 // misc
 template<typename T, std::size_t N>
 void inline_vector<T, N>::swap(inline_vector& other) noexcept(cne)
 {
-	auto tmp = std::move(other);
-	other = std::move(*this);
-	(*this) = std::move(tmp);
+	make_heap();
+	other.make_heap();
+	using std::swap;
+	swap(hc, other.hc);
 }
 
 // destruction

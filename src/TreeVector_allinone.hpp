@@ -1022,13 +1022,13 @@ TreeVector<T, A>::Node::~Node()
 }
 
 template<typename T, template<typename...> class A>
-uint& TreeVector<T, A>::Node::weight()
+auto TreeVector<T, A>::Node::weight() -> uint&
 {
 	return s.weight;
 }
 
 template<typename T, template<typename...> class A>
-uint& TreeVector<T, A>::Node::height()
+auto TreeVector<T, A>::Node::height() -> uint&
 {
 	return s.height;
 }
