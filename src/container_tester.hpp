@@ -270,7 +270,8 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 #ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
 #endif
-	assert(idx < first.size());
+	typedef unsigned long long ULL;
+	assert(ULL(idx) < ULL(first.size()));
 	
 	#ifdef FULL_DIAG
 	std::cerr << "attempting: "

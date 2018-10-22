@@ -34,8 +34,8 @@ class empty_number   // Class supporting some numeric operators
 {                    // but containing no number at all
   public:
 
-    empty_number (int n=0) { }
-    empty_number (long long n) { }
+    empty_number (int = 0) { }
+    empty_number (long long) { }
 
     empty_number operator+ (const empty_number &) const
     { return empty_number(); }

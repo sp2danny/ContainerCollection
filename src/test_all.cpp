@@ -5,6 +5,8 @@
 //#include "TreeVector_allinone.hpp"
 //#include "TreeVector.hpp"
 
+#include "avl_array.hpp"
+
 #include "test_item.hpp"
 #include "container_tester.hpp"
 
@@ -29,10 +31,10 @@ void testsuit()
 			inline_vector<test_item,300> ivtib;
 			splice_list<test_item> slti;
 			//TreeVector<test_item> tvti;
-			//mkr::avl_array<int> aati;
+			mkr::avl_array<test_item> aati;
 			//mkr::avl_array<int> aai;
 
-			#define ALL vi, vti, lti, slti, ivtis, ivtib
+			#define ALL vi, vti, lti, slti, ivtis, ivtib, aati
 			//#define ALL vi, vti, lti, ivtis, ivtib, slti
 			//#define ALL vi, aai
 

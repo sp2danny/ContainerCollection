@@ -65,7 +65,7 @@ inline
 
   ratio = (final_size + n/2) / n;   // (n/2)/n==.5 for rounding
                                     // the integer division
-  if (ratio >= sizeof(size_type)*8)
+  if (ratio >= size_type(sizeof(size_type)*8))
     return false;                   // Avoid << overflow
   else
     return average_size >           // O(n log N) > O(N) ?
@@ -112,7 +112,7 @@ template<class T,class A,class W,class P>
   if (n<=0)
     return next;
 
-  for (depth=0; depth<8*sizeof(size_type); depth++) // Clear
+  for (depth=0; depth<size_type(8*sizeof(size_type)); depth++) // Clear
     nodes[depth] = NULL;                            // stack
 
   counts[0] = n;                     // Nodes to create: n

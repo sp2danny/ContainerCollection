@@ -2,7 +2,8 @@
 CC = clang++
 CFLAGS = -std=c++17 -Wall -Wextra -Werror
 #OPT = -O3 -DNDEBUG
-OPT = -O0 -g -D_DEBUG -DFULL_DIAG
+OPT = -O0 -g -D_DEBUG 
+#-DFULL_DIAG
 
 compile: test.out
 
