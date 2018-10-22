@@ -191,9 +191,9 @@ template<typename C1, typename C2, typename... Args>
 void CT::copy_to<T>::operator()(const C1& from, C2& first, Args&... rest)
 {
 	init();
-#ifndef NDEBUG
+	#ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
-#endif
+	#endif
 	for (auto&& x : from)
 	{
 		#ifdef FULL_DIAG
@@ -232,9 +232,9 @@ template<typename C1, typename... Args>
 void CT::insert_nth<T>::operator()(std::size_t idx, int val, C1& first, Args&... rest)
 {
 	init();
-#ifndef NDEBUG
+	#ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
-#endif
+	#endif
 
 	#ifdef FULL_DIAG
 	std::cerr << "attempting: "
@@ -267,9 +267,9 @@ template<typename C1, typename... Args>
 void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 {
 	init();
-#ifndef NDEBUG
+	#ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
-#endif
+	#endif
 	typedef unsigned long long ULL;
 	assert(ULL(idx) < ULL(first.size()));
 	
