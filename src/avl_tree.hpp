@@ -97,7 +97,28 @@ public:
 		balance(where);
 		return where;
 	}
+	
+	NodeP nth(sz_t idx)
+	{
+		if (idx==size()) return last_node();
+		assert( idx < size() );
+		
+		static NodeP (*fndi)(Core& c, NodeP, int) = [](Core& c, NodeP p, int idx) -> NodeP
+		{
+			assert (p != c.nil);
+			assert (p != c.root);
+			auto lw = p->left->weight;
+			if (lw == idx) return p;
+			if (idx < lw) return fndi(c, p->left, idx);
+			idx -= (lw+1);
+			return fndi(c, p->right, idx);
+		};
+		
+		return fndi(core, core.root->left, (int)idx);
+	}
 
+	/// Insert data in its sorted position
+	/// Only works if container is sorted (binary search)
 	NodeP insert_sorted(const T& data)
 	{
 		NodeP node = core.root;
@@ -132,7 +153,6 @@ public:
 	}
 
 	/// Removes a given node from the tree.
-	/// Only works if container is sorted (binary search)
 	void delete_node(NodeP node)
 	{
 		auto relink = [&](NodeP n1,NodeP n2)
@@ -337,17 +357,17 @@ public:
 					rotate_right(node);
 				else
 					rotate_left_right(node);
+				UpdHW(node);
 			}
-			else
-			if (balance == +2)
+			else if (balance == +2)
 			{
 				int rb = node->right->balance();
 				if (rb == +1)
 					rotate_left(node);
 				else
 					rotate_right_left(node);
+				UpdHW(node);
 			}
-
 			node = node->parent;
 			if (node == core.nil) break;
 		}

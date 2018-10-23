@@ -81,9 +81,76 @@ void testsuit()
 	cout << endl;
 }
 
+bool test_suit_avl(int N, int M, bool print)
+{
+	avl_tree<int> ati;
+	for (int i=0; i<N; ++i)
+	{
+		ati.insert_sorted(rand()%M);
+		if (print)
+		{
+			std::cout << ati.size() << "\n";
+			ati.print_tree(std::cout);
+			std::cout << "\n";
+			assert(ati.integrity());
+		}
+		if (!ati.integrity()) return false;
+	}
+	for (int i=0; i<N; ++i)
+	{
+		ati.insert_sorted(rand()%M);
+		auto sz = ati.size();
+		auto p = ati.nth(rand()%sz);
+		ati.delete_node(p);
+		if (print)
+		{
+			std::cout << ati.size() << "\n";
+			ati.print_tree(std::cout);
+			std::cout << "\n";
+			assert(ati.integrity());
+		}
+		if (!ati.integrity()) return false;
+	}
+	for (int i=0; i<N; ++i)
+	{
+		auto sz = ati.size();
+		auto p = ati.nth(rand()%sz);
+		ati.delete_node(p);
+		if (print)
+		{
+			std::cout << ati.size() << "\n";
+			ati.print_tree(std::cout);
+			std::cout << "\n";
+			assert(ati.integrity());
+		}
+		if (!ati.integrity()) return false;
+	}
+	if (print)
+	{
+		assert(ati.size() == 0);
+	}
+	return ati.size() == 0;
+}
+
+void test_suit_avl()
+{
+	const int M = 100'000;
+	
+	int N = 2;
+	while (true)
+	{
+		srand(1);
+		if (!test_suit_avl(N, M, false)) break;
+		++N;
+	}
+	srand(1);
+	test_suit_avl(N, M, true);
+}
+
 int main()
 {
-	testsuit();
+	//testsuit();
+	test_suit_avl();
 	//fgetc(stdin);
 }
 
