@@ -8,9 +8,13 @@
 #include "test_item.hpp"
 #include "container_tester.hpp"
 
+#include "avl_tree.hpp"
+
 #include <iostream>
 #include <vector>
 #include <list>
+
+template class avl_tree<int>;
 
 void testsuit()
 {

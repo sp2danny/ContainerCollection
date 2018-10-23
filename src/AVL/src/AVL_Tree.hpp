@@ -468,7 +468,7 @@ SR is_sub_sorted( Core& tree, NodeP node )
 		return result;
 	}
 
-	if(!ln)
+	if (!ln)
 	{
 		SR lft = is_sub_sorted(tree,node->left);
 		if (!lft.sorted)
@@ -477,7 +477,7 @@ SR is_sub_sorted( Core& tree, NodeP node )
 			result.sorted = false;
 		result.min = lft.min;
 	}
-	if(!rn)
+	if (!rn)
 	{
 		SR rgt = is_sub_sorted(tree,node->right);
 		if (!rgt.sorted)
