@@ -201,6 +201,7 @@ public:
 			}
 			UpdHW(succ);
 		}
+		UpdHW(node);
 
 		delete node;
 	}
@@ -301,7 +302,7 @@ public:
 	/// Returns the follower of the given node.
 	NodeP next_node(NodeP n)
 	{
-		if (n==core.root)
+		if (n == core.root)
 		{
 			while (n->left != core.nil)
 				n = n->left;
@@ -334,7 +335,7 @@ public:
 		return n->item;
 	}
 
-	void UpdHW(NodeP node)
+	static void UpdHW(NodeP node)
 	{
 		node->height = std::max(node->left->height, node->right->height) + 1;
 		node->weight = node->left->weight + node->right->weight + 1;
@@ -585,7 +586,7 @@ public:
 
 		Trunk this_disp = { prev, "     " };
 		std::string prev_str = this_disp.str;
-		print_tree (out, n->right, &this_disp, true);
+		print_tree(out, n->right, &this_disp, true);
 
 		if (!prev) {
 			this_disp.str = "---";
@@ -597,16 +598,17 @@ public:
 			prev->str = prev_str;
 		}
 
-		print_trunks (out, &this_disp);
+		print_trunks(out, &this_disp);
 		out << " " << n->item;
-		out << " (" << std::showpos << n->balance() << std::noshowpos << "," << n->weight << "," << n->height << ")\n";
+		out << " (" << std::showpos << n->balance() << std::noshowpos
+		    << "," << n->weight << "," << n->height << ")\n";
 
 		if (prev) {
 			prev->str = prev_str;
 		}
 		this_disp.str = "    |";
 
-		print_tree (out, n->left, &this_disp, false);
+		print_tree(out, n->left, &this_disp, false);
 		if (!prev) {
 			out << ("");
 		}
