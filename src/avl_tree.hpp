@@ -6,6 +6,7 @@
 #include <string>
 #include <iomanip>
 #include <utility>
+#include <cassert>
 
 template<typename T>
 class avl_tree
@@ -16,6 +17,7 @@ public:
 
 	struct Node;
 	typedef Node* NodeP;
+	struct Core;
 
 	struct Node
 	{
@@ -32,6 +34,7 @@ public:
 		int weight, height;
 		T item;
 		int balance() const { return right->height - left->height; }
+		//int myindex(const avl_tree& at) const { return at.indexof(this); }
 	};
 
 	struct Sentry
@@ -58,6 +61,21 @@ public:
 		(*nil) = (*root) = Sentry{core.nil,core.nil,core.nil, 0,0};
 	}
 
+	int indexof(const Node* p) const
+	{
+		int idx = 0;
+		idx += p->left->weight;
+		while (p != core.root)
+		{
+			if (is_right(p))
+			{
+				idx += p->parent->left->weight + 1;
+			}
+			p = p->parent;
+		}
+		return idx;
+	}
+
 	static void link_r(NodeP par, NodeP r)
 	{
 		par->right = r;
@@ -70,12 +88,12 @@ public:
 		l->parent = par;
 	}
 
-	static bool is_left(NodeP n)
+	static bool is_left(const Node* n)
 	{
 		return n->parent->left == n;
 	}
 
-	static bool is_right(NodeP n)
+	static bool is_right(const Node* n)
 	{
 		return n->parent->right == n;
 	}
@@ -183,25 +201,38 @@ public:
 		}
 		else
 		{
-			NodeP succ = next_node(node);
-
-			assert(succ->left == core.nil);
-
-			if (succ->parent == node)
+			auto bal = node->balance();
+			if (bal >= 0)
 			{
-				relink(node, succ);
-				link_l(succ, node->left);
-				balance(succ);
-			} else {
-				link_l(succ->parent, succ->right);
-				balance(succ->parent);
+				NodeP succ = next_node(node);
+				NodeP spar = succ->parent;
+				//NodeP npar = node->parent;
+				NodeP srgt = succ->right;
+
+				assert(succ->left == core.nil);
+
+				relink(succ, srgt);
 				relink(node, succ);
 				link_l(succ, node->left);
 				link_r(succ, node->right);
+				UpdHW(succ);
+				balance(spar);
+			} else {
+				NodeP pred = prev_node(node);
+				NodeP ppar = pred->parent;
+				NodeP plft = pred->left;
+
+				assert(pred->right == core.nil);
+
+				relink(pred, plft);
+				relink(node, pred);
+				link_l(pred, node->left);
+				link_r(pred, node->right);
+				UpdHW(pred);
+				balance(ppar);
 			}
-			UpdHW(succ);
 		}
-		UpdHW(node);
+		//UpdHW(node);
 
 		delete node;
 	}
@@ -349,21 +380,21 @@ public:
 
 			int balance = node->balance();
 
-			assert((balance >= -2) && (balance <= +2));
+			//assert((balance >= -2) && (balance <= +2));
 
-			if (balance == -2)
+			if (balance <= -2)
 			{
 				int lb = node->left->balance();
-				if (lb == -1)
+				if (lb <= -1)
 					rotate_right(node);
 				else
 					rotate_left_right(node);
 				UpdHW(node);
 			}
-			else if (balance == +2)
+			else if (balance >= +2)
 			{
 				int rb = node->right->balance();
-				if (rb == +1)
+				if (rb >= +1)
 					rotate_left(node);
 				else
 					rotate_right_left(node);
@@ -579,7 +610,7 @@ public:
 		out << p->str;
 	}
 
-	void print_tree(std::ostream& out, Node* n, Trunk *prev, bool is_left) const
+	void print_tree(std::ostream& out, NodeP n, Trunk *prev, bool is_left) const
 	{
 		if (n == core.nil)
 			return;
@@ -600,6 +631,7 @@ public:
 
 		print_trunks(out, &this_disp);
 		out << " " << n->item;
+		out << " {" << indexof(n) << "} ";
 		out << " (" << std::showpos << n->balance() << std::noshowpos
 		    << "," << n->weight << "," << n->height << ")\n";
 
