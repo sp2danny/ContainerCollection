@@ -17,7 +17,7 @@ bin/test_all.o: src/test_all.cpp src/inline_vector.hpp src/test_item.hpp src/con
 	$(CC) $(CFLAGS) $(OPT) -c src/test_all.cpp -o bin/test_all.o
 
 
-bin/test_tv.o: src/test_tv.cpp src/avl_tree.hpp
+bin/test_tv.o: src/test_tv.cpp src/avl_tree.hpp src/hb_tree.hpp
 	$(CC) $(CFLAGS) $(OPT) -c src/test_tv.cpp -o bin/test_tv.o
 
 test.out: bin/test_all.o
