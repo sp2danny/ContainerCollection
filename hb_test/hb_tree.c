@@ -570,7 +570,7 @@ node_verify(const hb_tree* tree, const hb_node* parent, const hb_node* node,
 	if (!node_verify(tree, node, node->llink, &lheight, count) ||
 	    !node_verify(tree, node, node->rlink, &rheight, count))
 	    return false;
-	VERIFY(bal == (int)rheight - (int)lheight);
+	VERIFY(bal == ((int)rheight - (int)lheight));
 	if (height)
 	    *height = MAX(lheight, rheight) + 1;
 	*count += 1;

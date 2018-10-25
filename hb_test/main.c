@@ -13,7 +13,7 @@
 
 #include "dict.h"
 
-static const char appname[] = "demo";
+static const char appname[] = "test";
 
 char *xstrdup(const char *str);
 
@@ -22,6 +22,7 @@ char *xstrdup(const char *str);
 #else
 # define NORETURN
 #endif
+
 void quit(const char *, ...) NORETURN;
 void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t size);
@@ -34,197 +35,64 @@ key_val_free(void *key, void *datum)
     free(datum);
 }
 
-#define HSIZE		997
-#define SKIPLINKS       10
-
-int
-main(int argc, char **argv)
+int main()
 {
-    if (argc != 2)
-	quit("usage: %s [type]", appname);
-
-    srand((unsigned)time(NULL));
+    srand(11);
 
     dict_malloc_func = xmalloc;
 
-    dict *dct = NULL;
-    ++argv;
-    dct = hb_dict_new((dict_compare_func)strcmp);
+    dict* dct = hb_dict_new((dict_compare_func)strcmp);
 
     if (!dct)
 	quit("can't create container");
 
-    for (;;) {
+    int cnt = 1;
+    for (;;++cnt) {
 	dict_verify(dct);
-	printf("> ");
-	fflush(stdout);
-
-	char buf[512];
-	if (fgets(buf, sizeof(buf), stdin) == NULL)
-	    break;
-
-	char *p, *ptr, *ptr2;
-	if ((p = strchr(buf, '\n')) != NULL)
-	    *p = 0;
-	for (p = buf; *p && isspace(*p); p++)
-	    /* void */;
-	if (buf != p) {
-	    strcpy(buf, p);
-	}
-	ptr2 = (ptr = strtok(buf, " ") ? strtok(NULL, " ") : NULL) ?
-	    strtok(NULL, " ") : NULL;
-	if (*buf == 0)
-	    continue;
-	if (strcmp(buf, "insert") == 0) {
-	    if (!ptr2) {
-		printf("usage: insert <key> <data>\n");
-		continue;
-	    }
-	    dict_insert_result result = dict_insert(dct, xstrdup(ptr));
+	char buff[10];
+	sprintf(buff, "%03d", rand() % 1000);
+	if (rand()%2)
+	{
+	    dict_insert_result result = dict_insert(dct, xstrdup(buff));
 	    if (result.inserted) {
-		*result.datum_ptr = xstrdup(ptr2);
-		printf("inserted '%s': '%s'\n",
-		       ptr, (char *)*result.datum_ptr);
-	    } else {
-		printf("'%s' already in dict: '%s'\n",
-		       ptr, (char *)*result.datum_ptr);
+		*result.datum_ptr = xstrdup(buff);
 	    }
-	} else if (strcmp(buf, "search") == 0) {
-	    if (ptr2) {
-		printf("usage: search <key>\n");
-		continue;
-	    }
-	    void** search = dict_search(dct, ptr);
-	    if (search)
-		printf("found '%s': '%s'\n", ptr, *(char **)search);
-	    else
-		printf("'%s' not found!\n", ptr);
-	} else if (strcmp(buf, "searchle") == 0) {
-	    if (ptr2) {
-		printf("usage: searchle <key>\n");
-		continue;
-	    }
-	    if (!dict_is_sorted(dct)) {
-		printf("dict does not support that operation!");
-		continue;
-	    }
-	    void** search = dict_search_le(dct, ptr);
-	    if (search)
-		printf("le '%s': '%s'\n", ptr, *(char **)search);
-	    else
-		printf("le '%s': no result.\n", ptr);
-	} else if (strcmp(buf, "searchlt") == 0) {
-	    if (ptr2) {
-		printf("usage: searchlt <key>\n");
-		continue;
-	    }
-	    if (!dict_is_sorted(dct)) {
-		printf("dict does not support that operation!");
-		continue;
-	    }
-	    void** search = dict_search_lt(dct, ptr);
-	    if (search)
-		printf("lt '%s': '%s'\n", ptr, *(char **)search);
-	    else
-		printf("lt '%s': no result.\n", ptr);
-	} else if (strcmp(buf, "searchge") == 0) {
-	    if (ptr2) {
-		printf("usage: searchge <key>\n");
-		continue;
-	    }
-	    if (!dict_is_sorted(dct)) {
-		printf("dict does not support that operation!");
-		continue;
-	    }
-	    void** search = dict_search_ge(dct, ptr);
-	    if (search)
-		printf("ge '%s': '%s'\n", ptr, *(char **)search);
-	    else
-		printf("ge '%s': no result.\n", ptr);
-	} else if (strcmp(buf, "searchgt") == 0) {
-	    if (ptr2) {
-		printf("usage: searchgt <key>\n");
-		continue;
-	    }
-	    if (!dict_is_sorted(dct)) {
-		printf("dict does not support that operation!");
-		continue;
-	    }
-	    void** search = dict_search_gt(dct, ptr);
-	    if (search)
-		printf("gt '%s': '%s'\n", ptr, *(char **)search);
-	    else
-		printf("gt '%s': no result.\n", ptr);
-	} else if (strcmp(buf, "remove") == 0) {
-	    if (!ptr || ptr2) {
-		printf("usage: remove <key>\n");
-		continue;
-	    }
-	    dict_remove_result result = dict_remove(dct, ptr);
+	} else {
+	    dict_remove_result result = dict_remove(dct, buff);
 	    if (result.removed) {
-		printf("removed '%s' from dict: %s\n", (char *)result.key, (char *)result.datum);
 		free(result.key);
 		free(result.datum);
-	    } else
-		printf("key '%s' not in dict!\n", ptr);
-	} else if (strcmp(buf, "show") == 0) {
-	    if (ptr) {
-		printf("usage: show\n");
-		continue;
 	    }
+	}
+	bool ok = dict_verify(dct);
+	if (!ok)
+	{
+	    printf("tree not ok after %d step\n", cnt);
+	    break;
+	}
+	if ((cnt%50000) == 0)
+	{
 	    dict_itor *itor = dict_itor_new(dct);
 	    dict_itor_first(itor);
-	    for (; dict_itor_valid(itor); dict_itor_next(itor))
-		printf("'%s': '%s'\n",
+	    printf("new dump, count at %d, size at %zu\n", cnt, dict_count(dct) );
+	    for (int i=1; dict_itor_valid(itor); dict_itor_next(itor))
+	    {
+		if ((i % 15) == 0)
+		    printf("\n");
+		else if (i>1)
+		    printf(" ");
+		printf("{%s:%s}",
 		       (char *)dict_itor_key(itor),
 		       (char *)*dict_itor_datum(itor));
+		++i;
+	    }
+	    printf("\n");
 	    dict_itor_free(itor);
-	} else if (strcmp(buf, "reverse") == 0) {
-	    if (ptr) {
-		printf("usage: reverse\n");
-		continue;
-	    }
-	    dict_itor *itor = dict_itor_new(dct);
-	    dict_itor_last(itor);
-	    for (; dict_itor_valid(itor); dict_itor_prev(itor))
-		printf("'%s': '%s'\n",
-		       (char *)dict_itor_key(itor),
-		       (char *)*dict_itor_datum(itor));
-	    dict_itor_free(itor);
-	} else if (strcmp(buf, "clear") == 0) {
-	    if (ptr) {
-		printf("usage: clear\n");
-		continue;
-	    }
-	    dict_clear(dct, key_val_free);
-	} else if (strcmp(buf, "count") == 0) {
-	    if (ptr) {
-		printf("usage: count\n");
-		continue;
-	    }
-	    printf("count = %zu\n", dict_count(dct));
-	} else if (strcmp(buf, "quit") == 0) {
-	    break;
-	} else {
-	    printf("Usage summary:\n");
-	    printf("  insert <key> <data>\n");
-	    printf("  search <key>\n");
-	    printf("  searchle <key>\n");
-	    printf("  searchlt <key>\n");
-	    printf("  searchge <key>\n");
-	    printf("  searchgt <key>\n");
-	    printf("  remove <key>\n");
-	    printf("  clear\n");
-	    printf("  count\n");
-	    printf("  show\n");
-	    printf("  reverse\n");
-	    printf("  quit\n");
 	}
+
     }
 
     dict_free(dct, key_val_free);
-
-    exit(0);
 }
 
 char *
