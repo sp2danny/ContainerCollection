@@ -1,3 +1,6 @@
+
+#include "pch.h"
+
 /* demo.c
  * Interactive demo of libdict.
  * Copyright (C) 2001-2011 Farooq Mela */
@@ -77,7 +80,7 @@ int main()
 	    printf("new dump, count at %d, size at %zu\n", cnt, dict_count(dct) );
 	    for (int i=1; dict_itor_valid(itor); dict_itor_next(itor))
 	    {
-		if ((i % 15) == 0)
+		if ((i % 7) == 0)
 		    printf("\n");
 		else if (i>1)
 		    printf(" ");

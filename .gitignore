@@ -4,6 +4,7 @@
 *.lastbuildstate
 *.ilk
 *.pdb
+*.ipdb
 obj
 .vs
 *.idb
@@ -16,6 +17,7 @@ obj
 *.lo
 *.o
 *.obj
+*.iobj
 
 # Precompiled Headers
 *.gch

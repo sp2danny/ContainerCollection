@@ -1,3 +1,6 @@
+
+#include "pch.h"
+
 /*
  * libdict -- generic dictionary implementation.
  *

@@ -1,3 +1,6 @@
+
+#include "pch.h"
+
 /*
  * libdict -- height-balanced (AVL) tree implementation.
  *
@@ -29,6 +32,8 @@
 
 #include "dict_private.h"
 #include "tree_common.h"
+
+#define restrict
 
 typedef struct hb_node hb_node;
 
