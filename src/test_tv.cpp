@@ -74,7 +74,7 @@ void add_random(int& n)
 	}
 }
 
-#include <unistd.h>
+//#include <unistd.h>
 
 void testsuit()
 {
@@ -100,7 +100,7 @@ void testsuit()
 		} else {
 			add_random(n);
 		}
-		if (isatty(fileno(stdout))) std::cout << operlist.size() << "    \r";
+		//if (isatty(fileno(stdout))) std::cout << operlist.size() << "    \r";
 		ss.str("");
 		ss << ati.size() << "\n";
 		ati.print_tree(ss);

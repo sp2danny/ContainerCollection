@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <utility>
 #include <cassert>
+#include <algorithm>
 
 template<typename T>
 class avl_tree
