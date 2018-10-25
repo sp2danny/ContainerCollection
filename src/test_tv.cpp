@@ -2,11 +2,28 @@
 
 #include "avl_tree.hpp"
 
+#include "hb_tree.hpp"
+
 #include <iostream>
 #include <vector>
 #include <list>
 #include <memory>
 #include <sstream>
+
+template class hb_tree<int>;
+
+struct immobile
+{
+	immobile() = delete;
+	immobile(int, int) {}
+	immobile(const immobile&) = delete;
+	immobile(immobile&&) = delete;
+	immobile& operator=(const immobile&) = delete;
+	immobile& operator=(immobile&&) = delete;
+	~immobile() = default;
+};
+
+template class hb_tree<immobile>;
 
 template class avl_tree<int>;
 
