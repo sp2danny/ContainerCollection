@@ -3,7 +3,7 @@ CC = clang -std=c11 -Wall -Wextra -Wpedantic -Werror -ferror-limit=3 -static
 LINK = -s 
 CFLAGS = -DNDEBUG -O3 
 
-compile: test
+compile: test.out
 
 clean:
 	rm *.o
@@ -20,5 +20,5 @@ main.o: main.c dict.h hb_tree.h
 tree_common.o: tree_common.c tree_common.h
 	$(CC) $(CFLAGS) -c tree_common.c
 
-test: dict.o hb_tree.o main.o tree_common.o
-	$(CC) $(CFLAGS) dict.o hb_tree.o main.o tree_common.o -o test $(LINK)
+test.out: dict.o hb_tree.o main.o tree_common.o
+	$(CC) $(CFLAGS) dict.o hb_tree.o main.o tree_common.o -o test.out $(LINK)
