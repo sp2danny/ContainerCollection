@@ -38,27 +38,9 @@
  * sometimes useful. */
 #ifndef NDEBUG
 # undef ASSERT
-# if defined(__GNUC__) || defined(__clang__)
-#  define ASSERT(expr) \
-    do { \
-	if (!__builtin_expect((expr), 1)) { \
-	    fprintf(stderr, "\n%s:%d (%s) assertion failed: %s\n", \
-		    __FILE__, __LINE__, __func__, #expr); \
-	    abort(); \
-	} \
-    } while (0)
-# else
-#  define ASSERT(expr) \
-    do { \
-	if (!(expr)) { \
-	    fprintf(stderr, "\n%s:%d assertion failed: %s\n", \
-		    __FILE__, __LINE__, #expr); \
-	    abort(); \
-	} \
-    } while (0)
-# endif
+# define ASSERT(expr) if(!(expr)) assert(false && #expr)
 #else
-# define ASSERT(expr)	(void)(expr)
+# define ASSERT(expr) (void)(expr)
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)

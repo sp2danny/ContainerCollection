@@ -31,8 +31,7 @@ void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t size);
 void *xdup(const void *ptr, size_t size);
 
-static void
-key_val_free(void *key, void *datum)
+static void key_val_free(void *key, void *datum)
 {
     free(key);
     free(datum);
@@ -51,18 +50,25 @@ int main()
 
     int cnt = 1;
     for (;;++cnt) {
+	bool want_print = false;
 	dict_verify(dct);
 	char buff[10];
 	sprintf(buff, "%03d", rand() % 1000);
 	if (rand()%2)
 	{
+	    //printf("trying to insert %s\n", buff);
 	    dict_insert_result result = dict_insert(dct, xstrdup(buff));
 	    if (result.inserted) {
+	        //printf("insert succeeded\n");
+		want_print = true;
 		*result.datum_ptr = xstrdup(buff);
 	    }
 	} else {
+	    //printf("trying to remove %s\n", buff);
 	    dict_remove_result result = dict_remove(dct, buff);
 	    if (result.removed) {
+	        //printf("remove succeeded\n");
+		want_print = true;
 		free(result.key);
 		free(result.datum);
 	    }
@@ -73,17 +79,21 @@ int main()
 	    printf("tree not ok after %d step\n", cnt);
 	    break;
 	}
-	if ((cnt%50000) == 0)
+	//if (want_print)
+	if ((cnt%20000)==0)
 	{
 	    dict_itor *itor = dict_itor_new(dct);
 	    dict_itor_first(itor);
 	    printf("new dump, count at %d, size at %zu\n", cnt, dict_count(dct) );
-	    for (int i=1; dict_itor_valid(itor); dict_itor_next(itor))
+	    for (int i=0; dict_itor_valid(itor); dict_itor_next(itor))
 	    {
-		if ((i % 7) == 0)
-		    printf("\n");
-		else if (i>1)
-		    printf(" ");
+		if (i)
+		{
+		    if ((i % 14) == 0)
+			printf("\n");
+		    else
+			printf(" ");
+		}
 		printf("{%s:%s}",
 		       (char *)dict_itor_key(itor),
 		       (char *)*dict_itor_datum(itor));
@@ -98,14 +108,12 @@ int main()
     dict_free(dct, key_val_free);
 }
 
-char *
-xstrdup(const char *str)
+char* xstrdup(const char *str)
 {
     return xdup(str, strlen(str) + 1);
 }
 
-void
-quit(const char *fmt, ...)
+void quit(const char *fmt, ...)
 {
     va_list args;
 
@@ -118,8 +126,7 @@ quit(const char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
-void *
-xmalloc(size_t size)
+void* xmalloc(size_t size)
 {
     void *p = malloc(size);
     if (!p) {
@@ -129,8 +136,9 @@ xmalloc(size_t size)
     return p;
 }
 
-void *
-xdup(const void *ptr, size_t size)
+void* xdup(const void *ptr, size_t size)
 {
     return memcpy(xmalloc(size), ptr, size);
 }
+
+
