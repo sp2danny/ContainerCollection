@@ -2,8 +2,8 @@
 #include "pch.h"
 
 /* demo.c
- * Interactive demo of libdict.
- * Copyright (C) 2001-2011 Farooq Mela */
+	* Interactive demo of libdict.
+	* Copyright (C) 2001-2011 Farooq Mela */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,112 +33,113 @@ void *xdup(const void *ptr, size_t size);
 
 static void key_val_free(void *key, void *datum)
 {
-    free(key);
-    free(datum);
+	free(key);
+	free(datum);
 }
+
+extern void test_hb_map(void);
 
 int main()
 {
-    srand(11);
+	srand(11);
 
-    dict_malloc_func = xmalloc;
+	test_hb_map();
 
-    dict* dct = hb_dict_new((dict_compare_func)strcmp);
+	dict_malloc_func = xmalloc;
 
-    if (!dct)
-	quit("can't create container");
+	dict* dct = hb_dict_new((dict_compare_func)strcmp);
 
-    int cnt = 1;
-    for (;;++cnt) {
-	bool want_print = false;
-	dict_verify(dct);
-	char buff[10];
-	sprintf(buff, "%03d", rand() % 1000);
-	if (rand()%2)
-	{
-	    //printf("trying to insert %s\n", buff);
-	    dict_insert_result result = dict_insert(dct, xstrdup(buff));
-	    if (result.inserted) {
-	        //printf("insert succeeded\n");
-		want_print = true;
-		*result.datum_ptr = xstrdup(buff);
-	    }
-	} else {
-	    //printf("trying to remove %s\n", buff);
-	    dict_remove_result result = dict_remove(dct, buff);
-	    if (result.removed) {
-	        //printf("remove succeeded\n");
-		want_print = true;
-		free(result.key);
-		free(result.datum);
-	    }
-	}
-	bool ok = dict_verify(dct);
-	if (!ok)
-	{
-	    printf("tree not ok after %d step\n", cnt);
-	    break;
-	}
-	//if (want_print)
-	if ((cnt%20000)==0)
-	{
-	    dict_itor *itor = dict_itor_new(dct);
-	    dict_itor_first(itor);
-	    printf("new dump, count at %d, size at %zu\n", cnt, dict_count(dct) );
-	    for (int i=0; dict_itor_valid(itor); dict_itor_next(itor))
-	    {
-		if (i)
+	if (!dct)
+		quit("can't create container");
+
+	int cnt = 1;
+	for (;;++cnt) {
+		bool want_print = false;
+		dict_verify(dct);
+		char buff[10];
+		sprintf(buff, "%03d", rand() % 1000);
+		if (rand()%2)
 		{
-		    if ((i % 14) == 0)
-			printf("\n");
-		    else
-			printf(" ");
+			//printf("trying to insert %s\n", buff);
+			dict_insert_result result = dict_insert(dct, xstrdup(buff));
+			if (result.inserted) {
+				//printf("insert succeeded\n");
+				want_print = true;
+				*result.datum_ptr = xstrdup(buff);
+			}
+		} else {
+			//printf("trying to remove %s\n", buff);
+			dict_remove_result result = dict_remove(dct, buff);
+			if (result.removed) {
+				//printf("remove succeeded\n");
+				want_print = true;
+				free(result.key);
+				free(result.datum);
+			}
 		}
-		printf("{%s:%s}",
-		       (char *)dict_itor_key(itor),
-		       (char *)*dict_itor_datum(itor));
-		++i;
-	    }
-	    printf("\n");
-	    dict_itor_free(itor);
+		bool ok = dict_verify(dct);
+		if (!ok)
+		{
+			printf("tree not ok after %d step\n", cnt);
+			break;
+		}
+		//if (want_print)
+		if ((cnt%20000)==0)
+		{
+			dict_itor *itor = dict_itor_new(dct);
+			dict_itor_first(itor);
+			printf("new dump, count at %d, size at %zu\n", cnt, dict_count(dct) );
+			for (int i=0; dict_itor_valid(itor); dict_itor_next(itor))
+			{
+				if (i)
+				{
+					if ((i % 7) == 0)
+						printf("\n");
+					else
+						printf(" ");
+				}
+				printf("{%s:%s}", (char *)dict_itor_key(itor), (char *)*dict_itor_datum(itor));
+				++i;
+			}
+			printf("\n");
+			dict_itor_free(itor);
+		}
 	}
 
-    }
-
-    dict_free(dct, key_val_free);
+	dict_free(dct, key_val_free);
 }
 
 char* xstrdup(const char *str)
 {
-    return xdup(str, strlen(str) + 1);
+	return xdup(str, strlen(str) + 1);
 }
 
 void quit(const char *fmt, ...)
 {
-    va_list args;
+	va_list args;
 
-    va_start(args, fmt);
-    fprintf(stderr, "%s: ", appname);
-    vfprintf(stderr, fmt, args);
-    fprintf(stderr, "\n");
-    va_end(args);
+	va_start(args, fmt);
+	fprintf(stderr, "%s: ", appname);
+	vfprintf(stderr, fmt, args);
+	fprintf(stderr, "\n");
+	va_end(args);
 
-    exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
 }
 
 void* xmalloc(size_t size)
 {
-    void *p = malloc(size);
-    if (!p) {
-	fprintf(stderr, "out of memory\n");
-	abort();
-    }
-    return p;
+	void *p = malloc(size);
+	if (!p) {
+		fprintf(stderr, "out of memory\n");
+		abort();
+	}
+	return p;
 }
 
 void* xdup(const void *ptr, size_t size)
 {
-    return memcpy(xmalloc(size), ptr, size);
+	return memcpy(xmalloc(size), ptr, size);
 }
 
 

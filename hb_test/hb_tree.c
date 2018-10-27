@@ -28,6 +28,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef WIN32
+#define restrict
+#endif
+
 #include "hb_tree.h"
 
 #include "dict_private.h"
