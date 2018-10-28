@@ -2,7 +2,7 @@
 
 #include "avl_tree.hpp"
 
-#include "hb_tree.hpp"
+//#include "hb_tree.hpp"
 
 #include <iostream>
 #include <vector>
@@ -10,7 +10,7 @@
 #include <memory>
 #include <sstream>
 
-template class hb_tree<int>;
+//template class hb_tree<int>;
 
 struct immobile
 {
@@ -23,7 +23,7 @@ struct immobile
 	~immobile() = default;
 };
 
-template class hb_tree<immobile>;
+//template class hb_tree<immobile>;
 
 template class avl_tree<int>;
 
@@ -32,7 +32,7 @@ typedef avl_tree<int> ATI;
 struct Op
 {
 	virtual ~Op() = default;
-	virtual void Execute(ATI&) = 0;
+	virtual void Execute(ATI&, bool debug = false) = 0;
 	virtual void Print(std::ostream&) = 0;
 };
 
@@ -41,7 +41,7 @@ struct InsOp : Op
 	InsOp(int pos, int val) : pos(pos), val(val) {}
 	int pos;
 	int val;
-	virtual void Execute(ATI& ati) override
+	virtual void Execute(ATI& ati, bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.insert(p, val);
@@ -56,7 +56,7 @@ struct DelOp : Op
 {
 	DelOp(int pos) : pos(pos) {}
 	int pos;
-	virtual void Execute(ATI& ati) override
+	virtual void Execute(ATI& ati, bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.delete_node(p);
@@ -71,7 +71,7 @@ typedef std::unique_ptr<Op> OpPtr;
 
 std::vector<OpPtr> operlist;
 
-void add_random(int& n)
+void add_random(std::size_t& n)
 {
 	int i;
 	if (n)
@@ -92,6 +92,7 @@ void add_random(int& n)
 }
 
 //#include <unistd.h>
+#include <io.h>
 
 void testsuit()
 {
@@ -104,11 +105,12 @@ void testsuit()
 	for (auto&& op : operlist)
 		op->Execute(ati);
 
-	int n = 3;
+	std::size_t i = 0, n = 3;
 	std::stringstream ss;
 	bool first = true;
 	while (true)
 	{
+		++i;
 		if (first)
 		{
 			operlist.emplace_back( std::make_unique<DelOp>(1) );
@@ -117,23 +119,30 @@ void testsuit()
 		} else {
 			add_random(n);
 		}
-		//if (isatty(fileno(stdout))) std::cout << operlist.size() << "    \r";
+		//if (_isatty(_fileno(stdout))) std::cout << operlist.size() << "    \r";
 		ss.str("");
 		ss << ati.size() << "\n";
 		ati.print_tree(ss);
 		operlist.back()->Execute(ati);
 		if (!ati.integrity())
 			break;
+		if ((i%100)==0)
+		{
+			system("cls");
+			std::cout << ss.str() << std::endl;
+		}
 	}
-	std::cout << "\n\n";
-	
-	std::size_t i, sz = operlist.size();
+
+	ati.clear();
+	std::size_t sz = operlist.size();
 	for (i=0; i<(sz-1); ++i)
 	{
 		operlist[i]->Print(std::cout);
+		operlist[i]->Execute(ati);
 	}
 	std::cout << ss.str() << std::endl;
 	operlist.back()->Print(std::cout);
+	operlist.back()->Execute(ati, true);
 	ati.print_tree(std::cout);
 }
 

@@ -171,6 +171,61 @@ public:
 		}
 	}
 
+	void full_node_swap(NodeP aP, NodeP aQ)
+	{
+		NodeP new_p_parent = aQ->parent;
+		NodeP new_p_left = aQ->left;
+		NodeP new_p_right = aQ->right;
+		NodeP* new_p_link = (aQ->parent->left) == aQ ? &aQ->parent->left : &aQ->parent->right;
+
+		NodeP new_q_parent = aP->parent;
+		NodeP new_q_left = aP->left;
+		NodeP new_q_right = aP->right;
+		NodeP* new_q_link = (aP->parent->left) == aP ? &aP->parent->left : &aP->parent->right;
+
+		if (aQ->parent == aP)
+		{
+			new_p_parent = aQ;
+			new_p_link = nullptr;
+			if (aP->left == aQ)
+				new_q_left = aP;
+			else
+				new_q_right = aP;
+		}
+		else if (aP->parent == aQ)
+		{
+			new_q_parent = aP;
+			new_q_link = nullptr;
+			if (aQ->left == aP)
+				new_p_left = aQ;
+			else
+				new_p_right = aQ;
+		}
+
+		aP->parent = new_p_parent;
+		aP->left = new_p_left;
+		if (aP->left)
+			aP->left->parent = aP;
+		aP->right = new_p_right;
+		if (aP->right)
+			aP->right->parent = aP;
+		if (new_p_link)
+			*new_p_link = aP;
+
+		aQ->parent = new_q_parent;
+		aQ->left = new_q_left;
+		if (aQ->left)
+			aQ->left->parent = aQ;
+		aQ->right = new_q_right;
+		if (aQ->right)
+			aQ->right->parent = aQ;
+		if (new_q_link)
+			*new_q_link = aQ;
+
+		std::swap(aP->weight, aQ->weight);
+		std::swap(aP->height, aQ->height);
+	}
+
 	/// Removes a given node from the tree.
 	void delete_node(NodeP node)
 	{
@@ -193,12 +248,13 @@ public:
 		else if (ln)
 		{
 			relink(node, node->right);
-			balance(node->parent);
+			balance(node->right);
 		}
 		else if (rn)
 		{
 			relink(node, node->left);
-			balance(node->parent);
+			balance(node->left);
+			//balance(node->parent);
 		}
 		else
 		{
@@ -206,34 +262,14 @@ public:
 			if (bal >= 0)
 			{
 				NodeP succ = next_node(node);
-				NodeP spar = succ->parent;
-				//NodeP npar = node->parent;
-				NodeP srgt = succ->right;
-
-				assert(succ->left == core.nil);
-
-				relink(succ, srgt);
-				relink(node, succ);
-				link_l(succ, node->left);
-				link_r(succ, node->right);
-				UpdHW(succ);
-				balance(spar);
+				full_node_swap(node, succ);
+				return delete_node(node);
 			} else {
 				NodeP pred = prev_node(node);
-				NodeP ppar = pred->parent;
-				NodeP plft = pred->left;
-
-				assert(pred->right == core.nil);
-
-				relink(pred, plft);
-				relink(node, pred);
-				link_l(pred, node->left);
-				link_r(pred, node->right);
-				UpdHW(pred);
-				balance(ppar);
+				full_node_swap(node, pred);
+				return delete_node(node);
 			}
 		}
-		//UpdHW(node);
 
 		delete node;
 	}
@@ -377,32 +413,36 @@ public:
 	{
 		while (node != core.root)
 		{
+			NodeP n, par = node->parent;
+
 			UpdHW(node);
 
 			int balance = node->balance();
 
-			//assert((balance >= -2) && (balance <= +2));
+			assert((balance >= -2) && (balance <= +2));
 
 			if (balance <= -2)
 			{
+				par = node->left;
 				int lb = node->left->balance();
 				if (lb <= -1)
-					rotate_right(node);
+					n = rotate_right(node);
 				else
-					rotate_left_right(node);
-				UpdHW(node);
+					n = rotate_left_right(node);
+				UpdHW(n);
 			}
 			else if (balance >= +2)
 			{
+				par = node->right;
 				int rb = node->right->balance();
 				if (rb >= +1)
-					rotate_left(node);
+					n = rotate_left(node);
 				else
-					rotate_right_left(node);
-				UpdHW(node);
+					n = rotate_right_left(node);
+				UpdHW(n);
 			}
-			node = node->parent;
-			if (node == core.nil) break;
+			node = par;
+			assert (node != core.nil);
 		}
 	}
 
@@ -422,6 +462,7 @@ public:
 
 		UpdHW(node);
 		UpdHW(right);
+		UpdHW(parent);
 
 		return right;
 	}
@@ -442,6 +483,7 @@ public:
 
 		UpdHW(node);
 		UpdHW(left);
+		UpdHW(parent);
 
 		return left;
 	}
@@ -586,7 +628,7 @@ public:
 		if (!core.nil) return false;
 		if (core.nil->height != 0) return false;
 		if (core.nil->weight != 0) return false;
-		//if( tree.nil->parent != tree.nil ) return false;
+
 		if (core.nil->left != core.nil) return false;
 		if (core.nil->right != core.nil) return false;
 
