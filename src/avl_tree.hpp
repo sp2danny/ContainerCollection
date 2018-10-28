@@ -204,21 +204,17 @@ public:
 
 		aP->parent = new_p_parent;
 		aP->left = new_p_left;
-		if (aP->left)
-			aP->left->parent = aP;
+		aP->left->parent = aP;
 		aP->right = new_p_right;
-		if (aP->right)
-			aP->right->parent = aP;
+		aP->right->parent = aP;
 		if (new_p_link)
 			*new_p_link = aP;
 
 		aQ->parent = new_q_parent;
 		aQ->left = new_q_left;
-		if (aQ->left)
-			aQ->left->parent = aQ;
+		aQ->left->parent = aQ;
 		aQ->right = new_q_right;
-		if (aQ->right)
-			aQ->right->parent = aQ;
+		aQ->right->parent = aQ;
 		if (new_q_link)
 			*new_q_link = aQ;
 
@@ -462,7 +458,7 @@ public:
 
 		UpdHW(node);
 		UpdHW(right);
-		UpdHW(parent);
+		//UpdHW(parent);
 
 		return right;
 	}
@@ -483,7 +479,7 @@ public:
 
 		UpdHW(node);
 		UpdHW(left);
-		UpdHW(parent);
+		//UpdHW(parent);
 
 		return left;
 	}
@@ -674,7 +670,7 @@ public:
 
 		print_trunks(out, &this_disp);
 		out << " " << n->item;
-		out << " {" << indexof(n) << "} ";
+		out << " [" << indexof(n) << "] ";
 		out << " (" << std::showpos << n->balance() << std::noshowpos
 		    << "," << n->weight << "," << n->height << ")\n";
 

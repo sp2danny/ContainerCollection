@@ -28,11 +28,12 @@ struct immobile
 template class avl_tree<int>;
 
 typedef avl_tree<int> ATI;
+typedef std::vector<int> VI;
 
 struct Op
 {
 	virtual ~Op() = default;
-	virtual void Execute(ATI&, bool debug = false) = 0;
+	virtual void Execute(ATI&, VI&, bool debug = false) = 0;
 	virtual void Print(std::ostream&) = 0;
 };
 
@@ -41,10 +42,12 @@ struct InsOp : Op
 	InsOp(int pos, int val) : pos(pos), val(val) {}
 	int pos;
 	int val;
-	virtual void Execute(ATI& ati, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.insert(p, val);
+		auto pp = vi.begin() + pos;
+		vi.insert(pp, val);
 	};
 	virtual void Print(std::ostream& out) override
 	{
@@ -56,10 +59,12 @@ struct DelOp : Op
 {
 	DelOp(int pos) : pos(pos) {}
 	int pos;
-	virtual void Execute(ATI& ati, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.delete_node(p);
+		auto pp = vi.begin() + pos;
+		vi.erase(pp);
 	};
 	virtual void Print(std::ostream& out) override
 	{
@@ -78,6 +83,8 @@ void add_random(std::size_t& n)
 		i = rand()%2;
 	else
 		i = 0;
+	if (n>80)
+		i = 1;
 	switch (i)
 	{
 	case 0:
@@ -96,17 +103,19 @@ void add_random(std::size_t& n)
 
 void testsuit()
 {
+	srand((unsigned)time(0));
 	using namespace std;
 	operlist.emplace_back( std::make_unique<InsOp>(0,0) );
 	operlist.emplace_back( std::make_unique<InsOp>(1,1) );
 	operlist.emplace_back( std::make_unique<InsOp>(2,2) );
 
 	ATI ati;
+	VI vi;
 	for (auto&& op : operlist)
-		op->Execute(ati);
+		op->Execute(ati, vi);
 
-	std::size_t i = 0, n = 3;
-	std::stringstream ss;
+	std::size_t j, i = 0, n = 3;
+	//std::stringstream ss;
 	bool first = true;
 	while (true)
 	{
@@ -120,29 +129,38 @@ void testsuit()
 			add_random(n);
 		}
 		//if (_isatty(_fileno(stdout))) std::cout << operlist.size() << "    \r";
-		ss.str("");
-		ss << ati.size() << "\n";
-		ati.print_tree(ss);
-		operlist.back()->Execute(ati);
+
+		operlist.back()->Execute(ati, vi);
 		if (!ati.integrity())
 			break;
-		if ((i%100)==0)
+		if (ati.size() != n) break;
+		if (vi.size() != n) break;
+		for (j=0; j<n; ++j)
+			if (vi[j] != ati.nth(j)->item)
+				break;
+		if (j<n) break;
+		if ((i%25000)==0)
 		{
 			system("cls");
-			std::cout << ss.str() << std::endl;
+			std::cout << i << "\n";
+			std::cout << ati.size() << "\n";
+			ati.print_tree(std::cout);
+			std::cout << std::endl;
 		}
 	}
 
-	ati.clear();
+	ati.clear(); vi.clear();
 	std::size_t sz = operlist.size();
 	for (i=0; i<(sz-1); ++i)
 	{
 		operlist[i]->Print(std::cout);
-		operlist[i]->Execute(ati);
+		operlist[i]->Execute(ati, vi);
 	}
-	std::cout << ss.str() << std::endl;
+	std::cout << ati.size() << "\n";
+	ati.print_tree(std::cout);
+	std::cout << std::endl;
 	operlist.back()->Print(std::cout);
-	operlist.back()->Execute(ati, true);
+	operlist.back()->Execute(ati, vi, true);
 	ati.print_tree(std::cout);
 }
 
