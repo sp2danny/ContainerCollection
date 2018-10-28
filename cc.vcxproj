@@ -126,6 +126,7 @@
     <ClCompile Include="src\test_tv.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\avl_vector.hpp" />
     <ClInclude Include="src\container_operations.hpp" />
     <ClInclude Include="src\container_tester.hpp" />
     <ClInclude Include="src\debug_container.hpp" />
@@ -136,7 +137,6 @@
     <ClInclude Include="src\splice_list.hpp" />
     <ClInclude Include="src\splice_list_allocator.hpp" />
     <ClInclude Include="src\test_item.hpp" />
-    <ClInclude Include="src\TreeVector.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

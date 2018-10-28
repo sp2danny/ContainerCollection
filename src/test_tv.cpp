@@ -1,8 +1,6 @@
 
 
-#include "avl_tree.hpp"
-
-//#include "hb_tree.hpp"
+#include "avl_vector.hpp"
 
 #include <iostream>
 #include <vector>
@@ -142,12 +140,17 @@ void testsuit()
 		if ((i%25000)==0)
 		{
 			system("cls");
-			for (auto&& x : ati ) std::cout << x << " ";
+			for (auto&& x : ati) std::cout << x << " ";
 			std::cout << std::endl;
 			std::cout << i << "\n";
 			std::cout << ati.size() << "\n";
 			ati.print_tree(std::cout);
 			std::cout << std::endl;
+			ATI ati2{ati};
+			ati2.sort();
+			for (auto&& x : ati2) std::cout << x << " ";
+			assert(ati2.integrity());
+			assert(ati2.sorted());
 		}
 	}
 

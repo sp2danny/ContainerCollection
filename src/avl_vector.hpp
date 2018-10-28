@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <memory>
 #include <functional>
+#include <initializer_list>
 
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
@@ -56,7 +57,7 @@ class avl_vector
 		{
 			if (weight||height)
 				assert(weight&&height);
-			return weight&&height;
+			return !(weight&&height);
 		}
 	};
 
@@ -341,6 +342,16 @@ class avl_vector
 	NodeP _AVL_last_node()
 	{
 		return core.root;
+	}
+
+	/// Returns the last actual node
+	NodeP _AVL_last_payload_node()
+	{
+		NodeP n = core.root->left;
+		assert(n && n!=core.nil);
+		while (n->right != core.nil)
+			n = n->right;
+		return n;
 	}
 
 	/// Returns the predecessor of the given node.
@@ -628,6 +639,49 @@ class avl_vector
 		}
 	}
 
+	typedef std::vector<NodeP> VNP;
+
+	NodeP _AVL_hang(NodeP* ap, NodeP* bp)
+	{
+		auto sz = bp - ap;
+		if (!sz)
+			return core.nil;
+		if (sz==1)
+		{
+			NodeP n = *ap;
+			n->weight = n->height = 1;
+			n->left = n->right = core.nil;
+			return n;
+		}
+		auto center = sz/2;
+		NodeP* cp = ap+center;
+		_AVL_link_l(*cp, _AVL_hang(ap, cp));
+		_AVL_link_r(*cp, _AVL_hang(cp+1, bp));
+		_AVL_updHW(*cp);
+		return *cp;
+	}
+	NodeP _AVL_hang(VNP& vnp)
+	{
+		NodeP* ptr = vnp.data();
+		std::size_t sz = vnp.size();
+		return _AVL_hang(ptr, ptr+sz);
+	}
+	std::size_t _AVL_flatten(VNP& vnp)
+	{
+		vnp.clear();
+		auto sz = core.root->left->weight;
+		vnp.reserve(sz);
+		NodeP n = _AVL_first_node();
+		NodeP e = _AVL_last_node();
+		while (n!=e)
+		{
+			vnp.push_back(n);
+			n = _AVL_next_node(n);
+		}
+		return sz;
+	}
+
+
 friend
 	struct iterator;
 
@@ -652,7 +706,75 @@ public:
 		core.root ->setnil(core.nil);
 		core.nil  ->setnil(core.nil);
 	}
-
+	template<typename It>
+	avl_vector(It b, It e)
+		: avl_vector()
+	{
+		VNP vpn;
+		while (b != e)
+			vpn.push_back(_AVL_node_new(nullptr, *b++));
+		_AVL_link_l(core.root, _AVL_hang(vpn));
+	}
+	avl_vector(std::initializer_list<T> il)
+		: avl_vector(il.begin(), il.end())
+	{}
+	avl_vector(std::size_t sz, const T& val)
+		: avl_vector()
+	{
+		VNP vpn;
+		while (sz--)
+			vpn.push_back(_AVL_node_new(nullptr, val));
+		_AVL_link_l(core.root, _AVL_hang(vpn));
+	}
+	avl_vector(const avl_vector& other)
+		: avl_vector(other.begin(), other.end())
+	{}
+	avl_vector(avl_vector&& other)
+		: avl_vector()
+	{
+		swap(other);
+	}
+	avl_vector& operator=(const avl_vector& other)
+	{
+		assign(other.begin(), other.end());
+		return *this;
+	}
+	avl_vector& operator=(std::initializer_list<T> il)
+	{
+		assign(il.begin(), il.end());
+		return *this;
+	}
+	template<typename It>
+	void assign(It b, It e)
+	{
+		clear();
+		VNP vpn;
+		while (b != e)
+			vpn.push_back(_AVL_node_new(nullptr, *b++));
+		_AVL_link_l(core.root, _AVL_hang(vpn));
+	}
+	void assign(std::initializer_list<T> il)
+	{
+		assign(il.begin(), il.end());
+	}
+	void assign(std::size_t n, const T& val)
+	{
+		VNP vpn;
+		while (n--)
+			vpn.push_back(_AVL_node_new(nullptr, val));
+		_AVL_link_l(core.root, _AVL_hang(vpn));
+	}
+	avl_vector& operator=(avl_vector&& other) noexcept
+	{
+		swap(other);
+		return *this;
+	}
+	void swap(avl_vector& other) noexcept
+	{
+		using std::swap;
+		swap(core.root, other.core.root);
+		swap(core.nil, other.core.nil);
+	}
 	std::size_t size() const
 	{
 		return core.root->left->weight;
@@ -723,18 +845,52 @@ public:
 		T* operator->() { return &node->item; }
 		iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
 		iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
+		iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
 		bool operator==(const iterator& other) const { assert(avl == other.avl); return node == other.node; }
 		bool operator!=(const iterator& other) const { assert(avl == other.avl); return node != other.node; }
 	friend
 		class avl_vector;
+	friend
+		struct const_iterator;
 	private:
 		iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
 		avl_vector* avl = nullptr;
 		Node* node = nullptr;
 	};
 
+	struct const_iterator
+	{
+		typedef std::bidirectional_iterator_tag iterator_category;
+		typedef const T value_type;
+		typedef const T* pointer;
+		typedef const T& reference;
+		typedef std::ptrdiff_t difference_type;
+		const_iterator() = default;
+		const_iterator(iterator i) : avl(i.avl), node(i.node) {}
+		const T& operator*() { return node->item; }
+		const T* operator->() { return &node->item; }
+		const_iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
+		const_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
+		const_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		const_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		bool operator==(const const_iterator& other) const { assert(avl == other.avl); return node == other.node; }
+		bool operator!=(const const_iterator& other) const { assert(avl == other.avl); return node != other.node; }
+	friend
+		class avl_vector;
+	private:
+		const_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
+		avl_vector* avl = nullptr;
+		Node* node = nullptr;
+	};
+
 	iterator begin() { return {this, _AVL_first_node()}; }
-	iterator end() { return {this, _AVL_last_node()}; }
+	iterator end()   { return {this, _AVL_last_node()}; }
+
+	iterator begin()  const { avl_vector* me = (avl_vector*)this; return {me, me->_AVL_first_node()}; }
+	iterator end()    const { avl_vector* me = (avl_vector*)this; return {me, me->_AVL_last_node()}; }
+	iterator cbegin() const { return begin(); }
+	iterator cend()   const { return end(); }
 
 	iterator nth(std::size_t idx) { return {this, _AVL_nth(idx)}; }
 
@@ -744,20 +900,25 @@ public:
 		return {this, p};
 	}
 	template<typename... Args>
-	iterator emplace(iterator node, Args&&... args)
+	iterator emplace(iterator itr, Args&&... args)
 	{
-		auto p = _AVL_insert(node.node, std::forward<Args>(args)...);
+		auto p = _AVL_insert(itr.node, std::forward<Args>(args)...);
 		return {this, p};
 	}
-	iterator erase(iterator node)
+	iterator erase(iterator itr)
 	{
-		auto p = _AVL_next_node(node.node);
-		_AVL_delete_node(node.node);
+		auto p = _AVL_next_node(itr.node);
+		_AVL_delete_node(itr.node);
 		return {this, p};
 	}
 
 	T& operator[](std::size_t idx) { return _AVL_nth(idx)->item; }
 	const T& operator[](std::size_t idx) const { return _AVL_nth(idx)->item; }
+
+	T& front() { return _AVL_first_node()->item; }
+	T& back() { return _AVL_last_payload_node()->item; }
+	const T& front() const { return ((avl_vector*)this)->_AVL_first_node()->item; }
+	const T& back() const { return ((avl_vector*)this)->_AVL_last_payload_node()->item; }
 
 	T& push_back(const T& item)
 	{
@@ -779,7 +940,74 @@ public:
 		auto p = _AVL_insert(_AVL_first_node(), std::move(item));
 		return p->item;
 	}
-
+	template<typename... Args>
+	T& emplace_back(Args&&... args)
+	{
+		auto p = _AVL_insert(_AVL_last_node(), std::forward<Args>(args)...);
+		return p->item;
+	}
+	template<typename... Args>
+	T& emplace_front(Args&&... args)
+	{
+		auto p = _AVL_insert(_AVL_first_node(), std::forward<Args>(args)...);
+		return p->item;
+	}
+	void pop_back() { _AVL_delete_node(_AVL_last_payload_node()); }
+	void pop_front() { _AVL_delete_node(_AVL_first_node()); }
+	template<typename Op = std::less<T>>
+	void sort(Op op = Op{})
+	{
+		VNP vnp;
+		_AVL_flatten(vnp);
+		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
+		{
+			return op(lhs->item, rhs->item);
+		};
+		std::sort(vnp.begin(), vnp.end(), nless);
+		_AVL_link_l(core.root, _AVL_hang(vnp));
+	}
+	template<typename Op = std::less<T>>
+	void stable_sort(Op op = Op{})
+	{
+		VNP vnp;
+		_AVL_flatten(vnp);
+		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
+		{
+			return op(lhs->item, rhs->item);
+		};
+		std::stable_sort(vnp.begin(), vnp.end(), nless);
+		_AVL_link_l(core.root, _AVL_hang(vnp));
+	}
+	template<typename Op = std::less<T>>
+	void unique(Op op = Op{})
+	{
+		VNP vnp;
+		_AVL_flatten(vnp);
+		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
+		{
+			return op(lhs->item, rhs->item);
+		};
+		auto ptr = vnp.data();
+		auto sz = vnp.size();
+		auto p = std::unique(ptr, ptr+sz, nless);
+		_AVL_link_l(core.root, _AVL_hang(ptr, p));
+		while (p != (ptr+sz))
+		{
+			_AVL_delete_node(*p);
+			++p;
+		}
+	}
+	void reverse()
+	{
+		VNP vnp;
+		_AVL_flatten(vnp);
+		std::reverse(vnp.begin(), vnp.end());
+		_AVL_link_l(core.root, _AVL_hang(vnp));
+	}
+	void reserve(std::size_t) {}
+	void shrink_to_fit() {}
+	std::size_t capacity() const { return max_size(); }
+	std::size_t max_size() const { return (unsigned long)-1; }
 };
 
 
