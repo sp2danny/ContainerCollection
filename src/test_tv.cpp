@@ -25,9 +25,9 @@ struct immobile
 
 //template class hb_tree<immobile>;
 
-template class avl_tree<int>;
+template class avl_vector<int>;
 
-typedef avl_tree<int> ATI;
+typedef avl_vector<int> ATI;
 typedef std::vector<int> VI;
 
 struct Op
@@ -62,7 +62,7 @@ struct DelOp : Op
 	virtual void Execute(ATI& ati, VI& vi, bool debug) override
 	{
 		auto p = ati.nth(pos);
-		ati.delete_node(p);
+		ati.erase(p);
 		auto pp = vi.begin() + pos;
 		vi.erase(pp);
 	};
@@ -136,12 +136,14 @@ void testsuit()
 		if (ati.size() != n) break;
 		if (vi.size() != n) break;
 		for (j=0; j<n; ++j)
-			if (vi[j] != ati.nth(j)->item)
+			if (vi[j] != ati[j])
 				break;
 		if (j<n) break;
 		if ((i%25000)==0)
 		{
 			system("cls");
+			for (auto&& x : ati ) std::cout << x << " ";
+			std::cout << std::endl;
 			std::cout << i << "\n";
 			std::cout << ati.size() << "\n";
 			ati.print_tree(std::cout);
