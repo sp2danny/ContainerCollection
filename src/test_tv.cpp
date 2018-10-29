@@ -37,15 +37,15 @@ struct Op
 
 struct InsOp : Op
 {
-	InsOp(int pos, int val) : pos(pos), val(val) {}
-	int pos;
-	int val;
+	InsOp(std::size_t pos, std::size_t val) : pos(pos), val(val) {}
+	std::size_t pos;
+	std::size_t val;
 	virtual void Execute(ATI& ati, VI& vi, bool debug) override
 	{
 		auto p = ati.nth(pos);
-		ati.insert(p, val);
+		ati.insert(p, (int)val);
 		auto pp = vi.begin() + pos;
-		vi.insert(pp, val);
+		vi.insert(pp, (int)val);
 	};
 	virtual void Print(std::ostream& out) override
 	{
@@ -55,8 +55,8 @@ struct InsOp : Op
 
 struct DelOp : Op
 {
-	DelOp(int pos) : pos(pos) {}
-	int pos;
+	DelOp(std::size_t pos) : pos(pos) {}
+	std::size_t pos;
 	virtual void Execute(ATI& ati, VI& vi, bool debug) override
 	{
 		auto p = ati.nth(pos);
@@ -70,28 +70,62 @@ struct DelOp : Op
 	}
 };
 
+std::size_t randn(std::size_t n)
+{
+	return (std::size_t)rand() % n;
+}
+
+struct InsROp : Op
+{
+	InsROp(std::size_t pos, std::size_t sz)
+		: pos(pos)
+	{
+		for (std::size_t i = 0; i < sz; ++i)
+			sli.push_back((int)randn(1000));
+	}
+	std::size_t pos;
+	std::list<int> sli;
+	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	{
+		auto p = ati.nth(pos);
+		ati.insert(p, sli.begin(), sli.end());
+		auto pp = vi.begin() + pos;
+		vi.insert(pp, sli.begin(), sli.end());
+	};
+	virtual void Print(std::ostream& out) override
+	{
+		out << "Insert " << sli.size() << " items at " << pos << std::endl;
+	}
+};
+
+
 typedef std::unique_ptr<Op> OpPtr;
 
 std::vector<OpPtr> operlist;
 
 void add_random(std::size_t& n)
 {
-	int i;
+	std::size_t i, m;
 	if (n)
-		i = rand()%2;
+		i = rand()%3;
 	else
 		i = 0;
-	if (n>80)
+	if (n>70)
 		i = 1;
 	switch (i)
 	{
 	case 0:
-		operlist.emplace_back( std::make_unique<InsOp>(rand()%(n+1),rand()%1000) );
+		operlist.emplace_back( std::make_unique<InsOp>(randn(n+1), randn(1000)) );
 		++n;
 		break;
 	case 1:
-		operlist.emplace_back( std::make_unique<DelOp>(rand()%(n)) );
+		operlist.emplace_back( std::make_unique<DelOp>(randn(n)) );
 		--n;
+		break;
+	case 2:
+		m = 1+randn(5);
+		operlist.emplace_back(std::make_unique<InsROp>(randn(n+1), m));
+		n += m;
 		break;
 	}
 }

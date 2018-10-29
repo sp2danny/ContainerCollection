@@ -11,6 +11,8 @@
 #include <memory>
 #include <functional>
 #include <initializer_list>
+#include <type_traits>
+#include <iterator>
 
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
@@ -106,22 +108,29 @@ class avl_vector
 		return n->parent->right == n;
 	}
 
-	/// Insert new data in the tree, before n
-	template<typename... Args>
-	NodeP _AVL_insert(NodeP n, Args&&... args)
+	/// Insert existing node in the tree, before at
+	NodeP _AVL_insert_node(NodeP at, NodeP newn)
 	{
-		if (n->left == core.nil)
+		if (at->left == core.nil)
 		{
-			n->left = _AVL_node_new(n, std::forward<Args>(args)...);
-			_AVL_balance(n);
-			return n;
+			_AVL_link_l(at, newn);
+			//at->left = newn;
+			_AVL_balance(at);
+			return newn;
 		}
-		n = n->left;
-		while (n->right != core.nil)
-			n = n->right;
-		n->right = _AVL_node_new(n, std::forward<Args>(args)...);
-		_AVL_balance(n);
-		return n;
+		at = at->left;
+		while (at->right != core.nil)
+			at = at->right;
+		_AVL_link_r(at, newn);
+		//at->right = newn;
+		_AVL_balance(at);
+		return newn;
+	}
+	/// Insert new data in the tree, before at
+	template<typename... Args>
+	NodeP _AVL_insert(NodeP at, Args&&... args)
+	{
+		return _AVL_insert_node(at, _AVL_node_new(std::forward<Args>(args)...));
 	}
 	
 	NodeP _AVL_nth(std::size_t idx)
@@ -155,7 +164,7 @@ class avl_vector
 		NodeP node = core.root;
 		if (node->left == core.nil)
 		{
-			node->left = _AVL_node_new(node, data);
+			_AVL_link_l(node, _AVL_node_new(data));
 			_AVL_balance(node);
 			return node;
 		}
@@ -166,7 +175,7 @@ class avl_vector
 			{
 				if (node->left == core.nil)
 				{
-					node->left = _AVL_node_new(node, data);
+					_AVL_link_l(node, _AVL_node_new(data));
 					_AVL_balance(node);
 					return node;
 				}
@@ -174,7 +183,7 @@ class avl_vector
 			} else {
 				if (node->right == core.nil)
 				{
-					node->right = _AVL_node_new(node, data);
+					_AVL_link_r(node, _AVL_node_new(data));
 					_AVL_balance(node);
 					return node;
 				}
@@ -240,9 +249,7 @@ class avl_vector
 			_AVL_link_r(n1->parent, n2);
 	};
 
-
-	/// Removes a given node from the tree.
-	void _AVL_delete_node(NodeP node)
+	NodeP _AVL_unlink_node(NodeP node)
 	{
 		bool ln = node->left == core.nil;
 		bool rn = node->right == core.nil;
@@ -269,15 +276,21 @@ class avl_vector
 			{
 				NodeP succ = _AVL_next_node(node);
 				_AVL_full_node_swap(node, succ);
-				return _AVL_delete_node(node);
-			} else {
+				return _AVL_unlink_node(node);
+			}
+			else {
 				NodeP pred = _AVL_prev_node(node);
 				_AVL_full_node_swap(node, pred);
-				return _AVL_delete_node(node);
+				return _AVL_unlink_node(node);
 			}
 		}
+		return node;
+	}
 
-		delete node;
+	/// Removes a given node from the tree.
+	void _AVL_delete_node(NodeP node)
+	{
+		delete _AVL_unlink_node(node);
 	}
 
 	/// Searches the tree for a node containing the given data.
@@ -539,12 +552,11 @@ class avl_vector
 	}
 
 	template<typename... Args>
-	NodeP _AVL_node_new(NodeP parent, Args&&... args)
+	NodeP _AVL_node_new(Args&&... args)
 	{
 		NodeP p = allocator_type{}.allocate(1);
 		new (p) Node(payload_tag{}, std::forward<Args>(args)...);
-		p->parent = parent;
-		p->left = p->right = core.nil;
+		p->parent = p->left = p->right = core.nil;
 		p->weight = p->height = 1;
 		return p;
 	}
@@ -553,13 +565,13 @@ class avl_vector
 	{
 		if (node == core.nil) return true;
 
-		int lh = node->left->height;
-		int rh = node->right->height;
+		long long lh = node->left->height;
+		long long rh = node->right->height;
 
 		if (std::abs(lh - rh) > 1) return false;
 
-		int h = std::max(lh, rh) + 1;
-		int w = node->left->weight + node->right->weight + 1;
+		long long h = std::max(lh, rh) + 1;
+		long long w = node->left->weight + node->right->weight + 1;
 
 		if (h != node->height) return false;
 		if (w != node->weight) return false;
@@ -680,6 +692,40 @@ class avl_vector
 		}
 		return sz;
 	}
+	std::size_t _AVL_flatten_insert(VNP& target, NodeP breakp, VNP& inserted)
+	{
+		target.clear();
+		auto sz = core.root->left->weight + inserted.size();
+		target.reserve(sz);
+		NodeP n = _AVL_first_node();
+		NodeP e = _AVL_last_node();
+		while (true)
+		{
+			if (n == breakp)
+				target.insert(target.end(), inserted.begin(), inserted.end());
+			if (n == e) break;
+			target.push_back(n);
+			n = _AVL_next_node(n);
+		}
+		return sz;
+	}
+
+	void _AVL_insert_range(NodeP n, VNP& vnp)
+	{
+		if (size() > vnp.size())
+		{
+			for (NodeP p : vnp)
+			{
+				n = _AVL_insert_node(n, p);
+				n = _AVL_next_node(n);
+			}
+		} else {
+			VNP vnp_new;
+			_AVL_flatten_insert(vnp_new, n, vnp);
+			_AVL_link_l(core.root, _AVL_hang(vnp_new));
+		}
+	}
+
 
 
 friend
@@ -712,7 +758,7 @@ public:
 	{
 		VNP vpn;
 		while (b != e)
-			vpn.push_back(_AVL_node_new(nullptr, *b++));
+			vpn.push_back(_AVL_node_new(*b++));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
 	}
 	avl_vector(std::initializer_list<T> il)
@@ -723,7 +769,7 @@ public:
 	{
 		VNP vpn;
 		while (sz--)
-			vpn.push_back(_AVL_node_new(nullptr, val));
+			vpn.push_back(_AVL_node_new(val));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
 	}
 	avl_vector(const avl_vector& other)
@@ -750,7 +796,7 @@ public:
 		clear();
 		VNP vpn;
 		while (b != e)
-			vpn.push_back(_AVL_node_new(nullptr, *b++));
+			vpn.push_back(_AVL_node_new(*b++));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
 	}
 	void assign(std::initializer_list<T> il)
@@ -759,10 +805,10 @@ public:
 	}
 	void assign(std::size_t n, const T& val)
 	{
-		VNP vpn;
+		VNP vnp;
 		while (n--)
-			vpn.push_back(_AVL_node_new(nullptr, val));
-		_AVL_link_l(core.root, _AVL_hang(vpn));
+			vnp.push_back(_AVL_node_new(val));
+		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
 	avl_vector& operator=(avl_vector&& other) noexcept
 	{
@@ -894,10 +940,26 @@ public:
 
 	iterator nth(std::size_t idx) { return {this, _AVL_nth(idx)}; }
 
-	iterator insert(iterator node, const T& item)
+	iterator insert(iterator itr, const T& item)
 	{
-		auto p = _AVL_insert(node.node, item);
+		auto p = _AVL_insert(itr.node, item);
 		return {this, p};
+	}
+	template<typename It>
+	void insert(iterator itr, It b, It e)
+	{
+		VNP vnp;
+		typedef std::iterator_traits<It>::iterator_category ItCat;
+		if constexpr (std::is_same_v<ItCat, std::random_access_iterator_tag>)
+		{
+			vnp.reserve(e - b);
+		}
+		while (b != e)
+		{
+			vnp.push_back( _AVL_node_new(*b) );
+			++b;
+		}
+		_AVL_insert_range(itr.node, vnp);
 	}
 	template<typename... Args>
 	iterator emplace(iterator itr, Args&&... args)
@@ -910,6 +972,14 @@ public:
 		auto p = _AVL_next_node(itr.node);
 		_AVL_delete_node(itr.node);
 		return {this, p};
+	}
+	iterator erase(iterator b, iterator e)
+	{
+		while (b != e)
+		{
+			b = erase(b);
+		}
+		return b;
 	}
 
 	T& operator[](std::size_t idx) { return _AVL_nth(idx)->item; }
@@ -952,8 +1022,10 @@ public:
 		auto p = _AVL_insert(_AVL_first_node(), std::forward<Args>(args)...);
 		return p->item;
 	}
+
 	void pop_back() { _AVL_delete_node(_AVL_last_payload_node()); }
 	void pop_front() { _AVL_delete_node(_AVL_first_node()); }
+
 	template<typename Op = std::less<T>>
 	void sort(Op op = Op{})
 	{
@@ -978,6 +1050,7 @@ public:
 		std::stable_sort(vnp.begin(), vnp.end(), nless);
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
+
 	template<typename Op = std::less<T>>
 	void unique(Op op = Op{})
 	{
@@ -997,6 +1070,7 @@ public:
 			++p;
 		}
 	}
+
 	void reverse()
 	{
 		VNP vnp;
@@ -1004,10 +1078,56 @@ public:
 		std::reverse(vnp.begin(), vnp.end());
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
+
 	void reserve(std::size_t) {}
 	void shrink_to_fit() {}
 	std::size_t capacity() const { return max_size(); }
 	std::size_t max_size() const { return (unsigned long)-1; }
+
+	std::size_t remove(const T& value)
+	{
+		auto op = [&value](const T& itm)
+		{
+			return itm == value;
+		};
+		return remove_if(op);
+	}
+	template<typename Op>
+	std::size_t remove_if(Op op)
+	{
+		std::size_t cnt = 0;
+		NodeP n = _AVL_first_node();
+		NodeP e = _AVL_last_node();
+		while (n != e)
+		{
+			NodeP t = _AVL_next_node(n);
+			if (op(n->item))
+			{
+				_AVL_delete_node(n);
+				++cnt;
+			}
+			n = t;
+		}
+		return cnt;
+	}
+
+	void splice(iterator pos, avl_vector& other)
+	{
+		VNP vnp_me, vnp_ot;
+
+		other._AVL_flatten(vnp_ot);
+		other.core.root->left = other.core.nil;
+		_AVL_flatten_insert(vnp_me, pos.node, vnp_ot);
+		_AVL_link_l(core.root, _AVL_hang(vnp_me));
+	}
+	void splice(iterator pos, avl_vector&& other) { splice(pos, other); }
+
+	void splice(iterator pos, avl_vector& other, iterator it)
+	{
+		NodeP n = other._AVL_unlink_node(it.node);
+		_AVL_insert_node(pos.node, n);
+	}
+	void splice(iterator pos, avl_vector&& other, iterator it) { splice(pos, other, it); }
 };
 
 
