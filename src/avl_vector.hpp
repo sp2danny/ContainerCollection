@@ -13,6 +13,7 @@
 #include <initializer_list>
 #include <type_traits>
 #include <iterator>
+#include <cstdint>
 
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
@@ -32,7 +33,8 @@ class avl_vector
 			: item(std::forward<Args>(args)...)
 		{ }
 		NodeP parent, left, right;
-		std::size_t weight, height;
+		std::uint32_t weight : 27;
+		std::uint32_t height : 5;
 		union {
 			T item;
 			char dummy;
@@ -114,7 +116,6 @@ class avl_vector
 		if (at->left == core.nil)
 		{
 			_AVL_link_l(at, newn);
-			//at->left = newn;
 			_AVL_balance(at);
 			return newn;
 		}
@@ -122,7 +123,6 @@ class avl_vector
 		while (at->right != core.nil)
 			at = at->right;
 		_AVL_link_r(at, newn);
-		//at->right = newn;
 		_AVL_balance(at);
 		return newn;
 	}
@@ -237,8 +237,11 @@ class avl_vector
 		n2->right->parent   = n2;
 		if (n2_lnk) *n2_lnk = n2;
 
-		std::swap(n1->weight, n2->weight);
-		std::swap(n1->height, n2->height);
+		uint32_t tmp;
+		#define SWP(a, b) tmp = a; a = b; b = tmp
+		SWP(n1->weight, n2->weight);
+		SWP(n1->height, n2->height);
+		#undef SWP
 	}
 
 	auto _AVL_relink(NodeP n1, NodeP n2)
@@ -1082,7 +1085,7 @@ public:
 	void reserve(std::size_t) {}
 	void shrink_to_fit() {}
 	std::size_t capacity() const { return max_size(); }
-	std::size_t max_size() const { return (unsigned long)-1; }
+	std::size_t max_size() const { return (1ul<<27)-1ul; }
 
 	std::size_t remove(const T& value)
 	{
@@ -1128,6 +1131,17 @@ public:
 		_AVL_insert_node(pos.node, n);
 	}
 	void splice(iterator pos, avl_vector&& other, iterator it) { splice(pos, other, it); }
+
+	/// good insert position for sorted containers
+	iterator upper_bound(const T& val)
+	{
+		return {this, _AVL_sorted_insert_position(val)};
+	}
+	/// return first found item == val, or end
+	iterator binary_find(const T& val)
+	{
+		return {this, _AVL_search_node(val)};
+	}
 };
 
 
