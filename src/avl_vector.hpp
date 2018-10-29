@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <iterator>
 #include <cstdint>
+#include <stdexcept>
 
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
@@ -293,7 +294,9 @@ class avl_vector
 	/// Removes a given node from the tree.
 	void _AVL_delete_node(NodeP node)
 	{
-		delete _AVL_unlink_node(node);
+		NodeP p = _AVL_unlink_node(node);
+		p->~Node();
+		allocator_type{}.deallocate(p, 1);
 	}
 
 	/// Searches the tree for a node containing the given data.
@@ -490,6 +493,7 @@ class avl_vector
 		_AVL_relink(node, left);
 		_AVL_link_r(left, node);
 		_AVL_link_l(node, leftRight);
+
 		_AVL_updHW(node);
 
 		return left;
@@ -522,6 +526,7 @@ class avl_vector
 
 	SR _AVL_is_sub_sorted(NodeP node) const
 	{
+		assert(!node->sentry());
 		bool ln = node->left == core.nil;
 		bool rn = node->right == core.nil;
 
@@ -532,7 +537,7 @@ class avl_vector
 			return result;
 		}
 
-		if (!ln)
+		if (result.sorted && !ln)
 		{
 			SR lft = _AVL_is_sub_sorted(node->left);
 			if (!lft.sorted)
@@ -541,7 +546,8 @@ class avl_vector
 				result.sorted = false;
 			result.min = lft.min;
 		}
-		if (!rn)
+
+		if (result.sorted && !rn)
 		{
 			SR rgt = _AVL_is_sub_sorted(node->right);
 			if (!rgt.sorted)
@@ -568,13 +574,13 @@ class avl_vector
 	{
 		if (node == core.nil) return true;
 
-		long long lh = node->left->height;
-		long long rh = node->right->height;
+		long lh = node->left->height;
+		long rh = node->right->height;
 
 		if (std::abs(lh - rh) > 1) return false;
 
-		long long h = std::max(lh, rh) + 1;
-		long long w = node->left->weight + node->right->weight + 1;
+		long h = std::max(lh, rh) + 1;
+		long w = node->left->weight + node->right->weight + 1;
 
 		if (h != node->height) return false;
 		if (w != node->weight) return false;
@@ -658,6 +664,7 @@ class avl_vector
 
 	NodeP _AVL_hang(NodeP* ap, NodeP* bp)
 	{
+		assert(ap <= bp);
 		auto sz = bp - ap;
 		if (!sz)
 			return core.nil;
@@ -829,11 +836,11 @@ public:
 		return core.root->left->weight;
 	}
 
-	bool empty() const { return core.root->left->weight == 0; }
+	bool empty() const { return size() == 0; }
 
-	bool sorted() const
+	bool is_sorted() const
 	{
-		if (core.root->left->weight <= 1) return true;
+		if (size() <= 1) return true;
 		return _AVL_is_sub_sorted(core.root->left).sorted;
 	}
 
@@ -898,6 +905,15 @@ public:
 		iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
 		bool operator==(const iterator& other) const { assert(avl == other.avl); return node == other.node; }
 		bool operator!=(const iterator& other) const { assert(avl == other.avl); return node != other.node; }
+		bool operator <(const iterator& other) const { return avl->_AVL_indexof(node)  < avl->_AVL_indexof(other.node); }
+		bool operator<=(const iterator& other) const { return avl->_AVL_indexof(node) <= avl->_AVL_indexof(other.node); }
+		bool operator >(const iterator& other) const { return avl->_AVL_indexof(node)  > avl->_AVL_indexof(other.node); }
+		bool operator>=(const iterator& other) const { return avl->_AVL_indexof(node) >= avl->_AVL_indexof(other.node); }
+		std::ptrdiff_t operator-(const iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(node))-std::ptrdiff_t(avl->_AVL_indexof(other.node)); }
+		iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		iterator operator+(std::ptrdiff_t ofs) const { iterator tmp = *this; tmp += ofs; return tmp; }
+		iterator operator-(std::ptrdiff_t ofs) const { iterator tmp = *this; tmp -= ofs; return tmp; }
 	friend
 		class avl_vector;
 	friend
@@ -925,6 +941,15 @@ public:
 		const_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
 		bool operator==(const const_iterator& other) const { assert(avl == other.avl); return node == other.node; }
 		bool operator!=(const const_iterator& other) const { assert(avl == other.avl); return node != other.node; }
+		bool operator <(const const_iterator& other) const { return avl->_AVL_indexof(node)  < avl->_AVL_indexof(other.node); }
+		bool operator<=(const const_iterator& other) const { return avl->_AVL_indexof(node) <= avl->_AVL_indexof(other.node); }
+		bool operator >(const const_iterator& other) const { return avl->_AVL_indexof(node)  > avl->_AVL_indexof(other.node); }
+		bool operator>=(const const_iterator& other) const { return avl->_AVL_indexof(node) >= avl->_AVL_indexof(other.node); }
+		std::ptrdiff_t operator-(const const_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(node)) - std::ptrdiff_t(avl->_AVL_indexof(other.node)); }
+		const_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		const_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		const_iterator operator+(std::ptrdiff_t ofs) const { const_iterator tmp = *this; tmp += ofs; return tmp; }
+		const_iterator operator-(std::ptrdiff_t ofs) const { const_iterator tmp = *this; tmp -= ofs; return tmp; }
 	friend
 		class avl_vector;
 	private:
@@ -987,6 +1012,19 @@ public:
 
 	T& operator[](std::size_t idx) { return _AVL_nth(idx)->item; }
 	const T& operator[](std::size_t idx) const { return _AVL_nth(idx)->item; }
+
+	T& at(std::size_t idx)
+	{
+		if (idx >= size())
+			throw std::out_of_range("index out of range");
+		return _AVL_nth(idx)->item;
+	}
+	const T& at(std::size_t idx) const
+	{
+		if (idx >= size())
+			throw std::out_of_range("index out of range");
+		return _AVL_nth(idx)->item;
+	}
 
 	T& front() { return _AVL_first_node()->item; }
 	T& back() { return _AVL_last_payload_node()->item; }
@@ -1132,7 +1170,7 @@ public:
 	}
 	void splice(iterator pos, avl_vector&& other, iterator it) { splice(pos, other, it); }
 
-	/// good insert position for sorted containers
+	/// stable insert position for sorted containers
 	iterator upper_bound(const T& val)
 	{
 		return {this, _AVL_sorted_insert_position(val)};

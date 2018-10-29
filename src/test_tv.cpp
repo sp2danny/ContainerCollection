@@ -184,7 +184,7 @@ void testsuit()
 			ati2.sort();
 			for (auto&& x : ati2) std::cout << x << " ";
 			assert(ati2.integrity());
-			assert(ati2.sorted());
+			assert(ati2.is_sorted());
 		}
 	}
 
