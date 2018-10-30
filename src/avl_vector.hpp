@@ -284,6 +284,7 @@ class avl_vector
 			}
 			else {
 				NodeP pred = _AVL_prev_node(node);
+				//pred->weight = node.weight;
 				_AVL_full_node_swap(node, pred);
 				return _AVL_unlink_node(node);
 			}
