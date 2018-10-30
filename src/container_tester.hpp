@@ -92,6 +92,28 @@ namespace CT
 	};
 
 	template<typename T = void>
+	struct sort
+	{
+		void operator()() {}
+
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+
+		static std::string name() { return "sort"s; }
+	};
+
+	template<typename T = void>
+	struct unique
+	{
+		void operator()() {}
+
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+
+		static std::string name() { return "unique"s; }
+	};
+
+	template<typename T = void>
 	struct sort_unique
 	{
 		void operator()() {}
@@ -219,7 +241,7 @@ bool CT::compare<T>::operator()(const C1& orig, const C2& first, const Args&... 
 	auto e2 = first.end();
 	while (true)
 	{
-		if ((i1==e1) && (i2==e2)) return true;
+		if ((i1==e1) && (i2==e2)) break;
 		if ((i1==e1) || (i2==e2)) return false;
 		if (*i1 != *i2) return false;
 		++i1; ++i2;
@@ -308,16 +330,46 @@ void CT::sort_unique<T>::operator()(C1& first, Args&... rest)
 		<< clr;
 	#endif
 
-	sort(first);
-	unique(first);
+	CO::sort(first);
+	CO::unique(first);
 	sort_unique<>{}(rest...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::sort<T>::operator()(C1& first, Args&... rest)
+{
+#ifdef FULL_DIAG
+	std::cerr << "attempting: "
+		<< "sort of "
+		<< nameof(first) << " (sz:" << first.size() << ")"
+		<< clr;
+#endif
+
+	CO::sort(first);
+	CT::sort<>{}(rest...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::unique<T>::operator()(C1& first, Args&... rest)
+{
+#ifdef FULL_DIAG
+	std::cerr << "attempting: "
+		<< "unique of "
+		<< nameof(first) << " (sz:" << first.size() << ")"
+		<< clr;
+#endif
+
+	CO::unique(first);
+	CT::unique<>{}(rest...);
 }
 
 template<typename T>
 template<typename C1, typename... Args>
 void CT::print<T>::operator()(std::ostream& out, C1& first, Args&... rest)
 {
-	out << nameof(first) << " : ";
+	out << nameof(first) << "\n";
 	for (auto&& x : first)
 	{
 		out << x << ' ';
@@ -343,8 +395,8 @@ void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 	std::size_t idx1 = std::uniform_int_distribution<int>{0, sz-1}(generator);
 	std::size_t idx2 = std::uniform_int_distribution<int>{0, sz-1}(generator);
 	if (idx1>idx2) std::swap(idx1, idx2);
-	auto itr1 = std::next(first.begin(), idx1);
-	auto itr2 = std::next(first.begin(), idx2);
+	auto itr1 = nth(first, idx1);
+	auto itr2 = nth(first, idx2);
 	C1 other;
 	splice(first, itr1, itr2, other, other.begin());
 	merge(first, other);

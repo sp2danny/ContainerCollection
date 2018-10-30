@@ -25,6 +25,7 @@ private:
 	enum { uninitialized, proper, movedfrom, deleted } state;
 public:
 	static const std::vector<std::string>& report();
+	static bool error();
 };
 
 namespace detail
@@ -55,6 +56,11 @@ const std::vector<std::string>& test_item::report()
 			add_report("over-deleted : "s + std::to_string(dc-cc));
 	}
 	return detail::report;
+}
+
+bool test_item::error()
+{
+	return !detail::report.empty();
 }
 
 #include <cstring>

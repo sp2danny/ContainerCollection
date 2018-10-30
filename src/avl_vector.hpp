@@ -343,6 +343,77 @@ class avl_vector
 		}
 	}
 
+	/// Searches the tree for first node equal to, or first node larger than data
+	NodeP _AVL_lower_bound(const T& data)
+	{
+		NodeP node = core.root->left;
+		NodeP lwl = core.root;
+
+		if (node == core.nil)
+			return core.root;
+
+		while (true)
+		{
+			if (data < node->item)
+			{
+				lwl = node;
+				if (node->left == core.nil) break;
+				node = node->left;
+			}
+			else if (node->item < data)
+			{
+				if (node->right == core.nil) break;
+				node = node->right;
+			}
+			else
+			{
+				while ((node->left != core.nil) && (node->left->item == data))
+					node = node->left;
+				return node;
+			}
+		}
+		return lwl;
+	}
+
+	/*
+	/// Searches the tree for all nodes equal to data, return range
+	std::pair<NodeP,NodeP> _AVL_equal_range(const T& data)
+	{
+		NodeP node = core.root->left;
+		NodeP lwl = core.root;
+		NodeP feq = nullptr;
+
+		if (node == core.nil)
+			return {core.root, core.root};
+
+		while (true)
+		{
+			if (data < node->item)
+			{
+				if (node->left == core.nil) break;
+				node = node->left;
+				lwl = node;
+			}
+			else if (node->item < data)
+			{
+				if (node->right == core.nil) break;
+				node = node->right;
+			}
+			else
+			{
+				feq = node;
+				while ((feq->left != core.nil) && (feq->left->item == data))
+					feq = feq->left;
+				// todo: find actual end marker
+			}
+		}
+		if (feq)
+			return {feq, lwl};
+		else
+			return {lwl, lwl};
+	}
+	*/
+
 	/// Returns the first node, or sentry.
 	NodeP _AVL_first_node()
 	{
@@ -403,7 +474,7 @@ class avl_vector
 		return n;
 	}
 
-	/// Returns the follower of the given node.
+	/// Returns the successor of the given node.
 	NodeP _AVL_next_node(NodeP n)
 	{
 		if (n == core.root)
@@ -421,7 +492,8 @@ class avl_vector
 			while (n->left != core.nil)
 				n = n->left;
 		}
-		else {
+		else
+		{
 			nTemp = n;
 			n = n->parent;
 			while ((n != core.nil) && (n->right == nTemp))
@@ -736,10 +808,7 @@ class avl_vector
 		}
 	}
 
-
-
-friend
-	struct iterator;
+	mutable avl_vector* me = this;
 
 public:
 	typedef std::size_t size_type;
@@ -752,6 +821,9 @@ public:
 	struct iterator;
 	struct const_iterator;
 	typedef typename A::template rebind<Node>::other allocator_type;
+
+friend
+	struct iterator;
 
 	/// Creates a new empty tree.
 	avl_vector()
@@ -961,8 +1033,8 @@ public:
 	iterator begin() { return {this, _AVL_first_node()}; }
 	iterator end()   { return {this, _AVL_last_node()}; }
 
-	iterator begin()  const { avl_vector* me = (avl_vector*)this; return {me, me->_AVL_first_node()}; }
-	iterator end()    const { avl_vector* me = (avl_vector*)this; return {me, me->_AVL_last_node()}; }
+	iterator begin()  const { return {me, me->_AVL_first_node()}; }
+	iterator end()    const { return {me, me->_AVL_last_node()}; }
 	iterator cbegin() const { return begin(); }
 	iterator cend()   const { return end(); }
 
@@ -1028,8 +1100,8 @@ public:
 
 	T& front() { return _AVL_first_node()->item; }
 	T& back() { return _AVL_last_payload_node()->item; }
-	const T& front() const { return ((avl_vector*)this)->_AVL_first_node()->item; }
-	const T& back() const { return ((avl_vector*)this)->_AVL_last_payload_node()->item; }
+	const T& front() const { return me->_AVL_first_node()->item; }
+	const T& back() const { return me->_AVL_last_payload_node()->item; }
 
 	T& push_back(const T& item)
 	{
@@ -1092,18 +1164,18 @@ public:
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
 
-	template<typename Op = std::less<T>>
+	template<typename Op = std::equal<T>>
 	void unique(Op op = Op{})
 	{
 		VNP vnp;
 		_AVL_flatten(vnp);
-		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
+		auto node_eq = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
 			return op(lhs->item, rhs->item);
 		};
 		auto ptr = vnp.data();
 		auto sz = vnp.size();
-		auto p = std::unique(ptr, ptr+sz, nless);
+		auto p = std::unique(ptr, ptr+sz, node_eq);
 		_AVL_link_l(core.root, _AVL_hang(ptr, p));
 		while (p != (ptr+sz))
 		{
@@ -1180,6 +1252,10 @@ public:
 	{
 		return {this, _AVL_search_node(val)};
 	}
+	bool binary_search(const T& val) const
+	{
+		return me->_AVL_search_node(val) != core.root;
+	}
 };
 
-
+template class avl_vector<int>;

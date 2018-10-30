@@ -1,20 +1,13 @@
 
 #include "inline_vector.hpp"
 #include "splice_list.hpp"
-
-#include "TreeVector.hpp"
-#include "TreeVector.cpp"
-
+#include "avl_vector.hpp"
 #include "test_item.hpp"
 #include "container_tester.hpp"
-
-#include "avl_tree.hpp"
 
 #include <iostream>
 #include <vector>
 #include <list>
-
-template class avl_tree<int>;
 
 void testsuit()
 {
@@ -24,30 +17,40 @@ void testsuit()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok; ++i)
+		for (int i=0; ok && (i<1000); ++i)
 		{
+			std::cout << "\r" << i << "  ";
 			vi.clear();
 			vector<test_item> vti;
 			list<test_item> lti;
 			inline_vector<test_item,150> ivtis;
 			inline_vector<test_item,300> ivtib;
 			splice_list<test_item> slti;
-			TreeVector<test_item> tvti;
-			//mkr::avl_array<test_item> aati;
-			//mkr::avl_array<int> aai;
+			avl_vector<test_item> avti;
 
-			#define ALL vi, vti, lti, slti, ivtis, ivtib, tvti
-			//#define ALL vi, vti, lti, ivtis, ivtib, slti
-			//#define ALL vi, aai
+			#define ALL vi, lti, ivtis, ivtib, slti, avti
 
 			fillup<>{}(100, ALL);
-			for (int i=0; i<100; ++i)
+
+			//if (ok) { system("cls"); print<>{}(std::cout, ALL); }
+
+			for (int j=0; j<100; ++j)
 				insert<>{}(ALL);
-			for (int i=0; i<150; ++i)
+			for (int j=0; j<150; ++j)
 				erase<>{}(ALL);
 			if (ok) ok = compare<>{}(ALL);
-			if (ok) sort_unique<>{}(ALL);
+
+			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
+
+			if (ok) CT::sort<>{}(ALL);
 			if (ok) ok = compare<>{}(ALL);
+
+			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
+
+			if (ok) CT::unique<>{}(ALL);
+			if (ok) ok = compare<>{}(ALL);
+
+			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
 			if (ok) splice_merge<>{}(ALL);
 			if (ok) ok = compare<>{}(ALL);
@@ -57,6 +60,8 @@ void testsuit()
 			if (ok) binary_find_swap<>{}(test_item{33}, test_item{66}, ALL);
 			if (ok) ok = compare<>{}(ALL);
 
+			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
+
 			if (!ok)
 			{
 				cout << "compare test failed" << endl;
@@ -64,10 +69,12 @@ void testsuit()
 			}
 			#undef ALL
 			
-			if ( (i>1000) && !std::is_sorted(vi.begin(), vi.end())) break;
-
+			if (ok) {
+				ok = ! test_item::error();
+				if (!ok)
+					cout << "move/copy test failed" << endl;
+			}
 		}
-		if (ok) cout << "compare test ok" << endl;
 	}
 
 	auto rep = test_item::report();
@@ -81,76 +88,10 @@ void testsuit()
 	cout << endl;
 }
 
-bool test_suit_avl(int N, int M, bool print)
-{
-	avl_tree<int> ati;
-	for (int i=0; i<N; ++i)
-	{
-		ati.insert_sorted(rand()%M);
-		if (print)
-		{
-			std::cout << ati.size() << "\n";
-			ati.print_tree(std::cout);
-			std::cout << "\n";
-			assert(ati.integrity());
-		}
-		if (!ati.integrity()) return false;
-	}
-	for (int i=0; i<N; ++i)
-	{
-		ati.insert_sorted(rand()%M);
-		auto sz = ati.size();
-		auto p = ati.nth(rand()%sz);
-		ati.delete_node(p);
-		if (print)
-		{
-			std::cout << ati.size() << "\n";
-			ati.print_tree(std::cout);
-			std::cout << "\n";
-			assert(ati.integrity());
-		}
-		if (!ati.integrity()) return false;
-	}
-	for (int i=0; i<N; ++i)
-	{
-		auto sz = ati.size();
-		auto p = ati.nth(rand()%sz);
-		ati.delete_node(p);
-		if (print)
-		{
-			std::cout << ati.size() << "\n";
-			ati.print_tree(std::cout);
-			std::cout << "\n";
-			assert(ati.integrity());
-		}
-		if (!ati.integrity()) return false;
-	}
-	if (print)
-	{
-		assert(ati.size() == 0);
-	}
-	return ati.size() == 0;
-}
-
-void test_suit_avl()
-{
-	const int M = 100'000;
-	
-	int N = 2;
-	while (true)
-	{
-		srand(1);
-		if (!test_suit_avl(N, M, false)) break;
-		++N;
-	}
-	srand(1);
-	test_suit_avl(N, M, true);
-}
-
 int main()
 {
-	//testsuit();
-	test_suit_avl();
+	testsuit();
+	//test_suit_avl();
 	//fgetc(stdin);
 }
 

@@ -156,6 +156,17 @@ namespace detail
 
 	template<typename C1, typename Itm>
 	auto binary_find(pick_1, C1&& c1, const Itm& itm)
+		-> std::pair<bool, decltype(c1.binary_find(itm))>
+	{
+		auto itr = c1.binary_find(itm);
+		if (itr != c1.end())
+			return {true, itr};
+		else
+			return {false, {}};
+	}
+
+	template<typename C1, typename Itm>
+	auto binary_find(pick_2, C1&& c1, const Itm& itm)
 		-> std::pair<bool, decltype(c1.begin())>
 	{
 		using std::lower_bound;
@@ -169,7 +180,7 @@ namespace detail
 	}
 
 	template<typename C1, typename Itm>
-	auto binary_find(pick_2, const C1& c1, const Itm& itm)
+	auto binary_find(pick_3, const C1& c1, const Itm& itm)
 		-> std::pair<bool, typename C1::const_iterator>
 	{
 		using std::lower_bound;
@@ -218,6 +229,25 @@ namespace detail
 		c1.swap(dst);
 	}
 
+	template<typename Cont>
+	auto nth(pick_1, Cont& c1, std::size_t idx)
+		-> decltype(c1.nth(idx))
+	{
+		return c1.nth(idx);
+	}
+	template<typename Cont>
+	auto nth(pick_2, Cont& c1, std::size_t idx)
+		-> decltype(c1.begin())
+	{
+		return std::next(c1.begin(), idx);
+	}
+
+}
+
+template<typename Cont>
+auto nth(Cont& c1, std::size_t idx)
+{
+	return detail::nth(detail::pick_1{}, c1, idx);
 }
 
 template<typename C1>
