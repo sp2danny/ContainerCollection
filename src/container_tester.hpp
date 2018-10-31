@@ -22,7 +22,7 @@ namespace CT
 	inline void report_times();
 
 	template<typename T>
-	std::string nameof(T&) { return typeid(T).name(); }
+	std::string nameof(T&&) { return typeid(T).name(); }
 
 	template<typename T = void>
 	struct fillup

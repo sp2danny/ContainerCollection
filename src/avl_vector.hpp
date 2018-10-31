@@ -546,7 +546,7 @@ class avl_vector
 	{
 		NodeP right = node->right;
 		NodeP rightLeft = right->left;
-		NodeP parent = node->parent;
+		//NodeP parent = node->parent;
 
 		_AVL_relink(node, right);
 		_AVL_link_l(right, node);
@@ -561,7 +561,7 @@ class avl_vector
 	{
 		NodeP left = node->left;
 		NodeP leftRight = left->right;
-		NodeP parent = node->parent;
+		//NodeP parent = node->parent;
 
 		_AVL_relink(node, left);
 		_AVL_link_r(left, node);
@@ -1050,7 +1050,7 @@ friend
 	void insert(iterator itr, It b, It e)
 	{
 		VNP vnp;
-		typedef std::iterator_traits<It>::iterator_category ItCat;
+		typedef typename std::iterator_traits<It>::iterator_category ItCat;
 		if constexpr (std::is_same_v<ItCat, std::random_access_iterator_tag>)
 		{
 			vnp.reserve(e - b);
@@ -1165,7 +1165,7 @@ friend
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
 
-	template<typename Op = std::equal<T>>
+	template<typename Op = std::equal_to<T>>
 	void unique(Op op = Op{})
 	{
 		VNP vnp;
