@@ -79,7 +79,8 @@ void merge_unique(C1& c1, C2& c2, C3& c3)
 
 namespace detail
 {
-	struct pick_3 {};
+	struct pick_4 {};
+	struct pick_3 : pick_4 {};
 	struct pick_2 : pick_3 {};
 	struct pick_1 : pick_2 {};
 
@@ -167,20 +168,33 @@ namespace detail
 
 	template<typename C1, typename Itm>
 	auto binary_find(pick_2, C1&& c1, const Itm& itm)
+		-> std::pair<bool, decltype(c1.lower_bound(itm))>
+	{
+		auto itr = c1.lower_bound(itm);
+		if (iter == c1.end())
+			return {false, {}};
+		if (itm == *iter)
+			return { true, iter };
+		else
+			return {false, {}};
+	}
+
+	template<typename C1, typename Itm>
+	auto binary_find(pick_3, C1&& c1, const Itm& itm)
 		-> std::pair<bool, decltype(c1.begin())>
 	{
 		using std::lower_bound;
 		auto iter = lower_bound(c1.begin(), c1.end(), itm);
 		if (iter == c1.end())
-			return {false,{}};
+			return {false, {}};
 		if (itm == *iter)
 			return {true, iter};
 		else
-			return {false,{}};
+			return {false, {}};
 	}
 
 	template<typename C1, typename Itm>
-	auto binary_find(pick_3, const C1& c1, const Itm& itm)
+	auto binary_find(pick_4, const C1& c1, const Itm& itm)
 		-> std::pair<bool, typename C1::const_iterator>
 	{
 		using std::lower_bound;

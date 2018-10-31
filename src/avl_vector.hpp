@@ -282,8 +282,7 @@ class avl_vector
 				NodeP succ = _AVL_next_node(node);
 				_AVL_full_node_swap(node, succ);
 				return _AVL_unlink_node(node);
-			}
-			else {
+			} else {
 				NodeP pred = _AVL_prev_node(node);
 				//pred->weight = node.weight;
 				_AVL_full_node_swap(node, pred);
@@ -770,11 +769,12 @@ class avl_vector
 		vnp.reserve(sz);
 		NodeP n = _AVL_first_node();
 		NodeP e = _AVL_last_node();
-		while (n!=e)
+		while (n != e)
 		{
 			vnp.push_back(n);
 			n = _AVL_next_node(n);
 		}
+		assert(sz == vnp.size());
 		return sz;
 	}
 	std::size_t _AVL_flatten_insert(VNP& target, NodeP breakp, VNP& inserted)
@@ -792,6 +792,7 @@ class avl_vector
 			target.push_back(n);
 			n = _AVL_next_node(n);
 		}
+		assert(sz == target.size());
 		return sz;
 	}
 
@@ -972,8 +973,8 @@ friend
 		typedef T& reference;
 		typedef std::ptrdiff_t difference_type;
 		iterator() = default;
-		T& operator*() { return node->item; }
-		T* operator->() { return &node->item; }
+		T& operator*() const { return node->item; }
+		T* operator->() const { return &node->item; }
 		iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
 		iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
 		iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
@@ -1008,8 +1009,8 @@ friend
 		typedef std::ptrdiff_t difference_type;
 		const_iterator() = default;
 		const_iterator(iterator i) : avl(i.avl), node(i.node) {}
-		const T& operator*() { return node->item; }
-		const T* operator->() { return &node->item; }
+		const T& operator*() const { return node->item; }
+		const T* operator->() const { return &node->item; }
 		const_iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
 		const_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
 		const_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
@@ -1170,25 +1171,27 @@ friend
 	template<typename Op = std::equal_to<T>>
 	void unique(Op op = Op{})
 	{
-		assert(integrity());
+		//assert(integrity());
 		VNP vnp;
 		_AVL_flatten(vnp);
 		auto node_eq = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
+			assert(!lhs->sentry() && !rhs->sentry());
 			return op(lhs->item, rhs->item);
 		};
 		auto ptr = vnp.data();
 		auto sz = vnp.size();
 		auto p = std::unique(ptr, ptr+sz, node_eq);
 		_AVL_link_l(core.root, _AVL_hang(ptr, p));
-		while (p != (ptr+sz))
-		{
-			//_AVL_delete_node(*p);
-			(*p)->~Node();
-			allocator_type{}.deallocate(*p, 1);
-			++p;
-		}
-		assert(integrity());
+		//assert(integrity());
+		//while (p != (ptr+sz))
+		//{
+		//	//_AVL_delete_node(*p);
+		//	(*p)->~Node();
+		//	allocator_type{}.deallocate(*p, 1);
+		//	++p;
+		//}
+		//assert(integrity());
 	}
 
 	void reverse()
