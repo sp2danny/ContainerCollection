@@ -15,6 +15,7 @@
 #include <iterator>
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
 
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
@@ -753,6 +754,7 @@ class avl_vector
 		_AVL_link_l(*cp, _AVL_hang(ap, cp));
 		_AVL_link_r(*cp, _AVL_hang(cp+1, bp));
 		_AVL_updHW(*cp);
+		assert(_AVL_integrity(*cp));
 		return *cp;
 	}
 	NodeP _AVL_hang(VNP& vnp)
@@ -1051,7 +1053,7 @@ friend
 	{
 		VNP vnp;
 		typedef typename std::iterator_traits<It>::iterator_category ItCat;
-		if constexpr (std::is_same_v<ItCat, std::random_access_iterator_tag>)
+		if constexpr (std::is_same<ItCat, std::random_access_iterator_tag>::value)
 		{
 			vnp.reserve(e - b);
 		}
@@ -1168,6 +1170,7 @@ friend
 	template<typename Op = std::equal_to<T>>
 	void unique(Op op = Op{})
 	{
+		assert(integrity());
 		VNP vnp;
 		_AVL_flatten(vnp);
 		auto node_eq = [&op](NodeP lhs, NodeP rhs) -> bool
@@ -1180,9 +1183,12 @@ friend
 		_AVL_link_l(core.root, _AVL_hang(ptr, p));
 		while (p != (ptr+sz))
 		{
-			_AVL_delete_node(*p);
+			//_AVL_delete_node(*p);
+			(*p)->~Node();
+			allocator_type{}.deallocate(*p, 1);
 			++p;
 		}
+		assert(integrity());
 	}
 
 	void reverse()

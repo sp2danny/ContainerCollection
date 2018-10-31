@@ -241,7 +241,36 @@ namespace detail
 	{
 		return std::next(c1.begin(), idx);
 	}
+	
+	template<typename Cont>
+	auto integrity(pick_1, Cont& c1)
+		-> decltype(c1.integrity())
+	{
+		return c1.integrity();
+	}
+	template<typename Cont>
+	auto integrity(pick_2, Cont& c1)
+		-> bool
+	{
+		std::size_t n = 0, sz = c1.size();
+		auto it = c1.begin();
+		while (it != c1.end())
+		{
+			auto tmp = it;
+			++tmp; --tmp;
+			if (tmp != it) return false;
+			++n; ++it;
+			if (n>sz) return false;
+		}
+		return n == sz;
+	}
 
+}
+
+template<typename Cont>
+auto integrity(Cont& c1)
+{
+	return detail::integrity(detail::pick_1{}, c1);
 }
 
 template<typename Cont>

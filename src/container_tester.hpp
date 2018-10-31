@@ -31,6 +31,15 @@ namespace CT
 		void operator()(std::size_t, Args&...);
 		static std::string name() { return "fillup"s; }
 	};
+	
+	template<typename T = void>
+	struct integrity
+	{
+		bool operator()() { return true; }
+		template<typename C1, typename... Args>
+		bool operator()(C1&, Args&...);
+		static std::string name() { return "integrity"s; }
+	};
 
 	template<typename T = void>
 	struct copy_to
@@ -224,6 +233,18 @@ inline void CT::report_times()
 		if (nameof(Excl{}) != x.first)
 			std::cout << x.first << " : " << x.second << " s\n";
 	}
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+bool CT::integrity<T>::operator()(C1& first, Args&... rest)
+{
+	if (!CO::integrity(first))
+	{
+		std::cerr << "\nintegrity failedd for " << nameof(first) << "\n";
+		return false;
+	}
+	return CT::integrity<>{}(rest...);
 }
 
 template<typename T>

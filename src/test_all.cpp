@@ -22,15 +22,15 @@ void testsuit()
 		{
 			std::cout << "\r" << i << "  ";
 			vi.clear();
-			vector<test_item> vti;
-			list<test_item> lti;
-			inline_vector<test_item,1500> ivtis;
-			inline_vector<test_item,3000> ivtib;
+			//vector<test_item> vti;
+			//list<test_item> lti;
+			//inline_vector<test_item,1500> ivtis;
+			//inline_vector<test_item,3000> ivtib;
 			splice_list<test_item> slti;
 			avl_vector<test_item> avti;
 			//mkr::avl_array<test_item> maati;
 
-			#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
+			#define ALL vi, /*vti, lti, ivtis, ivtib,*/ slti, avti
 			//, */ maati
 
 			fillup<>{}(1000, ALL);
@@ -39,35 +39,35 @@ void testsuit()
 
 			insert<>{1000}(ALL);
 			erase<>{1500}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			insert<>{1000}(ALL);
 			erase<>{1000}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			insert<>{1000}(ALL);
 			erase<>{1000}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
 			if (ok) CT::sort<>{}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
 			if (ok) CT::unique<>{}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
 			if (ok) splice_merge<>{}(ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			if (ok) ok = std::is_sorted(vi.begin(), vi.end());
 
 			if (ok) CT::remove<>{}(test_item{ 55 }, ALL);
 			if (ok) binary_find_swap<>{}(test_item{ 33 }, test_item{ 66 }, ALL);
-			if (ok) ok = compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 

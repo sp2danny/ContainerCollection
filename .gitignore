@@ -8,6 +8,7 @@
 obj
 .vs
 *.idb
+.codelite
 
 # Prerequisites
 *.d
