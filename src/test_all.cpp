@@ -117,11 +117,5 @@ void test_suit_avl()
 	avi.print_tree(std::cout);
 }
 
-int main()
-{
-	testsuit();
-	//test_suit_avl();
-	fgetc(stdin);
-}
 
 

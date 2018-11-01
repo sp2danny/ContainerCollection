@@ -319,7 +319,7 @@ class avl_vector
 		return core.root;
 	}
 
-	/// Searches the tree for earliest node larger than data
+	/// Searches the tree for earliest node larger than data (upper bound)
 	NodeP _AVL_sorted_insert_position(const T& data)
 	{
 		NodeP node = core.root->left;
@@ -695,14 +695,14 @@ class avl_vector
 		out << p->str;
 	}
 
-	void _AVL_print_tree(std::ostream& out, NodeP n, Trunk *prev, bool is_left) const
+	void _AVL_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left) const
 	{
 		if (n == core.nil)
 			return;
 
 		Trunk this_disp = { prev, "     " };
 		std::string prev_str = this_disp.str;
-		_AVL_print_tree(out, n->right, &this_disp, true);
+		_AVL_print_tree(out, pp, n->right, &this_disp, true);
 
 		if (!prev) {
 			this_disp.str = "---";
@@ -719,6 +719,8 @@ class avl_vector
 		_AVL_print_trunks(out, &this_disp);
 		out << " " << n->item;
 		out << " [" << _AVL_indexof(n) << "] ";
+		if (pp)
+			out << "{0x" << std::hex << ((int)n) << std::dec << "} ";
 		out << " (" << std::showpos << n->balance() << std::noshowpos
 			<< "," << n->weight << "," << n->height << ")\n";
 
@@ -727,7 +729,7 @@ class avl_vector
 		}
 		this_disp.str = "    |";
 
-		_AVL_print_tree(out, n->left, &this_disp, false);
+		_AVL_print_tree(out, pp, n->left, &this_disp, false);
 		if (!prev) {
 			out << ("");
 		}
@@ -960,9 +962,9 @@ friend
 		return _AVL_integrity(core.root->left);
 	}
 
-	void print_tree(std::ostream& out) const
+	void print_tree(std::ostream& out, bool printpointer = false) const
 	{
-		_AVL_print_tree(out, core.root->left, nullptr, true);
+		_AVL_print_tree(out, printpointer, core.root->left, nullptr, true);
 	}
 
 	struct iterator
@@ -1171,27 +1173,26 @@ friend
 	template<typename Op = std::equal_to<T>>
 	void unique(Op op = Op{})
 	{
-		//assert(integrity());
+		if (size()<2) return;
 		VNP vnp;
 		_AVL_flatten(vnp);
-		auto node_eq = [&op](NodeP lhs, NodeP rhs) -> bool
+		VNP uni, rst;
+		auto itr = vnp.begin();
+		uni.push_back(*itr++);
+		while (itr != vnp.end())
 		{
-			assert(!lhs->sentry() && !rhs->sentry());
-			return op(lhs->item, rhs->item);
-		};
-		auto ptr = vnp.data();
-		auto sz = vnp.size();
-		auto p = std::unique(ptr, ptr+sz, node_eq);
-		_AVL_link_l(core.root, _AVL_hang(ptr, p));
-		//assert(integrity());
-		//while (p != (ptr+sz))
-		//{
-		//	//_AVL_delete_node(*p);
-		//	(*p)->~Node();
-		//	allocator_type{}.deallocate(*p, 1);
-		//	++p;
-		//}
-		//assert(integrity());
+			if (op((*itr)->item, uni.back()->item))
+				rst.push_back(*itr);
+			else
+				uni.push_back(*itr);
+			++itr;
+		}
+		_AVL_link_l(core.root, _AVL_hang(uni));
+		for (auto&& p : rst)
+		{
+			p->~Node();
+			allocator_type{}.deallocate(p, 1);
+		}
 	}
 
 	void reverse()

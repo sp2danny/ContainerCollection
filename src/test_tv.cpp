@@ -8,21 +8,6 @@
 #include <memory>
 #include <sstream>
 
-//template class hb_tree<int>;
-
-struct immobile
-{
-	immobile() = delete;
-	immobile(int, int) {}
-	immobile(const immobile&) = delete;
-	immobile(immobile&&) = delete;
-	immobile& operator=(const immobile&) = delete;
-	immobile& operator=(immobile&&) = delete;
-	~immobile() = default;
-};
-
-//template class hb_tree<immobile>;
-
 template class avl_vector<int>;
 
 typedef avl_vector<int> ATI;
@@ -98,6 +83,24 @@ struct InsROp : Op
 	}
 };
 
+struct SortOp : Op
+{
+	SortOp()
+	{
+	}
+	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	{
+		ati.sort();
+		ati.unique();
+		std::sort(vi.begin(), vi.end());
+		auto itr = std::unique(vi.begin(), vi.end());
+		vi.erase(itr, vi.end());
+	};
+	virtual void Print(std::ostream& out) override
+	{
+		out << "Sort + Unique" << std::endl;
+	}
+};
 
 typedef std::unique_ptr<Op> OpPtr;
 
@@ -107,7 +110,7 @@ void add_random(std::size_t& n)
 {
 	std::size_t i, m;
 	if (n)
-		i = rand()%3;
+		i = rand()%4;
 	else
 		i = 0;
 	if (n>70)
@@ -127,13 +130,16 @@ void add_random(std::size_t& n)
 		operlist.emplace_back(std::make_unique<InsROp>(randn(n+1), m));
 		n += m;
 		break;
+	case 3:
+		operlist.emplace_back(std::make_unique<SortOp>());
+		break;
 	}
 }
 
 //#include <unistd.h>
 #include <io.h>
 
-void testsuit()
+void testsuit_a()
 {
 	srand((unsigned)time(0));
 	using namespace std;
@@ -142,6 +148,13 @@ void testsuit()
 	operlist.emplace_back( std::make_unique<InsOp>(2,2) );
 
 	ATI ati;
+
+	ati = { 1, 2, 2, 3};
+	ati.print_tree(std::cout, true);
+	ati.unique();
+	ati.print_tree(std::cout, true);
+	ati.clear();
+
 	VI vi;
 	for (auto&& op : operlist)
 		op->Execute(ati, vi);
@@ -201,12 +214,6 @@ void testsuit()
 	operlist.back()->Print(std::cout);
 	operlist.back()->Execute(ati, vi, true);
 	ati.print_tree(std::cout);
-}
-
-int main()
-{
-	testsuit();
-	//fgetc(stdin);
 }
 
 
