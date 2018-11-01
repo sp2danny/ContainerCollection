@@ -1258,6 +1258,11 @@ friend
 	{
 		return {this, _AVL_sorted_insert_position(val)};
 	}
+	/// lower_bound
+	iterator lower_bound(const T& val)
+	{
+		return { this, _AVL_lower_bound(val) };
+	}
 	/// return first found item == val, or end
 	iterator binary_find(const T& val)
 	{
