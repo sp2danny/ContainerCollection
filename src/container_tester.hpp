@@ -200,7 +200,7 @@ namespace CT
 	{
 		static bool inited = false;
 		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution(1, 10000);
+		std::uniform_int_distribution<int> distribution(1, SZ);
 		std::chrono::high_resolution_clock::time_point t1;
 		std::map<std::string, double> time_data;
 	}

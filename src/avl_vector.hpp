@@ -1253,6 +1253,50 @@ friend
 	}
 	void splice(iterator pos, avl_vector&& other, iterator it) { splice(pos, other, it); }
 
+	void splice(iterator pos, avl_vector& other, iterator ot_beg, iterator ot_end)
+	{
+		VNP me, ot, targ, rest;
+		_AVL_flatten(me);
+		other._AVL_flatten(ot);
+
+		auto in_sz = me.size() + ot.size();
+		targ.reserve(in_sz);
+		rest.reserve(in_sz);
+
+		auto app_here = [&]()
+		{
+			bool in = false;
+			for (auto&& q : ot)
+			{
+				if (q == ot_beg.node) in = true;
+				if (q == ot_end.node) in = false;
+				if (in)
+					targ.push_back(q);
+				else
+					rest.push_back(q);
+			}
+		};
+
+		if (pos == end())
+		{
+			me.swap(targ);
+			app_here();
+		}
+		else for (auto&& p : me)
+		{
+			if (p == pos.node)
+			{
+				app_here();
+			}
+			targ.push_back(p);
+		}
+
+		assert((targ.size()+rest.size()) == in_sz);
+
+		_AVL_link_l(core.root, _AVL_hang(targ));
+		_AVL_link_l(other.core.root, _AVL_hang(rest));
+	}
+
 	/// stable insert position for sorted containers
 	iterator upper_bound(const T& val)
 	{
