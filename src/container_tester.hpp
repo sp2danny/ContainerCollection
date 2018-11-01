@@ -200,7 +200,7 @@ namespace CT
 	{
 		static bool inited = false;
 		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution(1, 1000);
+		std::uniform_int_distribution<int> distribution(1, 10000);
 		std::chrono::high_resolution_clock::time_point t1;
 		std::map<std::string, double> time_data;
 	}
@@ -355,9 +355,9 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 	init();
 	#ifndef NDEBUG
 	//std::cout << name() << " of " << nameof(first) << std::endl;
-	#endif
 	typedef unsigned long long ULL;
 	assert(ULL(idx) < ULL(first.size()));
+	#endif
 	
 	#ifdef FULL_DIAG
 	std::cerr << "attempting: "

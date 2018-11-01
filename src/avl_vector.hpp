@@ -720,7 +720,7 @@ class avl_vector
 		out << " " << n->item;
 		out << " [" << _AVL_indexof(n) << "] ";
 		if (pp)
-			out << "{0x" << std::hex << ((int)n) << std::dec << "} ";
+			out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
 		out << " (" << std::showpos << n->balance() << std::noshowpos
 			<< "," << n->weight << "," << n->height << ")\n";
 

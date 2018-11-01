@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=daniel
-Date                   :=31/10/18
+Date                   :=01/11/18
 CodeLitePath           :=/home/daniel/.codelite
 LinkerName             :=/usr/bin/clang++
 SharedObjectLinkerName :=/usr/bin/clang++ -shared -fPIC
@@ -60,7 +60,7 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) 
 
 
 
@@ -91,6 +91,14 @@ PreBuild:
 ##
 ## Objects
 ##
+$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix): src/test_tv.cpp $(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/daniel/project/ContainerCollection/src/test_tv.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix): src/test_tv.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix) -MM src/test_tv.cpp
+
+$(IntermediateDirectory)/src_test_tv.cpp$(PreprocessSuffix): src/test_tv.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_test_tv.cpp$(PreprocessSuffix) src/test_tv.cpp
+
 $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix): src/test_all.cpp $(IntermediateDirectory)/src_test_all.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/daniel/project/ContainerCollection/src/test_all.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/src_test_all.cpp$(DependSuffix): src/test_all.cpp
@@ -98,6 +106,14 @@ $(IntermediateDirectory)/src_test_all.cpp$(DependSuffix): src/test_all.cpp
 
 $(IntermediateDirectory)/src_test_all.cpp$(PreprocessSuffix): src/test_all.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_test_all.cpp$(PreprocessSuffix) src/test_all.cpp
+
+$(IntermediateDirectory)/src_main.cpp$(ObjectSuffix): src/main.cpp $(IntermediateDirectory)/src_main.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/daniel/project/ContainerCollection/src/main.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_main.cpp$(DependSuffix): src/main.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_main.cpp$(DependSuffix) -MM src/main.cpp
+
+$(IntermediateDirectory)/src_main.cpp$(PreprocessSuffix): src/main.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_main.cpp$(PreprocessSuffix) src/main.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

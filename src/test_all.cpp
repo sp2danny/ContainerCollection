@@ -4,7 +4,7 @@
 #include "avl_vector.hpp"
 #include "test_item.hpp"
 #include "container_tester.hpp"
-#include "avl_array.hpp"
+//#include "avl_array.hpp"
 
 #include <iostream>
 #include <vector>
@@ -18,36 +18,34 @@ void testsuit()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok && (i<100); ++i)
+		for (int i=0; ok && (i<5); ++i)
 		{
-			std::cout << "\r" << i << "  ";
+			std::cout << "\r" << i << "   " << std::flush;
 			vi.clear();
-			//vector<test_item> vti;
-			//list<test_item> lti;
-			//inline_vector<test_item,1500> ivtis;
-			//inline_vector<test_item,3000> ivtib;
+			vector<test_item> vti;
+			list<test_item> lti;
+			inline_vector<test_item,15000> ivtis;
+			inline_vector<test_item,30000> ivtib;
 			splice_list<test_item> slti;
 			avl_vector<test_item> avti;
-			//mkr::avl_array<test_item> maati;
 
-			#define ALL vi, /*vti, lti, ivtis, ivtib,*/ slti, avti
-			//, */ maati
+			#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
 
-			fillup<>{}(1000, ALL);
+			fillup<>{}(10000, ALL);
 
 			//if (ok) { system("cls"); print<>{}(std::cout, ALL); }
 
-			insert<>{1000}(ALL);
-			erase<>{1500}(ALL);
+			insert<>{10000}(ALL);
+			erase<>{15000}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			
+			for (int j=0; j<5; ++j)
+			{
 
-			insert<>{1000}(ALL);
-			erase<>{1000}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-
-			insert<>{1000}(ALL);
-			erase<>{1000}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+				insert<>{10000}(ALL);
+				erase<>{10000}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			}
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 

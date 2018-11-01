@@ -8,7 +8,7 @@
 #include <memory>
 #include <sstream>
 
-template class avl_vector<int>;
+//template class avl_vector<int>;
 
 typedef avl_vector<int> ATI;
 typedef std::vector<int> VI;
@@ -25,7 +25,7 @@ struct InsOp : Op
 	InsOp(std::size_t pos, std::size_t val) : pos(pos), val(val) {}
 	std::size_t pos;
 	std::size_t val;
-	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.insert(p, (int)val);
@@ -42,7 +42,7 @@ struct DelOp : Op
 {
 	DelOp(std::size_t pos) : pos(pos) {}
 	std::size_t pos;
-	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.erase(p);
@@ -70,7 +70,7 @@ struct InsROp : Op
 	}
 	std::size_t pos;
 	std::list<int> sli;
-	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
 	{
 		auto p = ati.nth(pos);
 		ati.insert(p, sli.begin(), sli.end());
@@ -88,7 +88,7 @@ struct SortOp : Op
 	SortOp()
 	{
 	}
-	virtual void Execute(ATI& ati, VI& vi, bool debug) override
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
 	{
 		ati.sort();
 		ati.unique();
@@ -137,7 +137,7 @@ void add_random(std::size_t& n)
 }
 
 //#include <unistd.h>
-#include <io.h>
+//#include <io.h>
 
 void testsuit_a()
 {

@@ -337,9 +337,9 @@ inline
 template<class T,class A,class W,class P>
 inline
   void
-  avl_array<T,A,W,P>::splice
-  (typename avl_array<T,A,W,P>::iterator dst,
-   typename avl_array<T,A,W,P>::my_class & src,
+  avl_array<T,A,W,P>::splice(
+  typename avl_array<T,A,W,P>::iterator dst,
+   typename avl_array<T,A,W,P>::my_class &src,
    typename avl_array<T,A,W,P>::iterator src_from)
 {
   AA_ASSERT_HO (owner(dst.ptr)==this);

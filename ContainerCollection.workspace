@@ -6,9 +6,9 @@
       <Environment/>
       <Project Name="ContainerCollection" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
-      <Project Name="ContainerCollection" ConfigName="Debug"/>
+      <Project Name="ContainerCollection" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

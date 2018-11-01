@@ -170,7 +170,7 @@ namespace detail
 	auto binary_find(pick_2, C1&& c1, const Itm& itm)
 		-> std::pair<bool, decltype(c1.lower_bound(itm))>
 	{
-		auto itr = c1.lower_bound(itm);
+		auto iter = c1.lower_bound(itm);
 		if (iter == c1.end())
 			return {false, {}};
 		if (itm == *iter)
