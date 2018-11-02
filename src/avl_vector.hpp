@@ -1294,7 +1294,7 @@ friend
 		assert((targ.size()+rest.size()) == in_sz);
 
 		_AVL_link_l(core.root, _AVL_hang(targ));
-		_AVL_link_l(other.core.root, _AVL_hang(rest));
+		_AVL_link_l(other.core.root, other._AVL_hang(rest));
 	}
 
 	/// stable insert position for sorted containers

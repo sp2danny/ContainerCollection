@@ -10,6 +10,8 @@
 #include <vector>
 #include <list>
 
+#define REP 25
+
 void testsuit()
 {
 	using namespace std;
@@ -18,7 +20,7 @@ void testsuit()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok && (i<5); ++i)
+		for (int i=0; ok && (i<REP); ++i)
 		{
 			std::cout << "\r" << i << "   " << std::flush;
 			vi.clear();
@@ -31,7 +33,7 @@ void testsuit()
 
 			#define ALL vi, vti, lti, /*ivtis, ivtib,*/ slti, avti
 
-			fillup<>{}(10000, ALL);
+			fillup<>{}(SZ, ALL);
 
 			//if (ok) { system("cls"); print<>{}(std::cout, ALL); }
 
@@ -39,11 +41,11 @@ void testsuit()
 			erase<>{(SZ*3)/2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			
-			for (int j=0; j<5; ++j)
+			for (int j=0; ok && (j<REP); ++j)
 			{
 
-				insert<>{SZ}(ALL);
-				erase<>{SZ}(ALL);
+				if (ok) insert<>{SZ}(ALL);
+				if (ok) erase<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			}
 
@@ -94,25 +96,6 @@ void testsuit()
 	//for (auto i : vi) cout << i << ' ';
 	cout << endl;
 	report_times<decltype(vi)>();
-}
-
-void test_suit_avl()
-{
-	avl_vector<int> avi;
-	int i = 1, j = 1;
-	while (true)
-	{
-		avi.push_back(i);
-		++i; ++j;
-		if (j==137913)
-		{
-			std::cerr << i << "\r";
-			j = 0;
-		}
-		if (avi.size()==avi.max_size())
-			break;
-	}
-	avi.print_tree(std::cout);
 }
 
 
