@@ -10,7 +10,7 @@
 #include <vector>
 #include <list>
 
-#define REP 25
+#define REP 15
 
 void testsuit()
 {

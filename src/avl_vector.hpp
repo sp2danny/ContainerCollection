@@ -17,6 +17,12 @@
 #include <stdexcept>
 #include <vector>
 
+namespace
+{
+	template<typename It>
+	constexpr bool isRanIt = std::is_same_v<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>;
+}
+
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
 {
@@ -546,7 +552,6 @@ class avl_vector
 	{
 		NodeP right = node->right;
 		NodeP rightLeft = right->left;
-		//NodeP parent = node->parent;
 
 		_AVL_relink(node, right);
 		_AVL_link_l(right, node);
@@ -561,7 +566,6 @@ class avl_vector
 	{
 		NodeP left = node->left;
 		NodeP leftRight = left->right;
-		//NodeP parent = node->parent;
 
 		_AVL_relink(node, left);
 		_AVL_link_r(left, node);
@@ -638,7 +642,7 @@ class avl_vector
 	{
 		NodeP p = allocator_type{}.allocate(1);
 		new (p) Node(payload_tag{}, std::forward<Args>(args)...);
-		p->parent = p->left = p->right = core.nil;
+		/*p->parent =*/ p->left = p->right = core.nil;
 		p->weight = p->height = 1;
 		return p;
 	}
@@ -814,6 +818,14 @@ class avl_vector
 		}
 	}
 
+	template<typename Op = std::less<T>>
+	static int item_compare(const T& v1, const T& v2, Op op = Op{})
+	{
+		/**/ if (op(v1,v2)) return -1;
+		else if (op(v2,v1)) return +1;
+		else                return  0;
+	}
+
 	mutable avl_vector* me = this;
 
 public:
@@ -845,6 +857,11 @@ friend
 		: avl_vector()
 	{
 		VNP vpn;
+		if constexpr(isRanIt<It>)
+		{
+			auto sz = e-b;
+			vpn.reserve(sz);
+		}
 		while (b != e)
 			vpn.push_back(_AVL_node_new(*b++));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
@@ -856,6 +873,7 @@ friend
 		: avl_vector()
 	{
 		VNP vpn;
+		vpn.reserve(sz);
 		while (sz--)
 			vpn.push_back(_AVL_node_new(val));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
@@ -914,7 +932,7 @@ friend
 		return core.root->left->weight;
 	}
 
-	bool empty() const { return size() == 0; }
+	bool empty() const { return core.root->left == core.nil; }
 
 	bool is_sorted() const
 	{
@@ -1316,6 +1334,64 @@ friend
 	{
 		return me->_AVL_search_node(val) != core.root;
 	}
+	
+	template<typename Op = std::less<T>>
+	int compare(const avl_vector& other, Op op = Op{}) const
+	{
+		auto i1 = begin();
+		auto i2 = other.begin();
+		auto e1 = end();
+		auto e2 = other.end();
+		while (true)
+		{
+			bool ate1 = (i1==e1);
+			bool ate2 = (i2==e2);
+			if (ate1 && ate2) return 0;
+			if (ate1) return -1;
+			if (ate2) return +1;
+			int cmp = item_compare(*i1, *i2, op);
+			if (cmp) return cmp;
+			++i1; ++i2;
+		}
+	}
 };
+
+template<typename T, typename A>
+bool operator < (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	return lhs.compare(rhs) < 0;
+}
+
+template<typename T, typename A>
+bool operator <= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	return lhs.compare(rhs) <= 0;
+}
+
+template<typename T, typename A>
+bool operator == (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	if (lhs.size() != rhs.size()) return false;
+	return lhs.compare(rhs) == 0;
+}
+
+template<typename T, typename A>
+bool operator > (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	return lhs.compare(rhs) > 0;
+}
+
+template<typename T, typename A>
+bool operator >= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	return lhs.compare(rhs) >= 0;
+}
+
+template<typename T, typename A>
+bool operator != (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+{
+	if (lhs.size() != rhs.size()) return true;
+	return lhs.compare(rhs) != 0;
+}
 
 template class avl_vector<int>;
