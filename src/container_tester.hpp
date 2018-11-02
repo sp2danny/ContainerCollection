@@ -190,6 +190,24 @@ namespace CT
 		static std::string name() { return "binary_find_swap"s; }
 	};
 
+	template<typename T = void>
+	struct nth_swap
+	{
+		nth_swap(unsigned long count = 1) : count(count) {}
+
+		void swp(std::size_t, std::size_t) {}
+
+		template<typename C1, typename... Args>
+		void swp(std::size_t, std::size_t, C1&, Args&...);
+
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+
+		static std::string name() { return "nth_swap"s; }
+	private:
+		unsigned long count;
+	};
+
 }
 
 // ----------------------------------------------------------------------------
@@ -496,6 +514,34 @@ void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& f
 	time_data[nameof(first)] += stop_clock();
 	binary_find_swap<>{}(itm1, itm2, rest...);
 }
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::nth_swap<T>::swp(std::size_t idx1, std::size_t idx2, C1& first, Args&... rest)
+{
+	start_clock();
+	auto itr1 = nth(first, idx1);
+	auto itr2 = nth(first, idx2);
+	using std::swap;
+	std::swap(*itr1, *itr2);
+	time_data[nameof(first)] += stop_clock();
+	swp(idx1, idx2, rest...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::nth_swap<T>::operator()(C1& first, Args&... rest)
+{
+	init();
+	int sz = (int)first.size();
+	for(auto j = 0ul; j<count; ++j)
+	{
+		std::size_t idx1 = std::uniform_int_distribution<int>{ 0, sz - 1 }(generator);
+		std::size_t idx2 = std::uniform_int_distribution<int>{ 0, sz - 1 }(generator);
+		swp(idx1, idx2, first, rest...);
+	}
+}
+
 
 #ifdef STANDALONE
 

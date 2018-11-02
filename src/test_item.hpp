@@ -147,6 +147,8 @@ test_item::test_item(test_item&& other)
 
 test_item& test_item::operator=(const test_item& other)
 {
+	if (this == &other) return *this;
+
 	if (std::memcmp(magic, dl, 8)==0)
 		add_report("assigning object in deleted space");
 	if (state == deleted)
@@ -170,6 +172,8 @@ test_item& test_item::operator=(const test_item& other)
 
 test_item& test_item::operator=(test_item&& other) noexcept
 {
+	if (this == &other) return *this;
+
 	if (std::memcmp(magic, dl, 8)==0)
 		add_report("assigning object in deleted space");
 	if (state == deleted)

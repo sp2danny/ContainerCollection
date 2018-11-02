@@ -46,6 +46,7 @@ void testsuit()
 
 				if (ok) insert<>{SZ}(ALL);
 				if (ok) erase<>{SZ}(ALL);
+				if (ok) nth_swap<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			}
 
@@ -61,9 +62,12 @@ void testsuit()
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
-			if (ok) splice_merge<>{}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-			if (ok) ok = std::is_sorted(vi.begin(), vi.end());
+			for (int j = 0; ok && (j < REP); ++j)
+			{
+				if (ok) splice_merge<>{}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+				if (ok) ok = std::is_sorted(vi.begin(), vi.end());
+			}
 
 			if (ok) CT::remove<>{}(test_item{55}, ALL);
 			if (ok) binary_find_swap<>{}(test_item{33}, test_item{66}, ALL);
