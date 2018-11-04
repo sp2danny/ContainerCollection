@@ -278,7 +278,27 @@ namespace detail
 		}
 		return n == sz;
 	}
+	
+	template<typename Cont>
+	auto reverse(pick_1, Cont& c1)
+		-> decltype(c1.reverse(), void())
+	{
+		c1.reverse();
+	}
 
+	template<typename Cont>
+	auto reverse(pick_2, Cont& c1)
+		-> decltype(std::reverse(c1.begin(), c1.end()), void())
+	{
+		std::reverse(c1.begin(), c1.end());
+	}
+
+}
+
+template<typename Cont>
+void reverse(Cont& c1)
+{
+	return detail::reverse(detail::pick_1{}, c1);
 }
 
 template<typename Cont>

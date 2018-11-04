@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=daniel
-Date                   :=02/11/18
+Date                   :=04/11/18
 CodeLitePath           :=/home/daniel/.codelite
 LinkerName             :=/usr/bin/clang++
 SharedObjectLinkerName :=/usr/bin/clang++ -shared -fPIC
@@ -50,7 +50,7 @@ LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryP
 AR       := /usr/bin/ar rcu
 CXX      := /usr/bin/clang++
 CC       := /usr/bin/clang
-CXXFLAGS :=  -g -Wall -Wextra -Werror -pedantic -std=c++17 -DSZ=100 $(Preprocessors)
+CXXFLAGS :=  -g -Wall -Wextra -Werror -pedantic -std=c++17 -DSZ=750 $(Preprocessors)
 CFLAGS   :=   $(Preprocessors)
 ASFLAGS  := 
 AS       := /usr/bin/as

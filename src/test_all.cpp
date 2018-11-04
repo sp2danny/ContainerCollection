@@ -10,7 +10,7 @@
 #include <vector>
 #include <list>
 
-#define REP 15
+#define REP 25
 
 void testsuit()
 {
@@ -26,26 +26,29 @@ void testsuit()
 			vi.clear();
 			vector<test_item> vti;
 			list<test_item> lti;
-			//inline_vector<test_item,(SZ*3)/2> ivtis;
-			//inline_vector<test_item,SZ*3> ivtib;
+			inline_vector<test_item,(SZ*3)/2> ivtis;
+			inline_vector<test_item,SZ*3> ivtib;
 			splice_list<test_item> slti;
 			avl_vector<test_item> avti;
 
-			#define ALL vi, vti, lti, /*ivtis, ivtib,*/ slti, avti
+			#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
 
 			fillup<>{}(SZ, ALL);
 
 			//if (ok) { system("cls"); print<>{}(std::cout, ALL); }
 
 			insert<>{SZ}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			erase<>{(SZ*3)/2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			
-			for (int j=0; ok && (j<REP); ++j)
+			if (ok) for (int j=0; ok && (j<REP); ++j)
 			{
 
 				if (ok) insert<>{SZ}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 				if (ok) erase<>{SZ}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 				if (ok) nth_swap<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			}
@@ -69,8 +72,9 @@ void testsuit()
 				if (ok) ok = std::is_sorted(vi.begin(), vi.end());
 			}
 
-			if (ok) CT::remove<>{}(test_item{55}, ALL);
-			if (ok) binary_find_swap<>{}(test_item{33}, test_item{66}, ALL);
+			if (ok) CT::remove<>{}(test_item{SZ/2}, ALL);
+			if (ok) binary_find_swap<>{}(test_item{SZ/3}, test_item{2*SZ/3}, ALL);
+			if (ok) CT::reverse<>{}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }

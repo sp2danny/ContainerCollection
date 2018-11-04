@@ -207,6 +207,14 @@ namespace CT
 	private:
 		unsigned long count;
 	};
+	
+	template<typename T = void>
+	struct reverse
+	{
+		void operator()() {}
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+	};
 
 }
 
@@ -315,15 +323,16 @@ bool CT::compare<T>::operator()(const C1& orig, const C2& first, const Args&... 
 	auto i2 = first.begin();
 	auto e1 = orig.end();
 	auto e2 = first.end();
+	bool eq = true;
 	while (true)
 	{
 		if ((i1==e1) && (i2==e2)) break;
-		if ((i1==e1) || (i2==e2)) return false;
-		if (*i1 != *i2) return false;
+		if ((i1==e1) || (i2==e2)) { eq=false; break; }
+		if (*i1 != *i2) { eq=false; break; }
 		++i1; ++i2;
 	}
 	time_data[nameof(first)] += stop_clock();
-	return compare<>{}(orig, rest...);
+	return compare<>{}(orig, rest...) && eq;
 }
 
 template<typename T>
@@ -540,6 +549,14 @@ void CT::nth_swap<T>::operator()(C1& first, Args&... rest)
 		std::size_t idx2 = std::uniform_int_distribution<int>{ 0, sz - 1 }(generator);
 		swp(idx1, idx2, first, rest...);
 	}
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+void CT::reverse<T>::operator()(C1& first, Args&... args)
+{
+	CO::reverse(first);
+	reverse<>{}(args...);
 }
 
 

@@ -1314,6 +1314,8 @@ friend
 		_AVL_link_l(core.root, _AVL_hang(targ));
 		_AVL_link_l(other.core.root, other._AVL_hang(rest));
 	}
+	
+	void splice(iterator pos, avl_vector&& other, iterator ot_beg, iterator ot_end) { splice(pos,other,ot_beg,ot_end); }
 
 	/// stable insert position for sorted containers
 	iterator upper_bound(const T& val)
