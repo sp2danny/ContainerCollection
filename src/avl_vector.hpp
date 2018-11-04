@@ -933,6 +933,24 @@ friend
 		return core.root->left->weight;
 	}
 
+	void resize(std::size_t sz, const T& val = T{})
+	{
+		if (sz == size()) return;
+		VNP vnp; vnp.reserve(sz);
+		_AVL_flatten(vnp);
+		while (sz < vnp.size())
+		{
+			_AVL_delete_node(vnp.back());
+			vnp.pop_back();
+		}
+		while (sz > vnp.size())
+		{
+			vnp.push_back(_AVL_node_new(val));
+		}
+		_AVL_link_l(core.root, _AVL_hang(vnp));
+		assert(size() == sz);
+	}
+
 	bool empty() const { return core.root->left == core.nil; }
 
 	bool is_sorted() const
