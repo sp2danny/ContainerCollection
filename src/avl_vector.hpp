@@ -838,7 +838,8 @@ public:
 	typedef const T* const_pointer;
 	struct iterator;
 	struct const_iterator;
-	typedef typename A::template rebind<Node>::other allocator_type;
+	//typedef typename A::template rebind<Node>::other allocator_type;
+	typedef typename std::allocator_traits<A>::template rebind_alloc<Node> allocator_type;
 
 friend
 	struct iterator;
