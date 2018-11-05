@@ -1303,16 +1303,17 @@ friend
 		std::reverse(vnp.begin(), vnp.end());
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
-	
-	void merge(avl_vector& other)
+
+	template<typename Op = std::less<T>>
+	void merge(avl_vector& other, Op op = Op{})
 	{
 		VNP me, ot, mrg;
 		_AVL_flatten(me);
 		other._AVL_flatten(ot);
 		mrg.reserve(me.size()+ot.size());
-		auto cmp = [](NodeP lhs, NodeP rhs) -> bool
+		auto cmp = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
-			return lhs->item < rhs->item;
+			return op(lhs->item, rhs->item);
 		};
 		std::merge(me.begin(), me.end(), ot.begin(), ot.end(), std::back_inserter(mrg), cmp);
 		other._AVL_link_l(other.core.root, other.core.nil);
