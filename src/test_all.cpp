@@ -19,8 +19,8 @@ void testsuit()
 		for (int i=1; i<100; ++i) avi.push_back(i);
 		rev = avi;
 		rev.reverse();
-		auto ri = rev.rbegin();
-		while (ri != rev.rend())
+		auto ri = rev.crbegin();
+		while (ri != rev.crend())
 		{
 			std::cout << *ri << ' ' << std::flush;
 			++ri;
