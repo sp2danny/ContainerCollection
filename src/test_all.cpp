@@ -14,6 +14,20 @@
 
 void testsuit()
 {
+	{
+		avl_vector<int> avi, rev;
+		for (int i=1; i<100; ++i) avi.push_back(i);
+		rev = avi;
+		rev.reverse();
+		auto ri = rev.rbegin();
+		while (ri != rev.rend())
+		{
+			std::cout << *ri << ' ' << std::flush;
+			++ri;
+		}
+		std::cout << std::endl;
+	}
+	
 	using namespace std;
 	using namespace CT;
 
