@@ -1303,6 +1303,17 @@ friend
 		std::reverse(vnp.begin(), vnp.end());
 		_AVL_link_l(core.root, _AVL_hang(vnp));
 	}
+	
+	void merge(avl_vector& other)
+	{
+		VNP me, ot, mrg;
+		_AVL_flatten(me);
+		other._AVL_flatten(ot);
+		mrg.reserve(me.size()+ot.size());
+		std::merge(me.begin(), me.end(), ot.begin(), ot.end(), std::back_inserter(mrg));
+		other._AVL_link_l(other.core.root, other.core.nil);
+		_AVL_link_l(core.root, _AVL_hang(mrg));
+	}
 
 	void reserve(std::size_t) {}
 	void shrink_to_fit() {}

@@ -14,7 +14,7 @@
 
 void testsuit()
 {
-	{
+	/*{
 		avl_vector<int> avi, rev;
 		for (int i=1; i<100; ++i) avi.push_back(i);
 		rev = avi;
@@ -26,8 +26,8 @@ void testsuit()
 			++ri;
 		}
 		std::cout << std::endl;
-	}
-	
+	}*/
+
 	using namespace std;
 	using namespace CT;
 
@@ -55,10 +55,9 @@ void testsuit()
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			erase<>{(SZ*3)/2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-			
+
 			if (ok) for (int j=0; ok && (j<REP); ++j)
 			{
-
 				if (ok) insert<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 				if (ok) erase<>{SZ}(ALL);
@@ -99,7 +98,7 @@ void testsuit()
 				print<>{}(std::cout, ALL);
 			}
 			#undef ALL
-			
+
 			if (ok) {
 				ok = ! test_item::error();
 				if (!ok)
