@@ -336,8 +336,10 @@ bool CT::compare<T>::operator()(const C1& orig, const C2& first, const Args&... 
 	while (true)
 	{
 		if ((i1==e1) && (i2==e2)) break;
-		if ((i1==e1) || (i2==e2)) { eq=false; break; }
-		if (*i1 != *i2) { eq=false; break; }
+		if ((i1==e1) || (i2==e2)) {
+			eq=false; break; }
+		if (*i1 != *i2) {
+			eq=false; break; }
 		++i1; ++i2;
 	}
 	time_data[nameof(first)][name()] += stop_clock();
