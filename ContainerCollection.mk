@@ -2,12 +2,12 @@
 ## Auto Generated makefile by CodeLite IDE
 ## any manual changes will be erased      
 ##
-## Release
+## Debug
 ProjectName            :=ContainerCollection
-ConfigurationName      :=Release
+ConfigurationName      :=Debug
 WorkspacePath          := "/home/sp2danny/extra/ContainerCollection"
 ProjectPath            := "/home/sp2danny/extra/ContainerCollection"
-IntermediateDirectory  :=./bin/Release
+IntermediateDirectory  :=./bin/Debug
 OutDir                 := $(IntermediateDirectory)
 CurrentFileName        :=
 CurrentFilePath        :=
@@ -27,7 +27,7 @@ OutputSwitch           :=-o
 LibraryPathSwitch      :=-L
 PreprocessorSwitch     :=-D
 SourceSwitch           :=-c 
-OutputFile             :=./test.out
+OutputFile             :=./test_dbg.out
 Preprocessors          :=
 ObjectSwitch           :=-o 
 ArchiveOutputSwitch    := 
@@ -35,13 +35,13 @@ PreprocessOnlySwitch   :=-E
 ObjectsFileList        :="ContainerCollection.txt"
 PCHCompileFlags        :=
 MakeDirCommand         :=mkdir -p
-LinkOptions            :=  -O3
+LinkOptions            :=  -O0
 IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). 
 IncludePCH             := 
 RcIncludePath          := 
 Libs                   := 
 ArLibs                 :=  
-LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryPathSwitch)Release 
+LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryPathSwitch)Debug 
 
 ##
 ## Common variables
@@ -50,7 +50,7 @@ LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryP
 AR       := /usr/bin/ar rcu
 CXX      := /usr/bin/clang++ 
 CC       := /usr/bin/clang 
-CXXFLAGS :=  -DSZ=12500 -O3 -DNDEBUG -Wall -Wextra -Werror -pedantic -std=c++17 $(Preprocessors)
+CXXFLAGS :=  -g -Wall -Wextra -Werror -pedantic -std=c++17 -DSZ=750 $(Preprocessors)
 CFLAGS   :=   $(Preprocessors)
 ASFLAGS  := 
 AS       := /usr/bin/as 
@@ -78,7 +78,7 @@ $(OutputFile): $(IntermediateDirectory)/.d $(Objects)
 	$(LinkerName) $(OutputSwitch)$(OutputFile) @$(ObjectsFileList) $(LibPath) $(Libs) $(LinkOptions)
 
 $(IntermediateDirectory)/.d:
-	@test -d ./bin/Release || $(MakeDirCommand) ./bin/Release
+	@test -d ./bin/Debug || $(MakeDirCommand) ./bin/Debug
 
 PreBuild:
 
@@ -116,9 +116,9 @@ $(IntermediateDirectory)/src_main.cpp$(PreprocessSuffix): src/main.cpp
 ## Clean
 ##
 clean:
-	$(RM) ./bin/Release/*$(ObjectSuffix)
-	$(RM) ./bin/Release/*$(DependSuffix)
+	$(RM) ./bin/Debug/*$(ObjectSuffix)
+	$(RM) ./bin/Debug/*$(DependSuffix)
 	$(RM) $(OutputFile)
-	$(RM) ".build-release/ContainerCollection"
+	$(RM) ".build-debug/ContainerCollection"
 
 

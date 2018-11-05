@@ -363,8 +363,7 @@ void CT::insert_nth<T>::operator()(std::size_t idx, int val, C1& first, Args&...
 	#endif
 
 	start_clock();
-	auto itr = first.begin();
-	std::advance(itr, idx);
+	auto itr = CO::nth(first, idx);
 	first.insert(itr, val);
 	time_data[nameof(first)][name()] += stop_clock();
 	insert_nth<>{}(idx, val, rest...);
@@ -404,8 +403,7 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 	#endif
 
 	start_clock();
-	auto itr = first.begin();
-	std::advance(itr, idx);
+	auto itr = CO::nth(first, idx);
 	first.erase(itr);
 	time_data[nameof(first)][name()] += stop_clock();
 	erase_nth<>{}(idx, rest...);
@@ -554,8 +552,8 @@ void CT::nth_swap<T>::operator()(C1& first, Args&... rest)
 	int sz = (int)first.size();
 	for(auto j = 0ul; j<count; ++j)
 	{
-		std::size_t idx1 = std::uniform_int_distribution<int>{ 0, sz - 1 }(generator);
-		std::size_t idx2 = std::uniform_int_distribution<int>{ 0, sz - 1 }(generator);
+		std::size_t idx1 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
+		std::size_t idx2 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
 		swp(idx1, idx2, first, rest...);
 	}
 }

@@ -297,13 +297,18 @@ class avl_vector
 		}
 		return node;
 	}
+	
+	void _AVL_destruct_node(NodeP p)
+	{
+		p->~Node();
+		allocator_type{}.deallocate(p, 1);		
+	}
 
 	/// Removes a given node from the tree.
 	void _AVL_delete_node(NodeP node)
 	{
 		NodeP p = _AVL_unlink_node(node);
-		p->~Node();
-		allocator_type{}.deallocate(p, 1);
+		_AVL_destruct_node(p);
 	}
 
 	/// Searches the tree for a node containing the given data.
@@ -642,7 +647,7 @@ class avl_vector
 	{
 		NodeP p = allocator_type{}.allocate(1);
 		new (p) Node(payload_tag{}, std::forward<Args>(args)...);
-		/*p->parent =*/ p->left = p->right = core.nil;
+		p->left = p->right = core.nil;
 		p->weight = p->height = 1;
 		return p;
 	}
@@ -838,7 +843,6 @@ public:
 	typedef const T* const_pointer;
 	struct iterator;
 	struct const_iterator;
-	//typedef typename A::template rebind<Node>::other allocator_type;
 	typedef typename std::allocator_traits<A>::template rebind_alloc<Node> allocator_type;
 
 friend
@@ -902,6 +906,10 @@ friend
 	{
 		clear();
 		VNP vpn;
+		if constexpr(isRanIt<It>)
+		{
+			vpn.reserve(e-b);
+		}
 		while (b != e)
 			vpn.push_back(_AVL_node_new(*b++));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
@@ -943,17 +951,16 @@ friend
 
 	void clear()
 	{
-		static void (*rec_clr)(NodeP, NodeP)
-		 = [](NodeP node, NodeP nil)
+		static void (*rec_clr)(avl_vector&, NodeP)
+		 = [](avl_vector& me, NodeP node)
 		{
-			if (node==nil) return;
-			rec_clr(node->left,  nil);
-			rec_clr(node->right, nil);
-			node->~Node();
-			allocator_type{}.deallocate(node, 1);
+			if (node==me.core.nil) return;
+			rec_clr(me, node->left);
+			rec_clr(me, node->right);
+			me._AVL_destruct_node(node);
 		};
 
-		rec_clr(core.root->left, core.nil);
+		rec_clr(*this, core.root->left);
 		core.root->left = core.nil;
 	}
 
@@ -1208,10 +1215,7 @@ friend
 		}
 		_AVL_link_l(core.root, _AVL_hang(uni));
 		for (auto&& p : rst)
-		{
-			p->~Node();
-			allocator_type{}.deallocate(p, 1);
-		}
+			_AVL_destruct_node(p);
 	}
 
 	void reverse()
@@ -1252,6 +1256,27 @@ friend
 			n = t;
 		}
 		return cnt;
+	}
+	template<typename Op>
+	std::size_t remove_if_many(Op op)
+	{
+		std::size_t sz = size();
+		NodeP n = _AVL_first_node();
+		NodeP e = _AVL_last_node();
+		VNP keep, discard;
+		keep.reserve(sz); discard.reserve(sz);
+		while (n != e)
+		{
+			if (op(n->item))
+				discard.push_back(n);
+			else
+				keep.push_back(n);
+			n = _AVL_next_node(n);
+		}
+		for (auto x : discard)
+			_AVL_destruct_node(x);
+		AVL_link_l(core.root, _AVL_hang(keep));
+		return discard.size();
 	}
 
 	void splice(iterator pos, avl_vector& other)

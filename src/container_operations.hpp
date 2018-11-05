@@ -251,6 +251,12 @@ namespace detail
 	}
 	template<typename Cont>
 	auto nth(pick_2, Cont& c1, std::size_t idx)
+		-> decltype(c1.begin()+idx)
+	{
+		return c1.begin()+idx;
+	}
+	template<typename Cont>
+	auto nth(pick_3, Cont& c1, std::size_t idx)
 		-> decltype(c1.begin())
 	{
 		return std::next(c1.begin(), idx);

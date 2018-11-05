@@ -10,7 +10,7 @@
 #include <vector>
 #include <list>
 
-#define REP 5
+#define REP 15
 
 void testsuit()
 {
@@ -100,8 +100,6 @@ void testsuit()
 	if (rep.empty())
 		std::cout << "move/delete: nothing to report" << std::endl;
 
-	//cout << "vi (sz:" << vi.size() << ") : ";
-	//for (auto i : vi) cout << i << ' ';
 	cout << endl;
 	report_times<decltype(vi)>();
 }
