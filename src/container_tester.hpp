@@ -228,7 +228,7 @@ namespace CT
 		std::default_random_engine generator;
 		std::uniform_int_distribution<int> distribution(1, SZ);
 		std::chrono::high_resolution_clock::time_point t1;
-		std::map<std::string, double> time_data;
+		std::map<std::string, std::map<std::string, double>> time_data;
 	}
 }
 
@@ -257,7 +257,16 @@ inline void CT::report_times()
 	for (auto&& x : time_data)
 	{
 		if (nameof(Excl{}) != x.first)
-			std::cout << x.first << " : " << x.second << " s\n";
+		{
+			std::cout << "Container : " << x.first << std::endl;
+			double sum = 0.0;
+			for (auto&& y : x.second)
+			{
+				std::cout << "\t" << y.first << " : " << y.second << " s\n";
+				sum += y.second;
+			}
+			std::cout << "Container totals : " << sum << " s\n";
+		}
 	}
 }
 
@@ -309,7 +318,7 @@ void CT::copy_to<T>::operator()(const C1& from, C2& first, Args&... rest)
 		#endif
 		first.push_back(x);
 	}
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	copy_to<>{}(from, rest...);
 }
 
@@ -331,7 +340,7 @@ bool CT::compare<T>::operator()(const C1& orig, const C2& first, const Args&... 
 		if (*i1 != *i2) { eq=false; break; }
 		++i1; ++i2;
 	}
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	return compare<>{}(orig, rest...) && eq;
 }
 
@@ -357,7 +366,7 @@ void CT::insert_nth<T>::operator()(std::size_t idx, int val, C1& first, Args&...
 	auto itr = first.begin();
 	std::advance(itr, idx);
 	first.insert(itr, val);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	insert_nth<>{}(idx, val, rest...);
 }
 
@@ -398,7 +407,7 @@ void CT::erase_nth<T>::operator()(std::size_t idx, C1& first, Args&... rest)
 	auto itr = first.begin();
 	std::advance(itr, idx);
 	first.erase(itr);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	erase_nth<>{}(idx, rest...);
 }
 
@@ -429,7 +438,7 @@ void CT::sort_unique<T>::operator()(C1& first, Args&... rest)
 	start_clock();
 	CO::sort(first);
 	CO::unique(first);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	sort_unique<>{}(rest...);
 }
 
@@ -446,7 +455,7 @@ void CT::sort<T>::operator()(C1& first, Args&... rest)
 
 	start_clock();
 	CO::sort(first);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	CT::sort<>{}(rest...);
 }
 
@@ -462,7 +471,7 @@ void CT::unique<T>::operator()(C1& first, Args&... rest)
 #endif
 	start_clock();
 	CO::unique(first);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	CT::unique<>{}(rest...);
 }
 
@@ -485,7 +494,7 @@ void CT::remove<T>::operator()(const Itm& itm, C1& first, Args&... rest)
 {
 	start_clock();
 	CO::remove(first, itm);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	CT::remove<>{}(itm, rest...);
 }
 
@@ -504,7 +513,7 @@ void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 	C1 other;
 	splice(first, itr1, itr2, other, other.begin());
 	merge(first, other);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	splice_merge<>{}(rest...);
 }
 
@@ -520,7 +529,7 @@ void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& f
 		using std::swap;
 		swap(*r1.second, *r2.second);
 	}
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	binary_find_swap<>{}(itm1, itm2, rest...);
 }
 
@@ -533,7 +542,7 @@ void CT::nth_swap<T>::swp(std::size_t idx1, std::size_t idx2, C1& first, Args&..
 	auto itr2 = nth(first, idx2);
 	using std::swap;
 	std::swap(*itr1, *itr2);
-	time_data[nameof(first)] += stop_clock();
+	time_data[nameof(first)][name()] += stop_clock();
 	swp(idx1, idx2, rest...);
 }
 

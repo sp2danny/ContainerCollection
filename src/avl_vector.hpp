@@ -20,7 +20,7 @@
 namespace
 {
 	template<typename It>
-	constexpr bool isRanIt = std::is_same_v<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>;
+	constexpr bool isRanIt = std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
 }
 
 template<typename T, typename A = std::allocator<T>>
