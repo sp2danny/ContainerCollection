@@ -1456,7 +1456,7 @@ friend
 	{
 		return me->_AVL_search_node(val) != core.root;
 	}
-	
+
 	template<typename Op = std::less<T>>
 	int compare(const avl_vector& other, Op op = Op{}) const
 	{

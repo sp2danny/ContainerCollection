@@ -1,1 +1,1 @@
-./bin/Debug/src_test_tv.cpp.o ./bin/Debug/src_test_all.cpp.o ./bin/Debug/src_main.cpp.o
+./bin/Release/src_test_tv.cpp.o ./bin/Release/src_test_all.cpp.o ./bin/Release/src_main.cpp.o
