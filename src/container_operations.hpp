@@ -261,7 +261,7 @@ namespace detail
 	{
 		return std::next(c1.begin(), idx);
 	}
-	
+
 	template<typename Cont>
 	auto integrity(pick_1, Cont& c1)
 		-> decltype(c1.integrity())
@@ -284,7 +284,7 @@ namespace detail
 		}
 		return n == sz;
 	}
-	
+
 	template<typename Cont>
 	auto reverse(pick_1, Cont& c1)
 		-> decltype(c1.reverse(), void())

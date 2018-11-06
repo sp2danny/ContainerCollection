@@ -12,6 +12,8 @@
     <File Name="src/test_item.hpp"/>
     <File Name="src/container_tester.hpp"/>
     <File Name="src/main.cpp"/>
+    <File Name="src/performance_tester.cpp"/>
+    <File Name="src/test_item.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
