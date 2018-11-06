@@ -8,6 +8,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <typeinfo>
 
 #include "container_operations.hpp"
 
@@ -15,11 +16,12 @@ using namespace std::literals;
 
 namespace CT
 {
-	inline void init();
-	inline void start_clock();
-	inline double stop_clock();
+	extern void init();
+	extern void start_clock();
+	extern double stop_clock();
 	template<typename Excl = void>
-	inline void report_times();
+	void report_times();
+	void clear_times();
 
 	template<typename T>
 	std::string nameof(T&&) { return typeid(T).name(); }
@@ -222,37 +224,14 @@ namespace CT
 
 namespace CT
 {
-	namespace 
-	{
-		static bool inited = false;
-		std::default_random_engine generator;
-		std::uniform_int_distribution<int> distribution(1, SZ);
-		std::chrono::high_resolution_clock::time_point t1;
-		std::map<std::string, std::map<std::string, double>> time_data;
-	}
+	extern std::map<std::string, std::map<std::string, double>> time_data;
+	extern std::default_random_engine generator;
 }
 
-inline void CT::init()
-{
-	if (inited) return;
-	inited = true;
-	auto tm = std::chrono::system_clock::now();
-	generator.seed((unsigned int)tm.time_since_epoch().count());
-}
 
-inline void CT::start_clock()
-{
-	t1 = std::chrono::high_resolution_clock::now();
-}
-
-inline double CT::stop_clock()
-{
-	std::chrono::duration<double, std::ratio<1,1>> diff = std::chrono::high_resolution_clock::now() - t1;
-	return diff.count();
-}
 
 template<typename Excl>
-inline void CT::report_times()
+void CT::report_times()
 {
 	for (auto&& x : time_data)
 	{
@@ -286,7 +265,8 @@ template<typename T>
 template<typename... Args>
 void CT::fillup<T>::operator()(std::size_t sz, Args&... args)
 {
-	init();
+	init();	
+	std::uniform_int_distribution<int> distribution(1, sz);
 	std::vector<int> vi;
 	for (auto i=0u; i<sz; ++i)
 	{
@@ -379,6 +359,7 @@ void CT::insert<T>::operator()(C1& first, Args&... rest)
 	for (auto i = 0ul; i<count; ++i)
 	{
 		int sz = (int)first.size();
+		std::uniform_int_distribution<int> distribution(1, count);
 		std::size_t idx = std::uniform_int_distribution<int>{0, sz}(generator);
 		auto num = distribution(generator);
 		insert_nth<>{}(idx, num, first, rest...);

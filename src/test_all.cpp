@@ -12,7 +12,7 @@
 
 #define REP 15
 
-void testsuit()
+void testsuit_old()
 {
 	/*{
 		avl_vector<int> avi, rev;

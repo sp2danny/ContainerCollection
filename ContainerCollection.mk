@@ -59,7 +59,7 @@ AS       := /usr/bin/as
 ##
 ## User defined environment variables
 ##
-Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) 
 
 
 
@@ -125,6 +125,14 @@ $(IntermediateDirectory)/src_test_item.cpp$(DependSuffix): src/test_item.cpp
 
 $(IntermediateDirectory)/src_test_item.cpp$(PreprocessSuffix): src/test_item.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_test_item.cpp$(PreprocessSuffix) "src/test_item.cpp"
+
+$(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix): src/container_tester.cpp $(IntermediateDirectory)/src_container_tester.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/container_tester.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_container_tester.cpp$(DependSuffix): src/container_tester.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_container_tester.cpp$(DependSuffix) -MM "src/container_tester.cpp"
+
+$(IntermediateDirectory)/src_container_tester.cpp$(PreprocessSuffix): src/container_tester.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_container_tester.cpp$(PreprocessSuffix) "src/container_tester.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
