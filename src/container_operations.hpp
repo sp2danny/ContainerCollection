@@ -251,6 +251,12 @@ namespace detail
 	}
 	template<typename Cont>
 	auto nth(pick_2, Cont& c1, std::size_t idx)
+		-> decltype(c1.begin()+idx)
+	{
+		return c1.begin()+idx;
+	}
+	template<typename Cont>
+	auto nth(pick_3, Cont& c1, std::size_t idx)
 		-> decltype(c1.begin())
 	{
 		return std::next(c1.begin(), idx);
@@ -327,7 +333,7 @@ void unique(C1& c1)
 
 template<typename C1, typename Itm>
 auto remove(C1& c1, const Itm& itm)
-	-> decltype( std::begin(c1), void() )
+	-> decltype(std::begin(c1), void())
 {
 	detail::remove(detail::pick_1{}, c1, itm);
 }
@@ -350,11 +356,7 @@ void merge(Cont& c1, Cont& c2)
 	detail::merge(detail::pick_1{}, c1, c2);
 }
 
-
 }
 
 using namespace CO;
-
-
-
 

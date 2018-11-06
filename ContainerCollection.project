@@ -35,7 +35,6 @@
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./test_dbg.out" IntermediateDirectory="./bin/Debug" Command="./test_dbg.out" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="." PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -60,7 +59,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no" EnableCpp14="no">
+      <Completion EnableCpp11="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>
@@ -68,16 +67,15 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="clang( tags/RELEASE_600/final )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-DSZ=2500 -O3 -DNDEBUG -Wall -Wextra -Werror -pedantic -std=c++17" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-DSZ=5000 -O3 -DNDEBUG -Wall -Wextra -Werror -pedantic -std=c++17" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
-      <Linker Options="-O0" Required="yes">
+      <Linker Options="-O3" Required="yes">
         <LibraryPath Value="."/>
         <LibraryPath Value="Release"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./test.out" IntermediateDirectory="./bin/Release" Command="./test.out" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="." PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -102,7 +100,7 @@
         <CustomPostBuild/>
         <CustomPreBuild/>
       </AdditionalRules>
-      <Completion EnableCpp11="no" EnableCpp14="no">
+      <Completion EnableCpp11="no">
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>

@@ -20,7 +20,7 @@
 namespace
 {
 	template<typename It>
-	constexpr bool isRanIt = std::is_same_v<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>;
+	constexpr bool isRanIt = std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
 }
 
 template<typename T, typename A = std::allocator<T>>
@@ -290,20 +290,24 @@ class avl_vector
 				return _AVL_unlink_node(node);
 			} else {
 				NodeP pred = _AVL_prev_node(node);
-				//pred->weight = node.weight;
 				_AVL_full_node_swap(node, pred);
 				return _AVL_unlink_node(node);
 			}
 		}
 		return node;
 	}
+	
+	void _AVL_destruct_node(NodeP p)
+	{
+		p->~Node();
+		allocator_type{}.deallocate(p, 1);		
+	}
 
 	/// Removes a given node from the tree.
 	void _AVL_delete_node(NodeP node)
 	{
 		NodeP p = _AVL_unlink_node(node);
-		p->~Node();
-		allocator_type{}.deallocate(p, 1);
+		_AVL_destruct_node(p);
 	}
 
 	/// Searches the tree for a node containing the given data.
@@ -444,6 +448,7 @@ class avl_vector
 	/// Returns the last actual node
 	NodeP _AVL_last_payload_node()
 	{
+		if (empty()) return core.root;
 		NodeP n = core.root->left;
 		assert(n && n!=core.nil);
 		while (n->right != core.nil)
@@ -472,7 +477,7 @@ class avl_vector
 		} else {
 			nTemp = n;
 			n = n->parent;
-			while ((n != core.nil) && (n->left == nTemp))
+			while ((n != core.root) && (n->left == nTemp))
 			{
 				nTemp = n;
 				n = n->parent;
@@ -642,7 +647,7 @@ class avl_vector
 	{
 		NodeP p = allocator_type{}.allocate(1);
 		new (p) Node(payload_tag{}, std::forward<Args>(args)...);
-		/*p->parent =*/ p->left = p->right = core.nil;
+		p->left = p->right = core.nil;
 		p->weight = p->height = 1;
 		return p;
 	}
@@ -838,7 +843,6 @@ public:
 	typedef const T* const_pointer;
 	struct iterator;
 	struct const_iterator;
-	//typedef typename A::template rebind<Node>::other allocator_type;
 	typedef typename std::allocator_traits<A>::template rebind_alloc<Node> allocator_type;
 
 friend
@@ -902,6 +906,10 @@ friend
 	{
 		clear();
 		VNP vpn;
+		if constexpr(isRanIt<It>)
+		{
+			vpn.reserve(e-b);
+		}
 		while (b != e)
 			vpn.push_back(_AVL_node_new(*b++));
 		_AVL_link_l(core.root, _AVL_hang(vpn));
@@ -961,17 +969,16 @@ friend
 
 	void clear()
 	{
-		static void (*rec_clr)(NodeP, NodeP)
-		 = [](NodeP node, NodeP nil)
+		static void (*rec_clr)(avl_vector&, NodeP)
+		 = [](avl_vector& me, NodeP node)
 		{
-			if (node==nil) return;
-			rec_clr(node->left,  nil);
-			rec_clr(node->right, nil);
-			node->~Node();
-			allocator_type{}.deallocate(node, 1);
+			if (node==me.core.nil) return;
+			rec_clr(me, node->left);
+			rec_clr(me, node->right);
+			me._AVL_destruct_node(node);
 		};
 
-		rec_clr(core.root->left, core.nil);
+		rec_clr(*this, core.root->left);
 		core.root->left = core.nil;
 	}
 
@@ -1015,9 +1022,9 @@ friend
 		T& operator*() const { return node->item; }
 		T* operator->() const { return &node->item; }
 		iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
-		iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
+		iterator& operator--() { node = avl->_AVL_prev_node(node); return *this; }
 		iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		iterator operator--(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
 		bool operator==(const iterator& other) const { assert(avl == other.avl); return node == other.node; }
 		bool operator!=(const iterator& other) const { assert(avl == other.avl); return node != other.node; }
 		bool operator <(const iterator& other) const { return avl->_AVL_indexof(node)  < avl->_AVL_indexof(other.node); }
@@ -1072,6 +1079,76 @@ friend
 		avl_vector* avl = nullptr;
 		Node* node = nullptr;
 	};
+	
+	struct reverse_iterator
+	{
+		typedef std::bidirectional_iterator_tag iterator_category;
+		typedef T value_type;
+		typedef T* pointer;
+		typedef T& reference;
+		typedef std::ptrdiff_t difference_type;
+		reverse_iterator() = default;
+		T& operator*() const { return node->item; }
+		T* operator->() const { return &node->item; }
+		reverse_iterator& operator++() { node = avl->_AVL_prev_node(node); return *this; }
+		reverse_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
+		reverse_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
+		reverse_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		bool operator==(const reverse_iterator& other) const { assert(avl == other.avl); return node == other.node; }
+		bool operator!=(const reverse_iterator& other) const { assert(avl == other.avl); return node != other.node; }
+		bool operator <(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  < avl->_AVL_indexof(node); }
+		bool operator<=(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node) <= avl->_AVL_indexof(node); }
+		bool operator >(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  > avl->_AVL_indexof(node); }
+		bool operator>=(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node) >= avl->_AVL_indexof(node); }
+		std::ptrdiff_t operator-(const reverse_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(other.node))-std::ptrdiff_t(avl->_AVL_indexof(node)); }
+		reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		reverse_iterator operator+(std::ptrdiff_t ofs) const { reverse_iterator tmp = *this; tmp -= ofs; return tmp; }
+		reverse_iterator operator-(std::ptrdiff_t ofs) const { reverse_iterator tmp = *this; tmp += ofs; return tmp; }
+	friend
+		class avl_vector;
+	friend
+		struct const_iterator;
+	private:
+		reverse_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
+		avl_vector* avl = nullptr;
+		Node* node = nullptr;
+	};
+	
+	struct const_reverse_iterator
+	{
+		typedef std::bidirectional_iterator_tag iterator_category;
+		typedef const T value_type;
+		typedef const T* pointer;
+		typedef const T& reference;
+		typedef std::ptrdiff_t difference_type;
+		const_reverse_iterator() = default;
+		const T& operator*() const { return node->item; }
+		const T* operator->() const { return &node->item; }
+		const_reverse_iterator& operator++() { node = avl->_AVL_prev_node(node); return *this; }
+		const_reverse_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
+		const_reverse_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
+		const_reverse_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
+		bool operator==(const const_reverse_iterator& other) const { assert(avl == other.avl); return node == other.node; }
+		bool operator!=(const const_reverse_iterator& other) const { assert(avl == other.avl); return node != other.node; }
+		bool operator <(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  < avl->_AVL_indexof(node); }
+		bool operator<=(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node) <= avl->_AVL_indexof(node); }
+		bool operator >(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  > avl->_AVL_indexof(node); }
+		bool operator>=(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node) >= avl->_AVL_indexof(node); }
+		std::ptrdiff_t operator-(const const_reverse_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(other.node))-std::ptrdiff_t(avl->_AVL_indexof(node)); }
+		const_reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		const_reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		const_reverse_iterator operator+(std::ptrdiff_t ofs) const { const_reverse_iterator tmp = *this; tmp -= ofs; return tmp; }
+		const_reverse_iterator operator-(std::ptrdiff_t ofs) const { const_reverse_iterator tmp = *this; tmp += ofs; return tmp; }
+	friend
+		class avl_vector;
+	friend
+		struct const_iterator;
+	private:
+		const_reverse_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
+		avl_vector* avl = nullptr;
+		Node* node = nullptr;
+	};
 
 	iterator begin() { return {this, _AVL_first_node()}; }
 	iterator end()   { return {this, _AVL_last_node()}; }
@@ -1080,6 +1157,14 @@ friend
 	iterator end()    const { return {me, me->_AVL_last_node()}; }
 	iterator cbegin() const { return begin(); }
 	iterator cend()   const { return end(); }
+
+	reverse_iterator rbegin() { return {this, _AVL_last_payload_node()}; }
+	reverse_iterator rend() { return {this, _AVL_last_node()}; }
+	
+	const_reverse_iterator rbegin() const { return {me, me->_AVL_last_payload_node()}; }
+	const_reverse_iterator rend() const { return {me, me->_AVL_last_node()}; }
+	const_reverse_iterator crbegin() const { return rbegin(); }
+	const_reverse_iterator crend() const { return rend(); }
 
 	iterator nth(std::size_t idx) { return {this, _AVL_nth(idx)}; }
 
@@ -1226,10 +1311,7 @@ friend
 		}
 		_AVL_link_l(core.root, _AVL_hang(uni));
 		for (auto&& p : rst)
-		{
-			p->~Node();
-			allocator_type{}.deallocate(p, 1);
-		}
+			_AVL_destruct_node(p);
 	}
 
 	void reverse()
@@ -1238,6 +1320,22 @@ friend
 		_AVL_flatten(vnp);
 		std::reverse(vnp.begin(), vnp.end());
 		_AVL_link_l(core.root, _AVL_hang(vnp));
+	}
+
+	template<typename Op = std::less<T>>
+	void merge(avl_vector& other, Op op = Op{})
+	{
+		VNP me, ot, mrg;
+		_AVL_flatten(me);
+		other._AVL_flatten(ot);
+		mrg.reserve(me.size()+ot.size());
+		auto cmp = [&op](NodeP lhs, NodeP rhs) -> bool
+		{
+			return op(lhs->item, rhs->item);
+		};
+		std::merge(me.begin(), me.end(), ot.begin(), ot.end(), std::back_inserter(mrg), cmp);
+		other._AVL_link_l(other.core.root, other.core.nil);
+		_AVL_link_l(core.root, _AVL_hang(mrg));
 	}
 
 	void reserve(std::size_t) {}
@@ -1270,6 +1368,27 @@ friend
 			n = t;
 		}
 		return cnt;
+	}
+	template<typename Op>
+	std::size_t remove_if_many(Op op)
+	{
+		std::size_t sz = size();
+		NodeP n = _AVL_first_node();
+		NodeP e = _AVL_last_node();
+		VNP keep, discard;
+		keep.reserve(sz); discard.reserve(sz);
+		while (n != e)
+		{
+			if (op(n->item))
+				discard.push_back(n);
+			else
+				keep.push_back(n);
+			n = _AVL_next_node(n);
+		}
+		for (auto x : discard)
+			_AVL_destruct_node(x);
+		AVL_link_l(core.root, _AVL_hang(keep));
+		return discard.size();
 	}
 
 	void splice(iterator pos, avl_vector& other)
@@ -1333,7 +1452,7 @@ friend
 		_AVL_link_l(core.root, _AVL_hang(targ));
 		_AVL_link_l(other.core.root, other._AVL_hang(rest));
 	}
-	
+
 	void splice(iterator pos, avl_vector&& other, iterator ot_beg, iterator ot_end) { splice(pos,other,ot_beg,ot_end); }
 
 	/// stable insert position for sorted containers
@@ -1344,7 +1463,7 @@ friend
 	/// lower_bound
 	iterator lower_bound(const T& val)
 	{
-		return { this, _AVL_lower_bound(val) };
+		return {this, _AVL_lower_bound(val)};
 	}
 	/// return first found item == val, or end
 	iterator binary_find(const T& val)
@@ -1355,7 +1474,7 @@ friend
 	{
 		return me->_AVL_search_node(val) != core.root;
 	}
-	
+
 	template<typename Op = std::less<T>>
 	int compare(const avl_vector& other, Op op = Op{}) const
 	{

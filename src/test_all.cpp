@@ -10,10 +10,24 @@
 #include <vector>
 #include <list>
 
-#define REP 25
+#define REP 15
 
 void testsuit()
 {
+	/*{
+		avl_vector<int> avi, rev;
+		for (int i=1; i<100; ++i) avi.push_back(i);
+		rev = avi;
+		rev.reverse();
+		auto ri = rev.crbegin();
+		while (ri != rev.crend())
+		{
+			std::cout << *ri << ' ' << std::flush;
+			++ri;
+		}
+		std::cout << std::endl;
+	}*/
+
 	using namespace std;
 	using namespace CT;
 
@@ -41,10 +55,9 @@ void testsuit()
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			erase<>{(SZ*3)/2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-			
+
 			if (ok) for (int j=0; ok && (j<REP); ++j)
 			{
-
 				if (ok) insert<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 				if (ok) erase<>{SZ}(ALL);
@@ -85,7 +98,7 @@ void testsuit()
 				print<>{}(std::cout, ALL);
 			}
 			#undef ALL
-			
+
 			if (ok) {
 				ok = ! test_item::error();
 				if (!ok)
@@ -100,8 +113,6 @@ void testsuit()
 	if (rep.empty())
 		std::cout << "move/delete: nothing to report" << std::endl;
 
-	//cout << "vi (sz:" << vi.size() << ") : ";
-	//for (auto i : vi) cout << i << ' ';
 	cout << endl;
 	report_times<decltype(vi)>();
 }
