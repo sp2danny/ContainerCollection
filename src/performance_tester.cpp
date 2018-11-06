@@ -43,13 +43,16 @@ void insert_test(std::size_t sz)
 
 void testsuit()
 {
-	insert_test(100);
-	insert_test(350);
-	insert_test(1000);
-	insert_test(3500);
-	insert_test(10000);
-	insert_test(35000);
-	insert_test(100000);
+	for (int i=0; i<100; ++i)
+	{
+		insert_test(100);
+		insert_test(350);
+		insert_test(1000);
+		insert_test(3500);
+		insert_test(10000);
+		insert_test(35000);
+		insert_test(100000);
+	}
 
 	for (auto&& x : vecData)
 	{
@@ -62,10 +65,10 @@ void testsuit()
 
 struct Curve
 {
-	double base    = 1.0;
-	double linear  = 1.0;
-	double power   = 1.0;
-	double pfactor = 1.0;
+	double base    = 0.0;
+	double linear  = 0.0;
+	double power   = 1.5; //5;
+	double pfactor = 9e-9; //9.6e-9;
 };
 
 double executeCurve(const Curve& crv, double inp)
@@ -108,7 +111,7 @@ void nudge_power(Curve& crv, double amount)
 	if (amount > 0)
 		crv.power *= (1+amount);
 	else
-		crv.power /= -(1+amount);
+		crv.power /= (1-amount);
 }
 
 void nudge_pfactor(Curve& crv, double amount)
@@ -128,7 +131,17 @@ void continuos_nudge(Curve& crv, double amount)
 	{
 		bool better = false;
 
-		nudge_base(crv, amount);
+		nudge_base(oth, amount);
+		sse = sum_square_error(oth, vecData);
+		if (sse < bsf)
+		{
+			bsf = sse;
+			crv = oth;
+			better = true;
+		} else
+			oth = crv;
+			
+		nudge_base(oth, -amount);
 		sse = sum_square_error(oth, vecData);
 		if (sse < bsf)
 		{
@@ -138,7 +151,17 @@ void continuos_nudge(Curve& crv, double amount)
 		} else
 			oth = crv;
 
-		nudge_linear(crv, amount);
+		nudge_linear(oth, amount);
+		sse = sum_square_error(oth, vecData);
+		if (sse < bsf)
+		{
+			bsf = sse;
+			crv = oth;
+			better = true;
+		} else
+			oth = crv;
+			
+		nudge_linear(oth, -amount);
 		sse = sum_square_error(oth, vecData);
 		if (sse < bsf)
 		{
@@ -148,7 +171,17 @@ void continuos_nudge(Curve& crv, double amount)
 		} else
 			oth = crv;
 
-		nudge_power(crv, amount);
+		nudge_power(oth, amount);
+		sse = sum_square_error(oth, vecData);
+		if (sse < bsf)
+		{
+			bsf = sse;
+			crv = oth;
+			better = true;
+		} else
+			oth = crv;
+			
+		nudge_power(oth, -amount);
 		sse = sum_square_error(oth, vecData);
 		if (sse < bsf)
 		{
@@ -158,7 +191,17 @@ void continuos_nudge(Curve& crv, double amount)
 		} else
 			oth = crv;
 
-		nudge_pfactor(crv, amount);
+		nudge_pfactor(oth, amount);
+		sse = sum_square_error(oth, vecData);
+		if (sse < bsf)
+		{
+			bsf = sse;
+			crv = oth;
+			better = true;
+		} else
+			oth = crv;
+
+		nudge_pfactor(oth, -amount);
 		sse = sum_square_error(oth, vecData);
 		if (sse < bsf)
 		{
@@ -176,10 +219,9 @@ void fitting()
 {
 	Curve crv;
 	double amount = 0.1;
-	for (int i=0; i<25; ++i)
+	for (int i=0; i<10; ++i)
 	{
-		continuos_nudge(crv, +amount);
-		continuos_nudge(crv, -amount);
+		continuos_nudge(crv, amount);
 		amount *= 0.1;
 	}
 	std::cout << std::endl << "curve fitting" << std::endl;
