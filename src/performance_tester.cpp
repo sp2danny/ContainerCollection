@@ -219,7 +219,7 @@ void fitting()
 {
 	Curve crv;
 	double amount = 0.1;
-	for (int i=0; i<10; ++i)
+	for (int i=0; i<8; ++i)
 	{
 		continuos_nudge(crv, amount);
 		amount *= 0.1;
