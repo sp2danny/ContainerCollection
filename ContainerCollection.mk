@@ -59,7 +59,7 @@ AS       := /usr/bin/as
 ##
 ## User defined environment variables
 ##
-Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) 
 
 
 
@@ -133,6 +133,14 @@ $(IntermediateDirectory)/src_container_tester.cpp$(DependSuffix): src/container_
 
 $(IntermediateDirectory)/src_container_tester.cpp$(PreprocessSuffix): src/container_tester.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_container_tester.cpp$(PreprocessSuffix) "src/container_tester.cpp"
+
+$(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix): src/graph.cpp $(IntermediateDirectory)/src_graph.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/graph.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_graph.cpp$(DependSuffix): src/graph.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_graph.cpp$(DependSuffix) -MM "src/graph.cpp"
+
+$(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix): src/graph.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix) "src/graph.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

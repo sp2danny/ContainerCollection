@@ -19,7 +19,7 @@ namespace CT
 	extern void init();
 	extern void start_clock();
 	extern double stop_clock();
-	template<typename Excl = void>
+	template<typename Excl = void*>
 	void report_times();
 	void clear_times();
 
@@ -241,10 +241,10 @@ void CT::report_times()
 			double sum = 0.0;
 			for (auto&& y : x.second)
 			{
-				std::cout << "\t" << y.first << " : " << y.second << " s\n";
+				std::cout << "\t" << y.first << " : " << y.second << " ms\n";
 				sum += y.second;
 			}
-			std::cout << "Container totals : " << sum << " s\n";
+			std::cout << "Container totals : " << sum << " ms\n";
 		}
 	}
 }

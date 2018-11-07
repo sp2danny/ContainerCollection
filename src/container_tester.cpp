@@ -30,6 +30,6 @@ void CT::start_clock()
 double CT::stop_clock()
 {
 	std::chrono::duration<double, std::ratio<1,1>> diff = std::chrono::high_resolution_clock::now() - t1;
-	return diff.count();
+	return diff.count() * 1000.0;
 }
 

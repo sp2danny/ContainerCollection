@@ -12,8 +12,8 @@
 
 struct Data
 {
-	double time;
 	std::size_t size;
+	double time;
 };
 
 typedef std::vector<Data> DataVec;
@@ -24,13 +24,14 @@ DataVec splicemergeData;
 
 void all_test(std::size_t sz, bool last = false)
 {
-	std::vector<int> subject;
-	//avl_vector<int> subject;
+	CT::clear_times();
+
+	//std::vector<int> subject;
+	avl_vector<int> subject;
 	//std::list<int> subject;
 
 	CT::fillup<>{}(sz, subject);
 
-	CT::clear_times();
 	auto insert = CT::insert<>{sz};
 	insert(subject);
 
@@ -39,7 +40,6 @@ void all_test(std::size_t sz, bool last = false)
 	data.size = sz;
 	insertData.push_back(data);
 	
-	CT::clear_times();
 	auto erase = CT::erase<>{sz};
 	erase(subject);
 	
@@ -49,7 +49,6 @@ void all_test(std::size_t sz, bool last = false)
 	
 	sort(subject);
 	
-	CT::clear_times();
 	auto splice_merge = CT::splice_merge<>{};
 	splice_merge(subject);
 	
@@ -57,6 +56,7 @@ void all_test(std::size_t sz, bool last = false)
 	data.size = sz;
 	splicemergeData.push_back(data);
 
+	if (last) CT::report_times<>();
 
 	if (last) std::cout << "done testing " << CT::nameof(subject) << std::endl;
 }
@@ -65,15 +65,15 @@ extern void fitting(const DataVec&, std::string);
 
 void testsuit()
 {
-	for (int i=0; i<15; ++i)
+	for (int i=0; i<20; ++i)
 	{
 		std::cout << i << "\r" << std::flush;
-		all_test(100+i);
-		all_test(350+i*3);
-		all_test(1000+i*10);
-		all_test(3500+i*35);
-		all_test(10000+i*100);
-		all_test(35000+i*350);
+		all_test(100+i*10);
+		all_test(350+i*35);
+		all_test(1000+i*100);
+		all_test(3500+i*350);
+		all_test(10000+i*1000);
+		all_test(35000+i*3500);
 	}
 	all_test(50000, true);
 	
@@ -187,40 +187,57 @@ int best_nudge(const Curve& crv, const DataVec& dvec, double amount)
 	return bsf;
 }
 
-void continuos_nudge(Curve& crv, const DataVec& dvec, double amount)
+
+bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count)
 {
 	int idx = best_nudge(crv, dvec, amount);
-	if (!idx) return;
+	if (!idx) return false;
 	
 	execute_nudge(crv, idx, amount);
 	double sse, minerr = sum_square_error(crv, dvec);
 
 	while (true)
-	{
+	{		
 		Curve oth = crv;
 		execute_nudge(oth, idx, amount);
 		sse = sum_square_error(oth, dvec);
 		if (sse >= minerr) break;
 		minerr = sse;
 		crv = oth;
+		++count;
+		if ((count%1024)==0)
+			std::cout << "SSE : " << sse << "\r" << std::flush;
 	}
+	return true;
 }
+
+#include "graph.h"
 
 void fitting(const DataVec& dvec, std::string name)
 {
 	Curve crv;
 	double amount = 0.1;
-	for (int i=0; i<35; ++i)
+	int count=0, i=0;
+	std::cout << std::endl;
+	while (true)
 	{
-		continuos_nudge(crv, dvec, amount);
-		amount *= 0.5;
+		bool ok = continuos_nudge(crv, dvec, amount, count);
+		if (!ok)
+		{
+			++i;
+			if (i>=8) break;
+			amount *= 0.1;
+		}
 	}
-	std::cout << std::endl << "curve fitting for " << name << std::endl;
+	std::cout << "curve fitting for " << name << std::endl;
 	std::cout << "base    " << crv.base    << std::endl; 
 	std::cout << "linear  " << crv.linear  << std::endl;
 	std::cout << "power   " << crv.power   << std::endl;
 	std::cout << "pfactor " << crv.pfactor << std::endl;
 	std::cout << std::endl << "SSE : " << sum_square_error(crv, dvec) << std::endl;
+	
+	Plot p;
+	p.AddPoints(dvec.begin(), dvec.end());
 }
 
 
