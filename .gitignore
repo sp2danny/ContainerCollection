@@ -9,6 +9,7 @@ obj
 .vs
 *.idb
 .codelite
+*.bmp
 
 # Prerequisites
 *.d

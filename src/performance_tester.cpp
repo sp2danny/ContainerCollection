@@ -42,19 +42,19 @@ void all_test(std::size_t sz, bool last = false)
 	data.time = CT::time_data[CT::nameof(subject)]["insert_nth"];
 	data.size = sz;
 	insertData.push_back(data);
-	
+
 	auto erase = CT::erase<>{sz};
 	erase(subject);
-	
+
 	data.time = CT::time_data[CT::nameof(subject)]["erase_nth"];
 	data.size = sz;
 	eraseData.push_back(data);
-	
+
 	sort(subject);
-	
+
 	auto splice_merge = CT::splice_merge<>{};
 	splice_merge(subject);
-	
+
 	data.time = CT::time_data[CT::nameof(subject)]["splice_merge"];
 	data.size = sz;
 	splicemergeData.push_back(data);
@@ -69,25 +69,29 @@ extern void fitting(const DataVec&, std::string);
 void testsuit()
 {
 	AsynKB::Start();
-	for (int i=0; i<20; ++i)
+	all_test(50000, false);
+	for (int j=0; j<20; ++j)
 	{
+		int i = j;//3;
 		std::cout << i << "\r" << std::flush;
 		all_test(100+i*10);
 		all_test(350+i*35);
 		all_test(1000+i*100);
 		all_test(3500+i*350);
-		all_test(3650+i*350);
+		all_test(3610+i*350);
+		all_test(3720+i*350);
 		all_test(10000+i*1000);
-		all_test(10500+i*1000);
+		//all_test(10330+i*1000);
+		//all_test(10660+i*1000);
 		all_test(35000+i*3500);
-		all_test(36500+i*3500);
+		//all_test(36100+i*3500);
+		//all_test(37200+i*3500);
 	}
 	all_test(50000, true);
-	
+
 	fitting(insertData, "insert_nth");
 	fitting(eraseData, "erase_nth");
 	fitting(splicemergeData, "splice_merge");
-	
 }
 
 struct Curve
@@ -98,7 +102,7 @@ struct Curve
 	double pfactor = 1e-9; //9.6e-9;
 };
 
-const Curve baseline { 1.0, 1.0, 1.0, 1e-8 };
+const Curve baseline { 1.0, 1.0, 1.0, 1e-9 };
 
 double executeCurve(const Curve& crv, double inp)
 {
@@ -150,14 +154,13 @@ void nudge_pfactor(Curve& crv, double amount)
 
 struct Nudge
 {
-	signed char b,l,p,f;
+	short b,l,p,f;
 };
-
 
 auto mk_arr()
 {
 	std::vector<Nudge> arr;
-	std::vector<signed char> dir = { 0, +1, -1 };
+	std::vector<short> dir = { 0, +1, -1, +7, -7, +50, -50, +350, -350 };
 	for (auto b : dir)
 		for (auto l : dir)
 			for (auto p : dir)
@@ -195,26 +198,34 @@ int best_nudge(const Curve& crv, const DataVec& dvec, double amount)
 	return bsf;
 }
 
-bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count)
+bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count, int ii)
 {
+	double sse = sum_square_error(crv, dvec);
 	int idx = best_nudge(crv, dvec, amount);
 	if (!idx) return false;
-	
+
 	execute_nudge(crv, idx, amount);
-	double sse, minerr = sum_square_error(crv, dvec);
+	double minerr = sum_square_error(crv, dvec);
+
+	double lim = std::pow(10.0, ii);
+	double impr = sse - minerr;
+
+	if ( impr * lim < sse )
+		return false;
 
 	while (true)
-	{		
+	{
 		Curve oth = crv;
 		execute_nudge(oth, idx, amount);
 		sse = sum_square_error(oth, dvec);
-		if (sse >= minerr) break;
+		if (sse >= minerr)
+			break;
 		minerr = sse;
 		crv = oth;
 		++count;
 		if ((count%1024)==0)
 		{
-			std::cout << "SSE : " << sse << "\r" << std::flush;
+			std::cout << "N : " << ii << "  SSE : " << sse << "\r" << std::flush;
 			if (AsynKB::HaveChar())
 				return true;
 		}
@@ -227,17 +238,17 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count)
 void fitting(const DataVec& dvec, std::string name)
 {
 	Curve crv;
-	double amount = 0.1;
+	double amount = 0.01;
 	int count=0, i=0;
 	std::cout << std::endl;
 	while (true)
 	{
-		bool ok = continuos_nudge(crv, dvec, amount, count);
+		bool ok = continuos_nudge(crv, dvec, amount, count, i);
 		if (AsynKB::HaveChar()) break;
 		if (!ok)
 		{
 			++i;
-			if (i>=8) break;
+			if (i>=12) break;
 			amount *= 0.1;
 		}
 	}
@@ -250,7 +261,7 @@ void fitting(const DataVec& dvec, std::string name)
 	std::cout << "power   " << crv.power   << std::endl;
 	std::cout << "pfactor " << crv.pfactor << std::endl;
 	std::cout << std::endl << "SSE : " << sum_square_error(crv, dvec) << std::endl;
-	
+
 	Plot p;
 	p.AddPoints(dvec.begin(), dvec.end());
 	auto func = [&](double x) -> double
@@ -258,7 +269,7 @@ void fitting(const DataVec& dvec, std::string name)
 		return executeCurve(crv, x);
 	};
 	p.SetFunction(func);
-	Image img = p.generate(640, 480);
+	Image img = p.generate(1024, 768);
 	img.Save(name+".bmp");
 }
 
