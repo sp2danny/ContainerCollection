@@ -17,6 +17,8 @@
     <File Name="src/container_tester.cpp"/>
     <File Name="src/graph.h"/>
     <File Name="src/graph.cpp"/>
+    <File Name="src/asyn_kb.h"/>
+    <File Name="src/asyn_kb.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
@@ -34,9 +36,10 @@
       <Compiler Options="-g -Wall -Wextra -Werror -pedantic -std=c++17 -DSZ=750" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
-      <Linker Options="-O0" Required="yes">
+      <Linker Options="-O0 -g" Required="yes">
         <LibraryPath Value="."/>
         <LibraryPath Value="Debug"/>
+        <Library Value="pthread"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./test_dbg.out" IntermediateDirectory="./bin/Debug" Command="./test_dbg.out" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="." PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
@@ -78,6 +81,7 @@
       <Linker Options="-O3" Required="yes">
         <LibraryPath Value="."/>
         <LibraryPath Value="Release"/>
+        <Library Value="pthread"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./test.out" IntermediateDirectory="./bin/Release" Command="./test.out" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="." PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>

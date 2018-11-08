@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Daniel Nyström
-Date                   :=11/07/18
+Date                   :=11/08/18
 CodeLitePath           :="/home/sp2danny/.codelite"
 LinkerName             :=/usr/bin/clang++ 
 SharedObjectLinkerName :=/usr/bin/clang++ -shared -fPIC
@@ -39,8 +39,8 @@ LinkOptions            :=  -O3
 IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). 
 IncludePCH             := 
 RcIncludePath          := 
-Libs                   := 
-ArLibs                 :=  
+Libs                   := $(LibrarySwitch)pthread 
+ArLibs                 :=  "pthread" 
 LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryPathSwitch)Release 
 
 ##
@@ -59,7 +59,7 @@ AS       := /usr/bin/as
 ##
 ## User defined environment variables
 ##
-Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_asyn_kb.cpp$(ObjectSuffix) 
 
 
 
@@ -141,6 +141,14 @@ $(IntermediateDirectory)/src_graph.cpp$(DependSuffix): src/graph.cpp
 
 $(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix): src/graph.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix) "src/graph.cpp"
+
+$(IntermediateDirectory)/src_asyn_kb.cpp$(ObjectSuffix): src/asyn_kb.cpp $(IntermediateDirectory)/src_asyn_kb.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/asyn_kb.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_asyn_kb.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_asyn_kb.cpp$(DependSuffix): src/asyn_kb.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_asyn_kb.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_asyn_kb.cpp$(DependSuffix) -MM "src/asyn_kb.cpp"
+
+$(IntermediateDirectory)/src_asyn_kb.cpp$(PreprocessSuffix): src/asyn_kb.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_asyn_kb.cpp$(PreprocessSuffix) "src/asyn_kb.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

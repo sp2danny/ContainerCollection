@@ -4,6 +4,9 @@
 #include "avl_vector.hpp"
 #include "container_tester.hpp"
 
+#include "asyn_kb.h"
+#include "graph.h"
+
 #include <iostream>
 #include <vector>
 #include <list>
@@ -65,6 +68,7 @@ extern void fitting(const DataVec&, std::string);
 
 void testsuit()
 {
+	AsynKB::Start();
 	for (int i=0; i<20; ++i)
 	{
 		std::cout << i << "\r" << std::flush;
@@ -72,14 +76,18 @@ void testsuit()
 		all_test(350+i*35);
 		all_test(1000+i*100);
 		all_test(3500+i*350);
+		all_test(3650+i*350);
 		all_test(10000+i*1000);
+		all_test(10500+i*1000);
 		all_test(35000+i*3500);
+		all_test(36500+i*3500);
 	}
 	all_test(50000, true);
 	
 	fitting(insertData, "insert_nth");
 	fitting(eraseData, "erase_nth");
 	fitting(splicemergeData, "splice_merge");
+	
 }
 
 struct Curve
@@ -87,7 +95,7 @@ struct Curve
 	double base    = 0.0;
 	double linear  = 0.0;
 	double power   = 1.5; //5;
-	double pfactor = 1e-8; //9.6e-9;
+	double pfactor = 1e-9; //9.6e-9;
 };
 
 const Curve baseline { 1.0, 1.0, 1.0, 1e-8 };
@@ -187,7 +195,6 @@ int best_nudge(const Curve& crv, const DataVec& dvec, double amount)
 	return bsf;
 }
 
-
 bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count)
 {
 	int idx = best_nudge(crv, dvec, amount);
@@ -206,7 +213,11 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count)
 		crv = oth;
 		++count;
 		if ((count%1024)==0)
+		{
 			std::cout << "SSE : " << sse << "\r" << std::flush;
+			if (AsynKB::HaveChar())
+				return true;
+		}
 	}
 	return true;
 }
@@ -222,6 +233,7 @@ void fitting(const DataVec& dvec, std::string name)
 	while (true)
 	{
 		bool ok = continuos_nudge(crv, dvec, amount, count);
+		if (AsynKB::HaveChar()) break;
 		if (!ok)
 		{
 			++i;
@@ -229,6 +241,9 @@ void fitting(const DataVec& dvec, std::string name)
 			amount *= 0.1;
 		}
 	}
+
+	AsynKB::Clear();
+
 	std::cout << "curve fitting for " << name << std::endl;
 	std::cout << "base    " << crv.base    << std::endl; 
 	std::cout << "linear  " << crv.linear  << std::endl;
@@ -238,6 +253,13 @@ void fitting(const DataVec& dvec, std::string name)
 	
 	Plot p;
 	p.AddPoints(dvec.begin(), dvec.end());
+	auto func = [&](double x) -> double
+	{
+		return executeCurve(crv, x);
+	};
+	p.SetFunction(func);
+	Image img = p.generate(640, 480);
+	img.Save(name+".bmp");
 }
 
 
