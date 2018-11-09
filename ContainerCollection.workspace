@@ -3,9 +3,11 @@
   <Project Name="ContainerCollection" Path="ContainerCollection.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
+      <Environment/>
       <Project Name="ContainerCollection" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Environment/>
       <Project Name="ContainerCollection" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

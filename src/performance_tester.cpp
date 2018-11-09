@@ -70,22 +70,22 @@ void testsuit()
 {
 	AsynKB::Start();
 	all_test(50000, false);
-	for (int j=0; j<20; ++j)
+	for (int j=0; j<60; ++j)
 	{
-		int i = j;//3;
+		int i = j/3;
 		std::cout << i << "\r" << std::flush;
-		all_test(100+i*10);
-		all_test(350+i*35);
-		all_test(1000+i*100);
-		all_test(3500+i*350);
-		all_test(3610+i*350);
-		all_test(3720+i*350);
-		all_test(10000+i*1000);
-		//all_test(10330+i*1000);
-		//all_test(10660+i*1000);
-		all_test(35000+i*3500);
-		//all_test(36100+i*3500);
-		//all_test(37200+i*3500);
+		all_test(100+i*10+j%3);
+		all_test(350+i*35+j%3);
+		all_test(1000+i*100+j%3);
+		all_test(3500+i*350+j%3);
+		all_test(3610+i*350+j%3);
+		all_test(3720+i*350+j%3);
+		all_test(10000+i*1000+j%3);
+		all_test(10330+i*1000+j%3);
+		all_test(10660+i*1000+j%3);
+		all_test(35000+i*3500+j%3);
+		all_test(36100+i*3500+j%3);
+		all_test(37200+i*3500+j%3);
 	}
 	all_test(50000, true);
 
@@ -160,7 +160,7 @@ struct Nudge
 auto mk_arr()
 {
 	std::vector<Nudge> arr;
-	std::vector<short> dir = { 0, +1, -1, +7, -7, +50, -50, +350, -350 };
+	std::vector<short> dir = { 0, +1, -1, +7, -7, +50, -50, +350, -350, +2500, -2500 };
 	for (auto b : dir)
 		for (auto l : dir)
 			for (auto p : dir)
@@ -218,17 +218,16 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 		Curve oth = crv;
 		execute_nudge(oth, idx, amount);
 		sse = sum_square_error(oth, dvec);
-		if (sse >= minerr)
-			break;
-		minerr = sse;
-		crv = oth;
-		++count;
-		if ((count%1024)==0)
+		if ((++count%64)==0)
 		{
 			std::cout << "N : " << ii << "  SSE : " << sse << "\r" << std::flush;
 			if (AsynKB::HaveChar())
 				return true;
 		}
+		if (sse >= minerr)
+			break;
+		minerr = sse;
+		crv = oth;
 	}
 	return true;
 }
@@ -239,7 +238,7 @@ void fitting(const DataVec& dvec, std::string name)
 {
 	Curve crv;
 	double amount = 0.01;
-	int count=0, i=0;
+	int count=0, i=1;
 	std::cout << std::endl;
 	while (true)
 	{

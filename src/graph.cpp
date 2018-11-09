@@ -174,14 +174,14 @@ Image Plot::generate(int w, int h)
 	auto xtrans = [&](double x) -> int
 	{
 		int plot_w = w - 20;
-		double graph_w = maxx - minx;
+		double graph_w = (maxx - minx)+5;
 		double pos_x = (x - minx) / graph_w;
 		return 20 + int(pos_x * plot_w);
 	};
 	auto ytrans = [&](double y) -> int
 	{
 		int plot_h = h - 20;
-		double graph_h = maxy - miny;
+		double graph_h = (maxy - miny) + 5;
 		double pos_y = (y - miny) / graph_h;
 		return 20 + int(pos_y * plot_h);
 	};
@@ -203,7 +203,7 @@ Image Plot::generate(int w, int h)
 	auto xrev = [&](int x) -> double
 	{
 		double plot_w = w - 20.0;
-		double graph_w = maxx - minx;
+		double graph_w = (maxx - minx) + 5;
 		double pos_x = (x - 20.0) / plot_w;
 		return (pos_x * graph_w) + minx;
 	};
