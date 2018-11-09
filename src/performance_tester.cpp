@@ -17,52 +17,53 @@
 struct Data
 {
 	std::size_t size;
-	double time;
+	double insert_time;
+	double splice_time;
+	double sort_time;
 };
 
 typedef std::vector<Data> DataVec;
 
-DataVec insertData;
-DataVec eraseData;
-DataVec splicemergeData;
+DataVec vectorData, treeData, listData;
 
 void all_test(std::size_t sz, bool last = false)
 {
 	CT::clear_times();
 
-	//std::vector<int> subject;
-	avl_vector<int> subject;
-	//std::list<int> subject;
+	std::vector<int> vi;
+	avl_vector<int>  ti;
+	std::list<int>   li;
+	
+	#define ALL vi, ti, li
 
-	CT::fillup<>{}(sz, subject);
+	CT::fillup<>{}(sz, vi, ti, li);
 
-	auto insert = CT::insert<>{sz};
-	insert(subject);
+	CT::insert<>{sz}(ALL);
+	CT::erase<>{sz}(ALL);
+	CT::sort<>{}(ALL);
+	CT::splice_merge<>{}(ALL);
+	
+	#undef ALL
 
-	Data data;
-	data.time = CT::time_data[CT::nameof(subject)]["insert_nth"];
-	data.size = sz;
-	insertData.push_back(data);
+	auto mkdata = [sz](auto cont) -> Data
+	{
+		Data data;
+		data.size = sz;
+		auto name = CT::nameof(cont);
+		data.insert_time =  CT::time_data[name]["insert_nth"];
+		data.insert_time += CT::time_data[name]["erase_nth"];
+		data.splice_time =  CT::time_data[name]["splice_merge"];
+		data.sort_time   =  CT::time_data[name]["sort"];
+		return data;
+	};
 
-	auto erase = CT::erase<>{sz};
-	erase(subject);
-
-	data.time = CT::time_data[CT::nameof(subject)]["erase_nth"];
-	data.size = sz;
-	eraseData.push_back(data);
-
-	sort(subject);
-
-	auto splice_merge = CT::splice_merge<>{};
-	splice_merge(subject);
-
-	data.time = CT::time_data[CT::nameof(subject)]["splice_merge"];
-	data.size = sz;
-	splicemergeData.push_back(data);
+	vectorData .push_back(mkdata(vi));
+	treeData   .push_back(mkdata(ti));
+	listData   .push_back(mkdata(li));
 
 	if (last) CT::report_times<>();
 
-	if (last) std::cout << "done testing " << CT::nameof(subject) << std::endl;
+	if (last) std::cout << "done testing " << std::endl;
 }
 
 extern void fitting(const DataVec&, std::string);
@@ -70,19 +71,20 @@ extern void fitting(const DataVec&, std::string);
 void testsuit()
 {
 	AsynKB::Start();
-	all_test(50000, false);
+	//all_test(50000, false);
 	for (int j=0; j<60; ++j)
 	{
 		int i = j/3;
-		#ifndef NDEBUG
+		//#ifndef NDEBUG
 		if (j%3) continue;
-		#endif
+		//#endif
 		std::cout << i << "\r" << std::flush;
 		all_test(100+i*10 + j%3);
 		all_test(350+i*35 + j%3);
 		all_test(1000+i*100 + j%3);
 		all_test(3500+i*350 + j%3);
 		all_test(10000+i*1000 + j%3);
+		/*
 		all_test(35000+i*3500 + j%3);
 		
 		#ifdef NDEBUG
@@ -93,21 +95,31 @@ void testsuit()
 		all_test(36100+i*3500 + j%3);
 		all_test(37200+i*3500 + j%3);
 		#endif
+		*/
 	}
-	all_test(50000, true);
+	std::cout << 20 << "\r" << std::flush;
+	all_test(10000, true);
 
+	auto mkimg = [](const DataVec& dv, std::string name) -> void
 	{
 		MultiPlot mp;
-		mp.AddPoints({255,127,127}, insertData.begin(), insertData.end());
-		mp.AddPoints({127,255,127}, eraseData.begin(), eraseData.end());
-		mp.AddPoints({127,127,255}, splicemergeData.begin(), splicemergeData.end());
+		for (auto&& itm : dv)
+		{
+			mp.AddPoint({255,127,127}, itm.size, itm.insert_time);
+			mp.AddPoint({127,255,127}, itm.size, itm.splice_time);
+			mp.AddPoint({127,127,255}, itm.size, itm.sort_time);
+		}
 		Image img = mp.generate(1024,768);
-		img.Save("AllData.bmp");
-	}
+		img.Save(name);
+	};
 
-	fitting(insertData, "insert_nth");
-	fitting(eraseData, "erase_nth");
-	fitting(splicemergeData, "splice_merge");
+	mkimg(vectorData, "VectorData.bmp");
+	mkimg(treeData,   "TreeData.bmp");
+	mkimg(listData,   "ListData.bmp");
+
+	//fitting(insertData, "insert_nth");
+	//fitting(eraseData, "erase_nth");
+	//fitting(splicemergeData, "splice_merge");
 	
 	/*
 	std::cout << "\n";
@@ -120,6 +132,7 @@ void testsuit()
 	 * */
 }
 
+/*
 struct Curve
 {
 	double base    = 0.0;
@@ -169,9 +182,10 @@ double square_error(const Curve& crv, double inp, double data)
 double sum_square_error(const Curve& crv, const DataVec& dvec)
 {
 	double sum = 0.0;
-	for (auto&& x : dvec)
+	for (auto&& item : dvec)
 	{
-		sum += square_error(crv, x.size, x.time);
+		auto [x, y] = item;
+		sum += square_error(crv, x, y);
 	}
 	return sum / dvec.size();
 }
@@ -329,6 +343,8 @@ void fitting(const DataVec& dvec, std::string name)
 	Image img = p.generate(1024, 768);
 	img.Save(name+".bmp");
 }
+
+*/
 
 
 
