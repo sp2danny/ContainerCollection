@@ -117,6 +117,21 @@ void testsuit()
 	mkimg(treeData,   "TreeData.bmp");
 	mkimg(listData,   "ListData.bmp");
 
+	auto mkimg2 = [](const DataVec& vec, const DataVec& tree, const DataVec& lst) -> void
+	{
+		MultiPlot mp;
+		for (auto&& itm : vec)
+			mp.AddPoint({255,127,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		for (auto&& itm : tree)
+			mp.AddPoint({127,255,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		for (auto&& itm : lst)
+			mp.AddPoint({127,127,255}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		Image img = mp.generate(1024,768);
+		img.Save("all.bmp");
+	};
+	
+	mkimg2(vectorData, treeData, listData);
+
 	//fitting(insertData, "insert_nth");
 	//fitting(eraseData, "erase_nth");
 	//fitting(splicemergeData, "splice_merge");

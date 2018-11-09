@@ -52,10 +52,13 @@ struct MultiPlot
 	template<typename It>
 	void AddPoints(RGB, It, It);
 	void AddPoint(RGB, double, double);
+	void AddFunc(RGB, xyfunc, std::string);
 	Image generate(int, int);
 private:
 	struct Pnt { RGB pix; double x,y; };
+	struct Fnc { RGB pix; xyfunc fnc; std::string name; };
 	std::vector<Pnt> data;
+	std::vector<Fnc> funcs;
 };
 
 template<typename It>
