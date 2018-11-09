@@ -46,6 +46,17 @@ private:
 	std::vector<Pnt> data;
 };
 
+struct MultiPlot
+{
+	MultiPlot();
+	template<typename It>
+	void AddPoints(RGB, It, It);
+	void AddPoint(RGB, double, double);
+	Image generate(int, int);
+private:
+	struct Pnt { RGB pix; double x,y; };
+	std::vector<Pnt> data;
+};
 
 template<typename It>
 void Plot::AddPoints(It b, It e)
@@ -58,6 +69,16 @@ void Plot::AddPoints(It b, It e)
 	}
 }
 
+template<typename It>
+void MultiPlot::AddPoints(RGB pix, It b, It e)
+{
+	while (b != e)
+	{
+		auto [x,y] = *b;
+		AddPoint(pix, x, y);
+		++b;
+	}
+}
 
 
 

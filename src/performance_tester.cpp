@@ -12,6 +12,7 @@
 #include <list>
 #include <string>
 #include <cmath>
+#include <fstream>
 
 struct Data
 {
@@ -94,6 +95,15 @@ void testsuit()
 		#endif
 	}
 	all_test(50000, true);
+
+	{
+		MultiPlot mp;
+		mp.AddPoints({255,127,127}, insertData.begin(), insertData.end());
+		mp.AddPoints({127,255,127}, eraseData.begin(), eraseData.end());
+		mp.AddPoints({127,127,255}, splicemergeData.begin(), splicemergeData.end());
+		Image img = mp.generate(1024,768);
+		img.Save("AllData.bmp");
+	}
 
 	fitting(insertData, "insert_nth");
 	fitting(eraseData, "erase_nth");
@@ -275,6 +285,14 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 
 void fitting(const DataVec& dvec, std::string name)
 {
+	{
+		std::ofstream ofs(name+"-data.txt");
+		for (auto&& item : dvec)
+		{
+			ofs << item.size << "\t" << item.time << "\n";
+		}
+	}
+	
 	Curve crv;
 	double amount = 0.01;
 	int count=0, i=0;
