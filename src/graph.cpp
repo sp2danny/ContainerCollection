@@ -26,6 +26,10 @@ Image::Image(int w, int h)
 
 void Image::PutPixel(int x, int y, RGB pix)
 {
+	if (x <  0) return;
+	if (x >= w) return;
+	if (y <  0) return;
+	if (y >= h) return;
 	pixels[idx(x,y)] = pix;
 }
 
@@ -176,14 +180,14 @@ Image Plot::generate(int w, int h)
 		int plot_w = w - 20;
 		double graph_w = maxx - minx;
 		double pos_x = (x - minx) / graph_w;
-		return 20 + int(pos_x * plot_w);
+		return 10 + int(pos_x * plot_w);
 	};
 	auto ytrans = [&](double y) -> int
 	{
 		int plot_h = h - 20;
 		double graph_h = maxy - miny;
 		double pos_y = (y - miny) / graph_h;
-		return 20 + int(pos_y * plot_h);
+		return 10 + int(pos_y * plot_h);
 	};
 	
 	RGB point{0,0,0};
@@ -204,13 +208,13 @@ Image Plot::generate(int w, int h)
 	{
 		double plot_w = w - 20.0;
 		double graph_w = maxx - minx;
-		double pos_x = (x - 20.0) / plot_w;
+		double pos_x = (x - 10.0) / plot_w;
 		return (pos_x * graph_w) + minx;
 	};
 	
 	RGB fit{128,255,128};
 	if (func)
-		for (int x = 20; x<w; ++x)
+		for (int x = 10; x<(w-10); ++x)
 		{
 			double xx = xrev(x);
 			double yy = func(xx);

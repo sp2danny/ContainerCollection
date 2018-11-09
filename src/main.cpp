@@ -1,5 +1,5 @@
 
-#include "stdio.h"
+#include "asyn_kb.h"
 
 extern void testsuit();
 extern void testsuit_old();
@@ -7,5 +7,5 @@ extern void testsuit_old();
 int main()
 {
 	testsuit();
-	//fgetc(stdin);
+	AsynKB::WaitChar();
 }

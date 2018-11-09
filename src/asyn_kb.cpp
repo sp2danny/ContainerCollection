@@ -1,11 +1,12 @@
 
 #include "asyn_kb.h"
 
-#include <pthread.h>
-
 #include <cstdio>
 #include <cassert>
 #include <deque>
+
+#include <pthread.h>
+#include <unistd.h>
 
 namespace AsynKB
 {
@@ -48,11 +49,36 @@ namespace AsynKB
 	char GetChar()
 	{
 		char c;
-		pthread_mutex_lock(&getter_lock);
-		c = getter_buffer.front();
-		getter_buffer.pop_front();
-		pthread_mutex_unlock(&getter_lock);
+		while (true)
+		{
+			pthread_mutex_lock(&getter_lock);
+			bool have = !getter_buffer.empty();
+			if (have)
+			{
+				c = getter_buffer.front();
+				getter_buffer.pop_front();
+			}
+			pthread_mutex_unlock(&getter_lock);
+			if (have)
+				break;
+			else
+				usleep(150'000);
+		}
 		return c;
+	}
+	
+	void WaitChar()
+	{
+		while (true)
+		{
+			pthread_mutex_lock(&getter_lock);
+			bool have = !getter_buffer.empty();
+			pthread_mutex_unlock(&getter_lock);
+			if (have)
+				break;
+			else
+				usleep(150'000);
+		}
 	}
 
 	void Clear()
