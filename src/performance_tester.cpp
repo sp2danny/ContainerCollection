@@ -12,56 +12,58 @@
 #include <list>
 #include <string>
 #include <cmath>
+#include <fstream>
 
 struct Data
 {
 	std::size_t size;
-	double time;
+	double insert_time;
+	double splice_time;
+	double sort_time;
 };
 
 typedef std::vector<Data> DataVec;
 
-DataVec insertData;
-DataVec eraseData;
-DataVec splicemergeData;
+DataVec vectorData, treeData, listData;
 
 void all_test(std::size_t sz, bool last = false)
 {
 	CT::clear_times();
 
-	//std::vector<int> subject;
-	avl_vector<int> subject;
-	//std::list<int> subject;
+	std::vector<int> vi;
+	avl_vector<int>  ti;
+	std::list<int>   li;
+	
+	#define ALL vi, ti, li
 
-	CT::fillup<>{}(sz, subject);
+	CT::fillup<>{}(sz, vi, ti, li);
 
-	auto insert = CT::insert<>{sz};
-	insert(subject);
+	CT::insert<>{sz}(ALL);
+	CT::erase<>{sz}(ALL);
+	CT::sort<>{}(ALL);
+	CT::splice_merge<>{}(ALL);
+	
+	#undef ALL
 
-	Data data;
-	data.time = CT::time_data[CT::nameof(subject)]["insert_nth"];
-	data.size = sz;
-	insertData.push_back(data);
+	auto mkdata = [sz](auto cont) -> Data
+	{
+		Data data;
+		data.size = sz;
+		auto name = CT::nameof(cont);
+		data.insert_time =  CT::time_data[name]["insert_nth"];
+		data.insert_time += CT::time_data[name]["erase_nth"];
+		data.splice_time =  CT::time_data[name]["splice_merge"];
+		data.sort_time   =  CT::time_data[name]["sort"];
+		return data;
+	};
 
-	auto erase = CT::erase<>{sz};
-	erase(subject);
-
-	data.time = CT::time_data[CT::nameof(subject)]["erase_nth"];
-	data.size = sz;
-	eraseData.push_back(data);
-
-	sort(subject);
-
-	auto splice_merge = CT::splice_merge<>{};
-	splice_merge(subject);
-
-	data.time = CT::time_data[CT::nameof(subject)]["splice_merge"];
-	data.size = sz;
-	splicemergeData.push_back(data);
+	vectorData .push_back(mkdata(vi));
+	treeData   .push_back(mkdata(ti));
+	listData   .push_back(mkdata(li));
 
 	if (last) CT::report_times<>();
 
-	if (last) std::cout << "done testing " << CT::nameof(subject) << std::endl;
+	if (last) std::cout << "done testing " << std::endl;
 }
 
 extern void fitting(const DataVec&, std::string);
@@ -69,40 +71,113 @@ extern void fitting(const DataVec&, std::string);
 void testsuit()
 {
 	AsynKB::Start();
-	all_test(50000, false);
+	//all_test(50000, false);
 	for (int j=0; j<60; ++j)
 	{
 		int i = j/3;
+		//#ifndef NDEBUG
+		if (j%3) continue;
+		//#endif
 		std::cout << i << "\r" << std::flush;
-		all_test(100+i*10+j%3);
-		all_test(350+i*35+j%3);
-		all_test(1000+i*100+j%3);
-		all_test(3500+i*350+j%3);
-		all_test(3610+i*350+j%3);
-		all_test(3720+i*350+j%3);
-		all_test(10000+i*1000+j%3);
-		all_test(10330+i*1000+j%3);
-		all_test(10660+i*1000+j%3);
-		all_test(35000+i*3500+j%3);
-		all_test(36100+i*3500+j%3);
-		all_test(37200+i*3500+j%3);
+		all_test(100+i*10 + j%3);
+		all_test(350+i*35 + j%3);
+		all_test(1000+i*100 + j%3);
+		all_test(3500+i*350 + j%3);
+		all_test(10000+i*1000 + j%3);
+		/*
+		all_test(35000+i*3500 + j%3);
+		
+		#ifdef NDEBUG
+		all_test(3610+i*350 + j%3);
+		all_test(3720+i*350 + j%3);
+		all_test(10330+i*1000 + j%3);
+		all_test(10660+i*1000 + j%3);
+		all_test(36100+i*3500 + j%3);
+		all_test(37200+i*3500 + j%3);
+		#endif
+		*/
 	}
-	all_test(50000, true);
+	std::cout << 20 << "\r" << std::flush;
+	all_test(10000, true);
 
-	fitting(insertData, "insert_nth");
-	fitting(eraseData, "erase_nth");
-	fitting(splicemergeData, "splice_merge");
+	auto mkimg = [](const DataVec& dv, std::string name) -> void
+	{
+		MultiPlot mp;
+		for (auto&& itm : dv)
+		{
+			mp.AddPoint({255,127,127}, itm.size, itm.insert_time);
+			mp.AddPoint({127,255,127}, itm.size, itm.splice_time);
+			mp.AddPoint({127,127,255}, itm.size, itm.sort_time);
+		}
+		Image img = mp.generate(1024,768);
+		img.Save(name);
+	};
+
+	mkimg(vectorData, "VectorData.bmp");
+	mkimg(treeData,   "TreeData.bmp");
+	mkimg(listData,   "ListData.bmp");
+
+	auto mkimg2 = [](const DataVec& vec, const DataVec& tree, const DataVec& lst) -> void
+	{
+		MultiPlot mp;
+		for (auto&& itm : vec)
+			mp.AddPoint({255,127,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		for (auto&& itm : tree)
+			mp.AddPoint({127,255,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		for (auto&& itm : lst)
+			mp.AddPoint({127,127,255}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+		Image img = mp.generate(1024,768);
+		img.Save("all.bmp");
+	};
+	
+	mkimg2(vectorData, treeData, listData);
+
+	//fitting(insertData, "insert_nth");
+	//fitting(eraseData, "erase_nth");
+	//fitting(splicemergeData, "splice_merge");
+	
+	/*
+	std::cout << "\n";
+	for (auto&& post : splicemergeData)
+	{
+		auto [x,y] = post;
+		std::cout << x << "\t" << y << "\n";
+	}
+	std::cout << std::endl;
+	 * */
 }
 
+/*
 struct Curve
 {
 	double base    = 0.0;
 	double linear  = 0.0;
-	double power   = 1.5; //5;
-	double pfactor = 1e-9; //9.6e-9;
+	double power   = 1.5;
+	double pfactor = 5e-9;
 };
 
-const Curve baseline { 1.0, 1.0, 1.0, 1e-9 };
+Curve baseline { 1e-4, 1e-4, 0.1, 1e-9 };
+
+void initBase()
+{
+	baseline = { 1e-4, 1e-4, 0.1, 1e-9 };
+}
+
+void updB(double val, double& base)
+{
+	double l = std::log10(val);
+	if (l < -12) l = -12;
+	if (l >  -2) l =  -2;
+	base = std::pow(10, l-1);
+}
+
+void updateBase(const Curve& crv)
+{
+	updB(crv.base,    baseline.base);
+	updB(crv.linear,  baseline.linear);
+	//updB(crv.power,   baseline.power);
+	updB(crv.pfactor, baseline.pfactor);
+}
 
 double executeCurve(const Curve& crv, double inp)
 {
@@ -122,9 +197,10 @@ double square_error(const Curve& crv, double inp, double data)
 double sum_square_error(const Curve& crv, const DataVec& dvec)
 {
 	double sum = 0.0;
-	for (auto&& x : dvec)
+	for (auto&& item : dvec)
 	{
-		sum += square_error(crv, x.size, x.time);
+		auto [x, y] = item;
+		sum += square_error(crv, x, y);
 	}
 	return sum / dvec.size();
 }
@@ -160,7 +236,11 @@ struct Nudge
 auto mk_arr()
 {
 	std::vector<Nudge> arr;
+<<<<<<< HEAD
 	std::vector<short> dir = { 0, +1, -1, +7, -7, +50, -50, +350, -350, +2500, -2500 };
+=======
+	std::vector<short> dir = { 0, +1, -1, +3, -3, +10, -10, +35, -35, +100, -100 };
+>>>>>>> 97135c16a7c3f70beeb5d40f7b14e0cd499d2cc2
 	for (auto b : dir)
 		for (auto l : dir)
 			for (auto p : dir)
@@ -173,10 +253,10 @@ const std::vector<Nudge> arr = mk_arr();
 
 void execute_nudge(Curve& crv, int index, double amount)
 {
-	nudge_base    (crv, amount * arr[index].b );
-	nudge_linear  (crv, amount * arr[index].l );
-	nudge_power   (crv, amount * arr[index].p );
-	nudge_pfactor (crv, amount * arr[index].f );
+	nudge_base    (crv, amount * arr[index].b);
+	nudge_linear  (crv, amount * arr[index].l);
+	nudge_power   (crv, amount * arr[index].p);
+	nudge_pfactor (crv, amount * arr[index].f);
 }
 
 int best_nudge(const Curve& crv, const DataVec& dvec, double amount)
@@ -207,10 +287,10 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 	execute_nudge(crv, idx, amount);
 	double minerr = sum_square_error(crv, dvec);
 
-	double lim = std::pow(10.0, ii);
+	double lim = std::pow(10.0, (ii+2));
 	double impr = sse - minerr;
 
-	if ( impr * lim < sse )
+	if ((impr * lim) < sse)
 		return false;
 
 	while (true)
@@ -218,7 +298,16 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 		Curve oth = crv;
 		execute_nudge(oth, idx, amount);
 		sse = sum_square_error(oth, dvec);
+<<<<<<< HEAD
 		if ((++count%64)==0)
+=======
+		if (sse >= minerr)
+			break;
+		minerr = sse;
+		crv = oth;
+		++count;
+		if ((count%1024) == 0)
+>>>>>>> 97135c16a7c3f70beeb5d40f7b14e0cd499d2cc2
 		{
 			std::cout << "N : " << ii << "  SSE : " << sse << "\r" << std::flush;
 			if (AsynKB::HaveChar())
@@ -229,6 +318,7 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 		minerr = sse;
 		crv = oth;
 	}
+	updateBase(crv);
 	return true;
 }
 
@@ -236,6 +326,14 @@ bool continuos_nudge(Curve& crv, const DataVec& dvec, double amount, int& count,
 
 void fitting(const DataVec& dvec, std::string name)
 {
+	{
+		std::ofstream ofs(name+"-data.txt");
+		for (auto&& item : dvec)
+		{
+			ofs << item.size << "\t" << item.time << "\n";
+		}
+	}
+	
 	Curve crv;
 	double amount = 0.01;
 	int count=0, i=1;
@@ -248,6 +346,7 @@ void fitting(const DataVec& dvec, std::string name)
 		{
 			++i;
 			if (i>=12) break;
+			std::cout << "N : " << i << "  SSE : " << sum_square_error(crv, dvec) << "\r" << std::flush;
 			amount *= 0.1;
 		}
 	}
@@ -271,6 +370,8 @@ void fitting(const DataVec& dvec, std::string name)
 	Image img = p.generate(1024, 768);
 	img.Save(name+".bmp");
 }
+
+*/
 
 
 
