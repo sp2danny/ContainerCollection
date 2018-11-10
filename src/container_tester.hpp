@@ -244,7 +244,7 @@ void CT::report_times()
 				std::cout << "\t" << y.first << " : " << y.second << " ms\n";
 				sum += y.second;
 			}
-			std::cout << "Container totals : " << sum << " ms\n";
+			std::cout << "Container totals : " << sum << " ms\n\n";
 		}
 	}
 }
