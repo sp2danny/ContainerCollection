@@ -266,7 +266,7 @@ template<typename... Args>
 void CT::fillup<T>::operator()(std::size_t sz, Args&... args)
 {
 	init();	
-	std::uniform_int_distribution<int> distribution(1, sz);
+	std::uniform_int_distribution<int> distribution(1, (int)sz);
 	std::vector<int> vi;
 	for (auto i=0u; i<sz; ++i)
 	{

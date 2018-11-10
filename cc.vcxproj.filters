@@ -18,14 +18,32 @@
     <ClCompile Include="src\test_all.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\test_item.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\test_tv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\asyn_kb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\container_tester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\performance_tester.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\avl_vector.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\container_operations.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -35,13 +53,10 @@
     <ClInclude Include="src\debug_container.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\inline_vector.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\inline_vector_old.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\is_iterator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\polymorphic_container.hpp">
@@ -50,13 +65,10 @@
     <ClInclude Include="src\splice_list.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\splice_list_allocator.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\test_item.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\avl_vector.hpp">
+    <ClInclude Include="src\asyn_kb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

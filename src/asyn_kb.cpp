@@ -5,44 +5,43 @@
 #include <cassert>
 #include <deque>
 
-#include <pthread.h>
-#include <unistd.h>
+#include <thread>
+#include <mutex>
+#include <chrono>
+
+using namespace std::literals;
 
 namespace AsynKB
 {
-	
-	pthread_t getter_thread;
-	pthread_mutex_t getter_lock;
+	std::thread getter_thread;
+	std::mutex getter_lock;
 	std::deque<char> getter_buffer;
 
-	void* PerformWork(void*)
+	void PerformWork()
 	{
 		while (true)
 		{
 			int c = std::getchar();
 			if (c<0) break;
 
-			pthread_mutex_lock(&getter_lock);
+			getter_lock.lock();
 			getter_buffer.push_back(c & 255);
-			pthread_mutex_unlock(&getter_lock);
+			getter_lock.unlock();
 		}
-		return nullptr;
+		return;
 	}
 
 	void Start()
 	{
-		int result_code = pthread_create(&getter_thread, nullptr, &PerformWork, nullptr);
-		assert(!result_code);
-		result_code = pthread_mutex_init(&getter_lock, nullptr);
-		assert(!result_code);
+		getter_thread = std::thread(PerformWork);
  	}
 
 	bool HaveChar()
 	{
 		bool have;
-		pthread_mutex_lock(&getter_lock);
+		getter_lock.lock();
 		have = !getter_buffer.empty();
-		pthread_mutex_unlock(&getter_lock);
+		getter_lock.unlock();
 		return have;
 	}
 
@@ -51,18 +50,18 @@ namespace AsynKB
 		char c;
 		while (true)
 		{
-			pthread_mutex_lock(&getter_lock);
+			getter_lock.lock();
 			bool have = !getter_buffer.empty();
 			if (have)
 			{
 				c = getter_buffer.front();
 				getter_buffer.pop_front();
 			}
-			pthread_mutex_unlock(&getter_lock);
+			getter_lock.unlock();
 			if (have)
 				break;
 			else
-				usleep(150'000);
+				std::this_thread::sleep_for(150ms);
 		}
 		return c;
 	}
@@ -71,21 +70,32 @@ namespace AsynKB
 	{
 		while (true)
 		{
-			pthread_mutex_lock(&getter_lock);
+			getter_lock.lock();
 			bool have = !getter_buffer.empty();
-			pthread_mutex_unlock(&getter_lock);
+			getter_lock.unlock();
 			if (have)
 				break;
 			else
-				usleep(150'000);
+				std::this_thread::sleep_for(150ms);
 		}
 	}
 
 	void Clear()
 	{
-		pthread_mutex_lock(&getter_lock);
+		getter_lock.lock();
 		getter_buffer.clear();
-		pthread_mutex_unlock(&getter_lock);
+		getter_lock.unlock();
 	}
 
+	void Stop()
+	{
+		std::putchar(-1);
+
+		//getter_lock.lock();
+		//getter_thread.join();
+	}
 }
+
+
+
+

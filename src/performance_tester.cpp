@@ -38,8 +38,10 @@ void all_test(std::size_t sz, bool last = false)
 
 	CT::fillup<>{}(sz, vi, ti, li);
 
-	CT::insert<>{sz}(ALL);
-	CT::erase<>{sz}(ALL);
+	typedef unsigned long UL;
+
+	CT::insert<>{(UL)sz}(ALL);
+	CT::erase<>{(UL)sz}(ALL);
 	CT::sort<>{}(ALL);
 	CT::splice_merge<>{}(ALL);
 	
@@ -72,19 +74,19 @@ void testsuit()
 {
 	AsynKB::Start();
 	//all_test(50000, false);
-	for (int j=0; j<60; ++j)
+	for (int j=0; j<6; ++j)
 	{
 		int i = j/3;
-		//#ifndef NDEBUG
+		#ifndef NDEBUG
 		if (j%3) continue;
-		//#endif
+		#endif
 		std::cout << i << "\r" << std::flush;
 		all_test(100+i*10 + j%3);
 		all_test(350+i*35 + j%3);
 		all_test(1000+i*100 + j%3);
 		all_test(3500+i*350 + j%3);
 		all_test(10000+i*1000 + j%3);
-		/*
+		/* 
 		all_test(35000+i*3500 + j%3);
 		
 		#ifdef NDEBUG
@@ -95,7 +97,7 @@ void testsuit()
 		all_test(36100+i*3500 + j%3);
 		all_test(37200+i*3500 + j%3);
 		#endif
-		*/
+		 */
 	}
 	std::cout << 20 << "\r" << std::flush;
 	all_test(10000, true);
@@ -105,9 +107,9 @@ void testsuit()
 		MultiPlot mp;
 		for (auto&& itm : dv)
 		{
-			mp.AddPoint({255,127,127}, itm.size, itm.insert_time);
-			mp.AddPoint({127,255,127}, itm.size, itm.splice_time);
-			mp.AddPoint({127,127,255}, itm.size, itm.sort_time);
+			mp.AddPoint({255,127,127}, (double)itm.size, itm.insert_time);
+			mp.AddPoint({127,255,127}, (double)itm.size, itm.splice_time);
+			mp.AddPoint({127,127,255}, (double)itm.size, itm.sort_time);
 		}
 		Image img = mp.generate(1024,768);
 		img.Save(name);
@@ -121,11 +123,11 @@ void testsuit()
 	{
 		MultiPlot mp;
 		for (auto&& itm : vec)
-			mp.AddPoint({255,127,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({255,127,127}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		for (auto&& itm : tree)
-			mp.AddPoint({127,255,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({127,255,127}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		for (auto&& itm : lst)
-			mp.AddPoint({127,127,255}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({127,127,255}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		Image img = mp.generate(1024,768);
 		img.Save("all.bmp");
 	};

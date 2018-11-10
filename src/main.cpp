@@ -7,5 +7,6 @@ extern void testsuit_old();
 int main()
 {
 	testsuit();
+	AsynKB::Stop();
 	//AsynKB::WaitChar();
 }

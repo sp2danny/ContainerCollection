@@ -18,6 +18,28 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\asyn_kb.cpp" />
+    <ClCompile Include="src\container_tester.cpp" />
+    <ClCompile Include="src\graph.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\performance_tester.cpp" />
+    <ClCompile Include="src\test_all.cpp" />
+    <ClCompile Include="src\test_item.cpp" />
+    <ClCompile Include="src\test_tv.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\asyn_kb.h" />
+    <ClInclude Include="src\avl_vector.hpp" />
+    <ClInclude Include="src\container_operations.hpp" />
+    <ClInclude Include="src\container_tester.hpp" />
+    <ClInclude Include="src\debug_container.hpp" />
+    <ClInclude Include="src\graph.h" />
+    <ClInclude Include="src\inline_vector.hpp" />
+    <ClInclude Include="src\polymorphic_container.hpp" />
+    <ClInclude Include="src\splice_list.hpp" />
+    <ClInclude Include="src\test_item.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{5BE5F915-C4CF-4632-A19B-B8369292B371}</ProjectGuid>
@@ -140,34 +162,6 @@
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\test_all.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="src\test_tv.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\avl_vector.hpp" />
-    <ClInclude Include="src\container_operations.hpp" />
-    <ClInclude Include="src\container_tester.hpp" />
-    <ClInclude Include="src\debug_container.hpp" />
-    <ClInclude Include="src\inline_vector.hpp" />
-    <ClInclude Include="src\inline_vector_old.hpp" />
-    <ClInclude Include="src\is_iterator.hpp" />
-    <ClInclude Include="src\polymorphic_container.hpp" />
-    <ClInclude Include="src\splice_list.hpp" />
-    <ClInclude Include="src\splice_list_allocator.hpp" />
-    <ClInclude Include="src\test_item.hpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

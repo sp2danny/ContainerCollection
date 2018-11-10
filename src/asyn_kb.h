@@ -8,5 +8,6 @@ namespace AsynKB
 	extern char GetChar();
 	extern void WaitChar();
 	extern void Clear();
+	extern void Stop();
 }
 
