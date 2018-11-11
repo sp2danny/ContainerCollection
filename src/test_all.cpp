@@ -4,13 +4,13 @@
 #include "avl_vector.hpp"
 #include "test_item.hpp"
 #include "container_tester.hpp"
-//#include "avl_array.hpp"
 
 #include <iostream>
 #include <vector>
 #include <list>
 
-#define REP 15
+constexpr std::size_t REP = 15;
+constexpr std::size_t SZ = 2500;
 
 void testsuit_old()
 {

@@ -36,6 +36,8 @@ void all_test(std::size_t sz, bool last = false)
 	
 	#define ALL vi, ti, li
 
+	typedef unsigned long UL;
+
 	CT::fillup<>{}(sz, vi, ti, li);
 
 	CT::insert<>{sz}(ALL);
@@ -105,9 +107,9 @@ void testsuit()
 		MultiPlot mp;
 		for (auto&& itm : dv)
 		{
-			mp.AddPoint({255,127,127}, itm.size, itm.insert_time);
-			mp.AddPoint({127,255,127}, itm.size, itm.splice_time);
-			mp.AddPoint({127,127,255}, itm.size, itm.sort_time);
+			mp.AddPoint({255,127,127}, (double)itm.size, itm.insert_time);
+			mp.AddPoint({127,255,127}, (double)itm.size, itm.splice_time);
+			mp.AddPoint({127,127,255}, (double)itm.size, itm.sort_time);
 		}
 		Image img = mp.generate(1024,768);
 		img.Save(name);
@@ -121,11 +123,11 @@ void testsuit()
 	{
 		MultiPlot mp;
 		for (auto&& itm : vec)
-			mp.AddPoint({255,127,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({255,127,127}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		for (auto&& itm : tree)
-			mp.AddPoint({127,255,127}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({127,255,127}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		for (auto&& itm : lst)
-			mp.AddPoint({127,127,255}, itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
+			mp.AddPoint({127,127,255}, (double)itm.size, itm.insert_time + itm.splice_time + itm.sort_time);
 		Image img = mp.generate(1024,768);
 		img.Save("all.bmp");
 	};

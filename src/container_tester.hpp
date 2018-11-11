@@ -81,13 +81,13 @@ namespace CT
 	template<typename T = void>
 	struct insert
 	{
-		insert(unsigned long count = 1) : count(count) {}
+		insert(std::size_t count = 1) : count(count) {}
 		template<typename C1, typename... Args>
 		void operator()(C1&, Args&...);
 	
 		static std::string name() { return "insert"s; }
 	private:
-		unsigned long count;
+		std::size_t count;
 	};
 
 	template<typename T = void>
@@ -104,13 +104,13 @@ namespace CT
 	template<typename T = void>
 	struct erase
 	{
-		erase(unsigned long count = 1) : count(count) {}
+		erase(std::size_t count = 1) : count(count) {}
 		template<typename C1, typename... Args>
 		void operator()(C1&, Args&...);
 
 		static std::string name() { return "erase"s; }
 	private:
-		unsigned long count;
+		std::size_t count;
 	};
 
 	template<typename T = void>
@@ -195,7 +195,7 @@ namespace CT
 	template<typename T = void>
 	struct nth_swap
 	{
-		nth_swap(unsigned long count = 1) : count(count) {}
+		nth_swap(std::size_t count = 1) : count(count) {}
 
 		void swp(std::size_t, std::size_t) {}
 
@@ -207,7 +207,7 @@ namespace CT
 
 		static std::string name() { return "nth_swap"s; }
 	private:
-		unsigned long count;
+		std::size_t count;
 	};
 	
 	template<typename T = void>
@@ -356,11 +356,11 @@ template<typename C1, typename... Args>
 void CT::insert<T>::operator()(C1& first, Args&... rest)
 {
 	init();
-	for (auto i = 0ul; i<count; ++i)
+	for (std::size_t i = 0; i<count; ++i)
 	{
-		int sz = (int)first.size();
-		std::uniform_int_distribution<int> distribution(1, count);
-		std::size_t idx = std::uniform_int_distribution<int>{0, sz}(generator);
+		auto sz = first.size();
+		std::uniform_int_distribution<int> distribution(1, (int)count);
+		std::size_t idx = std::uniform_int_distribution<std::size_t>{0, sz}(generator);
 		auto num = distribution(generator);
 		insert_nth<>{}(idx, num, first, rest...);
 	}
@@ -399,8 +399,8 @@ void CT::erase<T>::operator()(C1& first, Args&... rest)
 	init();
 	for (auto i = 0ul; i<count; ++i)
 	{
-		int sz = (int)first.size();
-		std::size_t idx = std::uniform_int_distribution<int>{0, sz-1}(generator);
+		std::size_t sz = first.size();
+		std::size_t idx = std::uniform_int_distribution<std::size_t>{0, sz-1}(generator);
 		erase_nth<>{}(idx, first, rest...);
 	}
 }
