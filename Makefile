@@ -2,7 +2,7 @@
 
 All:
 	@echo "----------Building project:[ ContainerCollection - Release ]----------"
-	@"$(MAKE)" -f  "ContainerCollection.mk"
+	@$(MAKE) -f  "ContainerCollection.mk"
 clean:
 	@echo "----------Cleaning project:[ ContainerCollection - Release ]----------"
-	@"$(MAKE)" -f  "ContainerCollection.mk" clean
+	@$(MAKE) -f  "ContainerCollection.mk" clean

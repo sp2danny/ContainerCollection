@@ -1,5 +1,5 @@
 
-#include "asyn_kb.h"
+// #include "asyn_kb.h"
 
 extern void testsuit();
 extern void testsuit_old();
@@ -7,6 +7,6 @@ extern void testsuit_old();
 int main()
 {
 	testsuit();
-	AsynKB::Stop();
+	//AsynKB::Stop();
 	//AsynKB::WaitChar();
 }
