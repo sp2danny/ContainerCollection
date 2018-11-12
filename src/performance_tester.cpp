@@ -78,17 +78,17 @@ void testsuit()
 		#ifndef NDEBUG
 		if (j%3) continue;
 		#endif
-		std::cout << i << "\r" << std::flush;
-		all_test(100+i*10 + j%3);
-		all_test(350+i*35 + j%3);
-		all_test(1000+i*100 + j%3);
-		all_test(3500+i*350 + j%3);
+		std::cout << i << "." << (j%3) << "\r" << std::flush;
+		all_test(  100+i*10   + j%3);
+		all_test(  350+i*35   + j%3);
+		all_test( 1000+i*100  + j%3);
+		all_test( 3500+i*350  + j%3);
 		all_test(10000+i*1000 + j%3);
 
 		#ifdef NDEBUG
 		all_test(35000+i*3500 + j%3);
-		all_test(3610+i*350 + j%3);
-		all_test(3720+i*350 + j%3);
+		all_test(3610 +i*350  + j%3);
+		all_test(3720 +i*350  + j%3);
 		all_test(10330+i*1000 + j%3);
 		all_test(10660+i*1000 + j%3);
 		all_test(36100+i*3500 + j%3);
