@@ -4,7 +4,7 @@
 #include "avl_vector.hpp"
 #include "container_tester.hpp"
 
-#include "asyn_kb.h"
+// #include "asyn_kb.h"
 #include "graph.h"
 
 #include <iostream>
@@ -33,10 +33,8 @@ void all_test(std::size_t sz, bool last = false)
 	std::vector<int> vi;
 	avl_vector<int>  ti;
 	std::list<int>   li;
-	
-	#define ALL vi, ti, li
 
-	typedef unsigned long UL;
+	#define ALL vi, ti, li
 
 	CT::fillup<>{}(sz, vi, ti, li);
 
@@ -72,7 +70,7 @@ extern void fitting(const DataVec&, std::string);
 
 void testsuit()
 {
-	AsynKB::Start();
+	//AsynKB::Start();
 	//all_test(50000, false);
 	for (int j=0; j<60; ++j)
 	{
@@ -80,17 +78,17 @@ void testsuit()
 		#ifndef NDEBUG
 		if (j%3) continue;
 		#endif
-		std::cout << i << "\r" << std::flush;
-		all_test(100+i*10 + j%3);
-		all_test(350+i*35 + j%3);
-		all_test(1000+i*100 + j%3);
-		all_test(3500+i*350 + j%3);
+		std::cout << i << "." << (j%3) << "\r" << std::flush;
+		all_test(  100+i*10   + j%3);
+		all_test(  350+i*35   + j%3);
+		all_test( 1000+i*100  + j%3);
+		all_test( 3500+i*350  + j%3);
 		all_test(10000+i*1000 + j%3);
 
 		#ifdef NDEBUG
-		all_test(35000+i*3500 + j%3);		
-		all_test(3610+i*350 + j%3);
-		all_test(3720+i*350 + j%3);
+		all_test(35000+i*3500 + j%3);
+		all_test(3610 +i*350  + j%3);
+		all_test(3720 +i*350  + j%3);
 		all_test(10330+i*1000 + j%3);
 		all_test(10660+i*1000 + j%3);
 		all_test(36100+i*3500 + j%3);

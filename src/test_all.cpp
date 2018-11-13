@@ -34,7 +34,7 @@ void testsuit_old()
 	vector<int> vi;
 	{
 		bool ok = true;
-		for (int i=0; ok && (i<REP); ++i)
+		for (std::size_t i=0; ok && (i<REP); ++i)
 		{
 			std::cout << "\r" << i << "   " << std::flush;
 			vi.clear();
@@ -56,7 +56,7 @@ void testsuit_old()
 			erase<>{(SZ*3)/2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
-			if (ok) for (int j=0; ok && (j<REP); ++j)
+			if (ok) for (std::size_t j=0; ok && (j<REP); ++j)
 			{
 				if (ok) insert<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
@@ -78,7 +78,7 @@ void testsuit_old()
 
 			//if (true) { system("cls"); print<>{}(std::cout, ALL); }
 
-			for (int j = 0; ok && (j < REP); ++j)
+			for (std::size_t j = 0; ok && (j < REP); ++j)
 			{
 				if (ok) splice_merge<>{}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
