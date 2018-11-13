@@ -11,6 +11,7 @@ obj
 .codelite
 *.bmp
 *-data.txt
+*.aps
 
 # Prerequisites
 *.d
