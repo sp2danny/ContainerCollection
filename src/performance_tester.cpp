@@ -127,13 +127,13 @@ void testsuit()
 		Image img = mp.generate(1024,768);
 		img.Save("all.bmp");
 	};
-	
+
 	mkimg2(vectorData, treeData, listData);
 
 	//fitting(insertData, "insert_nth");
 	//fitting(eraseData, "erase_nth");
 	//fitting(splicemergeData, "splice_merge");
-	
+
 	/*
 	std::cout << "\n";
 	for (auto&& post : splicemergeData)
@@ -142,7 +142,7 @@ void testsuit()
 		std::cout << x << "\t" << y << "\n";
 	}
 	std::cout << std::endl;
-	 * */
+	*/
 }
 
 /*

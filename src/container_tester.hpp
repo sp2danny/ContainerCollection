@@ -228,8 +228,6 @@ namespace CT
 	extern std::default_random_engine generator;
 }
 
-
-
 template<typename Excl>
 void CT::report_times()
 {
