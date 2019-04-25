@@ -218,10 +218,7 @@ public:
 	template<typename Op>
 	void merge(splice_list& other, Op op);
 	template<typename Op>
-	void merge(splice_list&& other, Op op)
-	{
-		merge(other, op);
-	}
+	void merge(splice_list&& other, Op op) { merge(other, op); }
 
 	void unique() { unique(std::equal_to<T>{}); }
 	template<class Eq>
@@ -243,9 +240,9 @@ public:
 
 	bool operator==(const splice_list& other) const;
 	bool operator!=(const splice_list& other) const;
-	bool operator<(const splice_list& other) const;
+	bool operator <(const splice_list& other) const;
 	bool operator<=(const splice_list& other) const;
-	bool operator>(const splice_list& other) const;
+	bool operator >(const splice_list& other) const;
 	bool operator>=(const splice_list& other) const;
 
 private:
@@ -268,7 +265,7 @@ private:
 	template<typename... Args>
 	NodeP helper_makenode(Args&&...);
 
-	NodeP       sentinel;
+	NodeP sentinel;
 	static void link(NodeP, NodeP);
 };
 
@@ -300,13 +297,15 @@ splice_list<T>::splice_list()
 }
 
 template<typename T>
-splice_list<T>::splice_list(const splice_list& other) : splice_list()
+splice_list<T>::splice_list(const splice_list& other)
+	: splice_list()
 {
 	helper_assign(other.begin(), other.end());
 }
 
 template<typename T>
-splice_list<T>::splice_list(splice_list&& other) : splice_list()
+splice_list<T>::splice_list(splice_list&& other)
+	: splice_list()
 {
 	swap(other);
 }
@@ -710,8 +709,8 @@ void splice_list<T>::helper_split(Sentry& src, Sentry& d1, Sentry& d2)
 	}
 	NodeP m  = f;
 	NodeP m2 = f->next;
-	f        = src.next;
-	l        = src.prev;
+	f = src.next;
+	l = src.prev;
 	link((NodeP)&d1, f);
 	link(m, (NodeP)&d1);
 	link((NodeP)&d2, m2);
@@ -812,8 +811,8 @@ int splice_list<T>::compare(const splice_list& other) const
 			return 0;
 		if (me_ate) return -1;
 		if (ot_ate) return +1;
-		if ( (*me_iter) < (*ot_iter) ) return -1;
-		if ( (*ot_iter) < (*me_iter) ) return +1;
+		if ((*me_iter) < (*ot_iter)) return -1;
+		if ((*ot_iter) < (*me_iter)) return +1;
 		++me_iter; ++ot_iter;
 	}
 }

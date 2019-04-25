@@ -70,6 +70,9 @@ extern void fitting(const DataVec&, std::string);
 
 void testsuit()
 {
+	avl_vector<int> avi = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+	avi.print_tree(std::cout, false, true);
+
 	//AsynKB::Start();
 	//all_test(50000, false);
 	for (int j=0; j<60; ++j)

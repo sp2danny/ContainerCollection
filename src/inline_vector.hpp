@@ -7,11 +7,15 @@
 #include <memory>
 #include <iterator>
 #include <cassert>
+#include <cstring>
+#include <type_traits>
+#include <iterator>
 
 template<typename T, std::size_t N>
 class inline_vector
 {
 	static constexpr bool cne = noexcept(T(std::declval<T>()));
+	static constexpr bool triv = false; // std::is_trivially_copyable<T>::value;
 public:
 	// types
 	typedef T value_type;
@@ -27,14 +31,14 @@ public:
 	// construction
 	inline_vector() noexcept;
 	inline_vector(const inline_vector&);
-	inline_vector(inline_vector&&) noexcept(cne);
+	inline_vector(inline_vector&&) noexcept(cne || triv);
 	explicit inline_vector(size_type, const T& = T{});
 	template<typename It>
 	inline_vector(It, It);
 	inline_vector(std::initializer_list<T>);
-	
+
 	// misc
-	void swap(inline_vector&) noexcept(cne);
+	void swap(inline_vector&);
 
 	// destruction
 	void clear();
@@ -42,7 +46,7 @@ public:
 
 	// assignment
 	inline_vector& operator=(const inline_vector&);
-	inline_vector& operator=(inline_vector&&) noexcept;
+	inline_vector& operator=(inline_vector&&);
 	void assign(size_type, const T&);
 	template<typename It>
 	void assign(It, It);
@@ -53,7 +57,7 @@ public:
 	void resize(size_type, const T& = T{});
 	size_type size() const;
 	size_type capacity() const;
-	bool empty() const;
+	[[nodiscard]] bool empty() const;
 	constexpr static size_type max_size() noexcept;
 	void shrink_to_fit();
 
@@ -86,7 +90,7 @@ public:
 	template<typename It>
 	iterator insert(iterator, It, It);
 	iterator insert(iterator, std::initializer_list<T>);
-	
+
 	template<typename... Args>
 	iterator emplace(iterator, Args&&...);
 	template<typename... Args>
@@ -97,9 +101,9 @@ public:
 
 	T& push_back(const T& val) { return *insert(end(), val); }
 	T& push_back(T&& val) { return *insert(end(), std::move(val)); }
- 
+
 	void pop_back();
- 
+
 private:
 
 	template<typename It>
@@ -135,76 +139,86 @@ private:
 template<typename T, std::size_t N>
 inline_vector<T, N>::inline_vector() noexcept
 {
-    ic.size = 0;
-    ic.capa = 0;
+	ic.size = 0;
+	ic.capa = 0;
 }
 
 template<typename T, std::size_t N>
 inline_vector<T, N>::inline_vector(const inline_vector& other)
 {
-    if (other.ic.size <= N)
-    {
-        ic.size = other.ic.size;
-        ic.capa = 0;
-    }
-    else
-    {
-        hc.size = other.ic.size;
-        hc.capa = ic.size;
-        hc.data = std::allocator<T>{}.allocate(ic.size);
-    }
-    const T* src = other.data();
-    T* dst = data();
-    for (size_type i=0; i<ic.size; ++i)
-    {
-        new (dst+i) T(src[i]);
-    }
+	if (other.ic.size <= N)
+	{
+		ic.size = other.ic.size;
+		ic.capa = 0;
+	}
+	else
+	{
+		hc.size = other.ic.size;
+		hc.capa = ic.size;
+		hc.data = std::allocator<T>{}.allocate(ic.size);
+	}
+	const T* src = other.data();
+	T* dst = data();
+	if constexpr(triv)
+	{
+		std::memcpy(dst, src, sizeof(T)*ic.size);
+	} else {
+		for (size_type i=0; i<ic.size; ++i)
+		{
+			new (dst+i) T(src[i]);
+		}
+	}
 }
 
 template<typename T, std::size_t N>
-inline_vector<T, N>::inline_vector(inline_vector&& other) noexcept(cne)
+inline_vector<T, N>::inline_vector(inline_vector&& other) noexcept(cne || triv)
 {
-    if (other.ic.size <= N)
-    {
-        ic.size = other.ic.size;
-        ic.capa = 0;
-        const T* src = other.data();
-        T* dst = data();
-        for (size_type i=0; i<ic.size; ++i)
-        {
-            new (dst+i) T(std::move(src[i]));
-        }
-    }
-    else
-    {
-        hc.size = other.hc.size;
-        hc.capa = other.hc.capa;
-        hc.data = other.hc.data;
-    }
-    other.hc.size = 0;
-    other.hc.capa = 0;
-    other.hc.data = nullptr;
+	if (other.ic.size <= N)
+	{
+		ic.size = other.ic.size;
+		ic.capa = 0;
+		const T* src = other.data();
+		T* dst = data();
+		if constexpr(triv)
+		{
+			memcpy(dst, src, sizeof(T)*ic.size);
+		} else {
+			for (size_type i=0; i<ic.size; ++i)
+			{
+				new (dst+i) T(std::move(src[i]));
+			}
+		}
+	}
+	else
+	{
+		hc.size = other.hc.size;
+		hc.capa = other.hc.capa;
+		hc.data = other.hc.data;
+	}
+	other.hc.size = 0;
+	other.hc.capa = 0;
+	other.hc.data = nullptr;
 }
 
 template<typename T, std::size_t N>
 inline_vector<T, N>::inline_vector(size_type sz, const T& val)
 {
-    if (sz <= N)
-    {
-        ic.size = sz;
-        ic.capa = 0;
-    }
-    else
-    {
-        hc.size = sz;
-        hc.capa = sz;
-        hc.data = std::allocator<T>{}.allocate(sz);
-    }
-    T* dst = data();
-    for (size_type i=0; i<ic.size; ++i)
-    {
-        new (dst+i) T(val);
-    }
+	if (sz <= N)
+	{
+		ic.size = sz;
+		ic.capa = 0;
+	}
+	else
+	{
+		hc.size = sz;
+		hc.capa = sz;
+		hc.data = std::allocator<T>{}.allocate(sz);
+	}
+	T* dst = data();
+	for (size_type i=0; i<ic.size; ++i)
+	{
+		new (dst+i) T(val);
+	}
 }
 
 template<typename T, std::size_t N>
@@ -212,6 +226,12 @@ template<typename It>
 inline_vector<T, N>::inline_vector(It b, It e)
 	: inline_vector()
 {
+	typedef typename std::iterator_traits<It>::iterator_category category;
+	constexpr bool RAI = std::is_same<category, std::random_access_iterator_tag>::value;
+	if constexpr(RAI)
+	{
+		reserve(e-b);
+	}
 	while (b!=e)
 		push_back(*b++);
 }
@@ -225,15 +245,20 @@ inline_vector<T, N>::inline_vector(std::initializer_list<T> il)
 template<typename T, std::size_t N>
 void inline_vector<T, N>::make_heap()
 {
-	if (ic.capa!=0) return;
+	if (ic.capa) return;
 	auto sz = ic.size;
 	auto cp = sz+1;
 	T* ptr = std::allocator<T>{}.allocate(cp);
 	T* src = data();
-	for (size_type i=0; i<sz; ++i)
+	if constexpr(triv)
 	{
-		new (ptr+i) T(std::move(src[i]));
-		src[i].~T();
+		std::memcpy(ptr, src, sizeof(T)*sz);
+	} else {
+		for (size_type i=0; i<sz; ++i)
+		{
+			new (ptr+i) T(std::move(src[i]));
+			src[i].~T();
+		}
 	}
 	hc.size = sz;
 	hc.capa = cp;
@@ -242,7 +267,7 @@ void inline_vector<T, N>::make_heap()
 
 // misc
 template<typename T, std::size_t N>
-void inline_vector<T, N>::swap(inline_vector& other) noexcept(cne)
+void inline_vector<T, N>::swap(inline_vector& other)
 {
 	make_heap();
 	other.make_heap();
@@ -262,10 +287,10 @@ void inline_vector<T, N>::clear()
 	}
 	if (ic.capa)
 		std::allocator<T>{}.deallocate(hc.data, hc.capa);
-		
+	
 	hc.size = 0;
-    hc.capa = 0;
-    hc.data = nullptr;
+	hc.capa = 0;
+	hc.data = nullptr;
 }
 
 template<typename T, std::size_t N>
@@ -279,28 +304,28 @@ template<typename T, std::size_t N>
 auto inline_vector<T, N>::operator=(const inline_vector& other) -> inline_vector&
 {
 	clear();
-    if (other.ic.size <= N)
-    {
-        ic.size = other.ic.size;
-        ic.capa = 0;
-    }
-    else
-    {
-        hc.size = other.ic.size;
-        hc.capa = ic.size;
-        hc.data = std::allocator<T>{}.allocate(ic.size);
-    }
-    const T* src = other.data();
-    T* dst = data();
-    for (size_type i=0; i<ic.size; ++i)
-    {
-        new (dst+i) T(src[i]);
-    }
+	if (other.ic.size <= N)
+	{
+		ic.size = other.ic.size;
+		ic.capa = 0;
+	}
+	else
+	{
+		hc.size = other.ic.size;
+		hc.capa = ic.size;
+		hc.data = std::allocator<T>{}.allocate(ic.size);
+	}
+	const T* src = other.data();
+	T* dst = data();
+	for (size_type i=0; i<ic.size; ++i)
+	{
+		new (dst+i) T(src[i]);
+	}
 	return *this;
 }
 
 template<typename T, std::size_t N>
-auto inline_vector<T, N>::operator=(inline_vector&& other) noexcept -> inline_vector&
+auto inline_vector<T, N>::operator=(inline_vector&& other) -> inline_vector&
 {
 	swap(other);
 	return *this;
@@ -310,22 +335,22 @@ template<typename T, std::size_t N>
 void inline_vector<T, N>::assign(size_type sz, const T& val)
 {
 	clear();
-    if (sz <= N)
-    {
-        ic.size = sz;
-        ic.capa = 0;
-    }
-    else
-    {
-        hc.size = sz;
-        hc.capa = sz;
-        hc.data = std::allocator<T>{}.allocate(ic.size);
-    }
-    T* dst = data();
-    for (size_type i=0; i<sz; ++i)
-    {
-        new (dst+i) T(val);
-    }
+	if (sz <= N)
+	{
+		ic.size = sz;
+		ic.capa = 0;
+	}
+	else
+	{
+		hc.size = sz;
+		hc.capa = sz;
+		hc.data = std::allocator<T>{}.allocate(ic.size);
+	}
+	T* dst = data();
+	for (size_type i=0; i<sz; ++i)
+	{
+		new (dst+i) T(val);
+	}
 }
 
 template<typename T, std::size_t N>
@@ -333,8 +358,15 @@ template<typename It>
 void inline_vector<T, N>::assign(It b, It e)
 {
 	clear();
-	typename std::iterator_traits<It>::iterator_category cat;
-	interal_assign(cat, b, e);
+
+	typedef typename std::iterator_traits<It>::iterator_category category;
+	constexpr bool RAI = std::is_same<category, std::random_access_iterator_tag>::value;
+	if constexpr(RAI)
+	{
+		reserve(e-b);
+	}
+	while (b!=e)
+		push_back(*b++);
 }
 
 template<typename T, std::size_t N>
@@ -359,11 +391,18 @@ void inline_vector<T, N>::reserve(size_type sz)
 	T* ptr = std::allocator<T>{}.allocate(sz);
 	T* src = data();
 	auto n = size();
-    for (size_type i=0; i<n; ++i)
-    {
-        new (ptr+i) T(std::move(src[i]));
-		src[i].~T();
-    }
+	if constexpr(triv)
+	{
+		std::memcpy(ptr, src, n*sizeof(T));
+	}
+	else
+	{
+		for (size_type i=0; i<n; ++i)
+		{
+			new (ptr+i) T(std::move(src[i]));
+			src[i].~T();
+		}
+	}
 	hc.size = n;
 	hc.capa = sz;
 	hc.data = ptr;
@@ -379,6 +418,7 @@ void inline_vector<T, N>::resize(size_type sz, const T& val)
 	}
 	else if (sz > n)
 	{
+		reserve(sz);
 		while (sz > n++) push_back(val);
 	}
 }
@@ -400,6 +440,49 @@ auto inline_vector<T, N>::capacity() const -> size_type
 	{
 		return hc.capa;
 	}
+}
+
+template<typename T, std::size_t N>
+bool inline_vector<T, N>::empty() const
+{
+	return size() == 0;
+}
+
+template<typename T, std::size_t N>
+constexpr auto inline_vector<T, N>::max_size() noexcept -> size_type 
+{
+	return std::allocator<T>::max_size();
+}
+
+template<typename T, std::size_t N>
+void inline_vector<T, N>::shrink_to_fit()
+{
+	if (ic.capa == 0) return;
+	auto sz = hc.size;
+	if (hc.capa == sz) return;
+
+	T* src = data();
+	T* dst;
+	if (hc.size <= N)
+	{
+		ic.capa = 0;
+		dst = ic.data;
+	} else {
+		ic.capa = sz;
+		dst = hc.data = std::allocator<T>{}.allocate(sz);
+	}
+
+	if constexpr(triv)
+	{
+		memcpy(dst, src, sizeof(T)*sz);
+	} else {
+		for (auto i = 0ul; i<sz; ++i)
+		{
+			new (dst+i) T(std::move(src[i]));
+			src[i].~T();
+		}
+	}
+	std::allocator<T>{}.deallocate(src, sz);
 }
 
 template<typename T, std::size_t N>
@@ -559,6 +642,26 @@ auto inline_vector<T, N>::erase(iterator b, iterator e) -> iterator
 	return b;
 }
 
+#ifndef SUPRESS_MAIN
+#include <iostream>
+
+//template class inline_vector<int, 10>;
+
+/*
+int main()
+{
+	inline_vector<int,12> vi = {11,22,33};
+	vi.push_back(3); vi.push_back(5); vi.push_back(7);
+	vi.push_back(2); vi.push_back(4); vi.push_back(6);
+	vi.insert(vi.begin()+3, 11); vi.push_back(0);
+	vi.shrink_to_fit();
+	for (auto&& i : vi)
+		std::cout << i << " ";
+	std::cout << "\n" << vi.capacity() << "\n";
+}
+*/
+
+#endif
 
 
 

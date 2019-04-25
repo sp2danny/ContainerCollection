@@ -23,6 +23,8 @@ namespace
 	constexpr bool isRanIt = std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
 }
 
+using namespace std::literals;
+
 template<typename T, typename A = std::allocator<T>>
 class avl_vector
 {
@@ -144,8 +146,8 @@ class avl_vector
 	NodeP _AVL_nth(std::size_t idx)
 	{
 		if (idx==size()) return _AVL_last_node();
-		assert( idx < size() );
-		
+		assert(idx < size());
+
 		static NodeP (*fndi)(Core& c, NodeP, std::size_t) = [](Core& c, NodeP p, std::size_t idx) -> NodeP
 		{
 			assert (p != c.nil);
@@ -157,7 +159,7 @@ class avl_vector
 			idx -= (lw+1);
 			return fndi(c, p->right, idx);
 		};
-		
+
 		return fndi(core, core.root->left, (int)idx);
 	}
 	const Node* _AVL_nth(std::size_t idx) const
@@ -300,7 +302,7 @@ class avl_vector
 	void _AVL_destruct_node(NodeP p)
 	{
 		p->~Node();
-		allocator_type{}.deallocate(p, 1);		
+		allocator_type{}.deallocate(p, 1);
 	}
 
 	/// Removes a given node from the tree.
@@ -704,24 +706,44 @@ class avl_vector
 		out << p->str;
 	}
 
-	void _AVL_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left) const
+	void _AVL_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left, bool utf8=false) const
 	{
 		if (n == core.nil)
 			return;
 
-		Trunk this_disp = { prev, "     " };
+		Trunk this_disp = { prev, "    " };
+
 		std::string prev_str = this_disp.str;
-		_AVL_print_tree(out, pp, n->right, &this_disp, true);
+		_AVL_print_tree(out, pp, n->right, &this_disp, true, utf8);
+
+		static auto HL = "\xe2\x94\x80"s;
+		static auto VL = "\xe2\x94\x82"s;
+		static auto UL = "\xe2\x95\xad"s;
+		static auto LL = "\xe2\x95\xb0"s;
 
 		if (!prev) {
-			this_disp.str = "---";
+			if (utf8)
+				this_disp.str = HL+HL+HL+HL;
+			else
+				this_disp.str = "----";
 		}
 		else if (is_left) {
-			this_disp.str = ".--";
-			prev_str = "    |";
+			if (utf8)
+				this_disp.str = UL+HL+HL+HL;
+			else
+				this_disp.str = ".---";
+			//prev->str.pop_back();
+			prev_str = "   ";
+			if (utf8)
+				prev_str += VL;
+			else
+				prev_str += "|";
 		}
 		else {
-			this_disp.str = "`--";
+			if (utf8)
+				this_disp.str = LL+HL+HL+HL;
+			else
+				this_disp.str = "`---";
 			prev->str = prev_str;
 		}
 
@@ -736,9 +758,14 @@ class avl_vector
 		if (prev) {
 			prev->str = prev_str;
 		}
-		this_disp.str = "    |";
 
-		_AVL_print_tree(out, pp, n->left, &this_disp, false);
+		this_disp.str = "   ";
+		if (utf8)
+			this_disp.str += VL;
+		else
+			this_disp.str += "|";
+
+		_AVL_print_tree(out, pp, n->left, &this_disp, false, utf8);
 		if (!prev) {
 			out << ("");
 		}
@@ -1006,9 +1033,9 @@ friend
 		return _AVL_integrity(core.root->left);
 	}
 
-	void print_tree(std::ostream& out, bool printpointer = false) const
+	void print_tree(std::ostream& out, bool printpointer = false, bool utf8=false) const
 	{
-		_AVL_print_tree(out, printpointer, core.root->left, nullptr, true);
+		_AVL_print_tree(out, printpointer, core.root->left, nullptr, true, utf8);
 	}
 
 	struct iterator
