@@ -695,15 +695,23 @@ class avl_vector
 	struct Trunk {
 		Trunk *prev;
 		std::string str;
+		bool pop;
 	};
 
-	void _AVL_print_trunks(std::ostream& out, Trunk *p) const
+	std::string _AVL_print_trunks(Trunk *p) const
 	{
 		if (!p) {
-			return;
+			return "";
 		}
-		_AVL_print_trunks(out, p->prev);
-		out << p->str;
+		auto str = _AVL_print_trunks(p->prev);
+		if (p->pop)
+		{
+			assert(!str.empty());
+			assert(str.back()==' ');
+			str.pop_back();
+		}
+		str += p->str;
+		return str;
 	}
 
 	void _AVL_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left, bool utf8=false) const
@@ -711,7 +719,7 @@ class avl_vector
 		if (n == core.nil)
 			return;
 
-		Trunk this_disp = { prev, "    " };
+		Trunk this_disp = { prev, "     ", false };
 
 		std::string prev_str = this_disp.str;
 		_AVL_print_tree(out, pp, n->right, &this_disp, true, utf8);
@@ -722,48 +730,58 @@ class avl_vector
 		static auto LL = "\xe2\x95\xb0"s;
 
 		if (!prev) {
-			if (utf8)
-				this_disp.str = HL+HL+HL+HL;
-			else
-				this_disp.str = "----";
+			if (utf8) {
+				this_disp.str = HL+HL+HL;
+			} else
+				this_disp.str = "---";
 		}
 		else if (is_left) {
-			if (utf8)
+			if (utf8) {
+				this_disp.pop = true;
 				this_disp.str = UL+HL+HL+HL;
-			else
-				this_disp.str = ".---";
-			//prev->str.pop_back();
-			prev_str = "   ";
+			} else
+				this_disp.str = ".--";
+			prev_str = "    ";
 			if (utf8)
 				prev_str += VL;
 			else
 				prev_str += "|";
 		}
 		else {
-			if (utf8)
+			if (utf8) {
+				this_disp.pop = true;
 				this_disp.str = LL+HL+HL+HL;
-			else
-				this_disp.str = "`---";
+			} else
+				this_disp.str = "`--";
 			prev->str = prev_str;
+			prev->pop = false;
 		}
 
-		_AVL_print_trunks(out, &this_disp);
-		out << " " << n->item;
-		out << " [" << _AVL_indexof(n) << "] ";
-		if (pp)
-			out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
-		out << " (" << std::showpos << n->balance() << std::noshowpos
-			<< "," << n->weight << "," << n->height << ")\n";
+		out << _AVL_print_trunks(&this_disp);
+		if (utf8)
+		{
+			out << HL << "\xe2\x97\x87" << n->item << "\n";
+		} else {
+			out << " " << n->item;
+			//out << " [" << _AVL_indexof(n) << "] ";
+			//if (pp)
+			//	out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
+			//out << " (" << std::showpos << n->balance() << std::noshowpos
+			//	<< "," << n->weight << "," << n->height << ")";
+			out << "\n";
+		}
 
 		if (prev) {
 			prev->str = prev_str;
+			prev->pop = false;
 		}
 
-		this_disp.str = "   ";
-		if (utf8)
+		this_disp.str = "    ";
+		if (utf8) {
 			this_disp.str += VL;
-		else
+		} else
 			this_disp.str += "|";
+		this_disp.pop = false;
 
 		_AVL_print_tree(out, pp, n->left, &this_disp, false, utf8);
 		if (!prev) {
