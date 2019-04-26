@@ -71,7 +71,7 @@ extern void fitting(const DataVec&, std::string);
 void testsuit()
 {
 	avl_vector<int> avi;
-	for (int i=1; i<=32; ++i) avi.push_back(i);
+	for (int i=1; i<=22; ++i) avi.push_back(i);
 	avi.print_tree(std::cout, false, true);
 
 	//AsynKB::Start();

@@ -142,7 +142,7 @@ class avl_vector
 	{
 		return _AVL_insert_node(at, _AVL_node_new(std::forward<Args>(args)...));
 	}
-	
+
 	NodeP _AVL_nth(std::size_t idx)
 	{
 		if (idx==size()) return _AVL_last_node();
@@ -298,7 +298,7 @@ class avl_vector
 		}
 		return node;
 	}
-	
+
 	void _AVL_destruct_node(NodeP p)
 	{
 		p->~Node();
@@ -719,7 +719,7 @@ class avl_vector
 		if (n == core.nil)
 			return;
 
-		Trunk this_disp = { prev, "     ", false };
+		Trunk this_disp = { prev, "    ", false };
 
 		std::string prev_str = this_disp.str;
 		_AVL_print_tree(out, pp, n->right, &this_disp, true, utf8);
@@ -728,20 +728,21 @@ class avl_vector
 		static auto VL = "\xe2\x94\x82"s;
 		static auto UL = "\xe2\x95\xad"s;
 		static auto LL = "\xe2\x95\xb0"s;
+		static auto SQ = "\xe2\x97\x87"s;
 
 		if (!prev) {
 			if (utf8) {
-				this_disp.str = HL+HL+HL;
+				this_disp.str = HL+HL;
 			} else
-				this_disp.str = "---";
+				this_disp.str = "--";
 		}
 		else if (is_left) {
 			if (utf8) {
 				this_disp.pop = true;
-				this_disp.str = UL+HL+HL+HL;
+				this_disp.str = UL+HL+HL;
 			} else
-				this_disp.str = ".--";
-			prev_str = "    ";
+				this_disp.str = ".-";
+			prev_str = "   ";
 			if (utf8)
 				prev_str += VL;
 			else
@@ -750,9 +751,9 @@ class avl_vector
 		else {
 			if (utf8) {
 				this_disp.pop = true;
-				this_disp.str = LL+HL+HL+HL;
+				this_disp.str = LL+HL+HL;
 			} else
-				this_disp.str = "`--";
+				this_disp.str = "`-";
 			prev->str = prev_str;
 			prev->pop = false;
 		}
@@ -760,14 +761,11 @@ class avl_vector
 		out << _AVL_print_trunks(&this_disp);
 		if (utf8)
 		{
-			out << HL << "\xe2\x97\x87" << n->item << "\n";
+			out << HL << SQ << n->item << "\n";
 		} else {
 			out << " " << n->item;
-			//out << " [" << _AVL_indexof(n) << "] ";
-			//if (pp)
-			//	out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
-			//out << " (" << std::showpos << n->balance() << std::noshowpos
-			//	<< "," << n->weight << "," << n->height << ")";
+			if (pp)
+				out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
 			out << "\n";
 		}
 
@@ -776,7 +774,7 @@ class avl_vector
 			prev->pop = false;
 		}
 
-		this_disp.str = "    ";
+		this_disp.str = "   ";
 		if (utf8) {
 			this_disp.str += VL;
 		} else
@@ -784,9 +782,6 @@ class avl_vector
 		this_disp.pop = false;
 
 		_AVL_print_tree(out, pp, n->left, &this_disp, false, utf8);
-		if (!prev) {
-			out << ("");
-		}
 	}
 
 	typedef std::vector<NodeP> VNP;
@@ -1014,8 +1009,8 @@ friend
 
 	void clear()
 	{
-		static void (*rec_clr)(avl_vector&, NodeP)
-		 = [](avl_vector& me, NodeP node)
+		static void (*rec_clr)(avl_vector&, NodeP);
+		rec_clr = [](avl_vector& me, NodeP node)
 		{
 			if (node==me.core.nil) return;
 			rec_clr(me, node->left);
@@ -1159,7 +1154,7 @@ friend
 		avl_vector* avl = nullptr;
 		Node* node = nullptr;
 	};
-	
+
 	struct const_reverse_iterator
 	{
 		typedef std::bidirectional_iterator_tag iterator_category;
@@ -1205,7 +1200,7 @@ friend
 
 	reverse_iterator rbegin() { return {this, _AVL_last_payload_node()}; }
 	reverse_iterator rend() { return {this, _AVL_last_node()}; }
-	
+
 	const_reverse_iterator rbegin() const { return {me, me->_AVL_last_payload_node()}; }
 	const_reverse_iterator rend() const { return {me, me->_AVL_last_node()}; }
 	const_reverse_iterator crbegin() const { return rbegin(); }
@@ -1541,42 +1536,24 @@ friend
 	}
 };
 
-template<typename T, typename A>
-bool operator < (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	return lhs.compare(rhs) < 0;
-}
+template<typename T, typename A> bool operator < (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                     { return lhs.compare(rhs) < 0; }
 
-template<typename T, typename A>
-bool operator <= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	return lhs.compare(rhs) <= 0;
-}
+template<typename T, typename A> bool operator <= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                     { return lhs.compare(rhs) <= 0; }
 
-template<typename T, typename A>
-bool operator == (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	if (lhs.size() != rhs.size()) return false;
-	return lhs.compare(rhs) == 0;
-}
+template<typename T, typename A> bool operator > (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                     { return lhs.compare(rhs) > 0; }
 
-template<typename T, typename A>
-bool operator > (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	return lhs.compare(rhs) > 0;
-}
+template<typename T, typename A> bool operator >= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                     { return lhs.compare(rhs) >= 0; }
 
-template<typename T, typename A>
-bool operator >= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	return lhs.compare(rhs) >= 0;
-}
+template<typename T, typename A> bool operator == (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                     { if (lhs.size() != rhs.size()) return false;
+                       return lhs.compare(rhs) == 0; }
 
-template<typename T, typename A>
-bool operator != (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-{
-	if (lhs.size() != rhs.size()) return true;
-	return lhs.compare(rhs) != 0;
-}
+template<typename T, typename A> bool operator != (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+                       { if (lhs.size() != rhs.size()) return true;
+                       return lhs.compare(rhs) != 0; }
 
 template class avl_vector<int>;
