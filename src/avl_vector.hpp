@@ -17,7 +17,10 @@
 #include <stdexcept>
 #include <vector>
 
-namespace
+namespace avl
+{
+
+namespace detail
 {
 	template<typename It>
 	constexpr bool isRanIt = std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
@@ -26,7 +29,7 @@ namespace
 using namespace std::literals;
 
 template<typename T, typename A = std::allocator<T>>
-class avl_vector
+class vector
 {
 	struct Node;
 	typedef Node* NodeP;
@@ -83,13 +86,13 @@ class avl_vector
 
 	Core core;
 
-	std::size_t _AVL_indexof(const Node* p) const
+	std::size_t internal_indexof(const Node* p) const
 	{
 		std::size_t idx = 0;
 		idx += p->left->weight;
 		while (p != core.root)
 		{
-			if (_AVL_is_right(p))
+			if (internal_is_right(p))
 			{
 				idx += p->parent->left->weight + 1;
 			}
@@ -98,54 +101,54 @@ class avl_vector
 		return idx;
 	}
 
-	static void _AVL_link_r(NodeP par, NodeP r)
+	static void internal_link_r(NodeP par, NodeP r)
 	{
 		par->right = r;
 		r->parent = par;
 	}
 
-	static void _AVL_link_l(NodeP par, NodeP l)
+	static void internal_link_l(NodeP par, NodeP l)
 	{
 		par->left = l;
 		l->parent = par;
 	}
 
-	static bool _AVL_is_left(const Node* n)
+	static bool internal_is_left(const Node* n)
 	{
 		return n->parent->left == n;
 	}
 
-	static bool _AVL_is_right(const Node* n)
+	static bool internal_is_right(const Node* n)
 	{
 		return n->parent->right == n;
 	}
 
 	/// Insert existing node in the tree, before at
-	NodeP _AVL_insert_node(NodeP at, NodeP newn)
+	NodeP internal_insert_node(NodeP at, NodeP newn)
 	{
 		if (at->left == core.nil)
 		{
-			_AVL_link_l(at, newn);
-			_AVL_balance(at);
+			internal_link_l(at, newn);
+			internal_balance(at);
 			return newn;
 		}
 		at = at->left;
 		while (at->right != core.nil)
 			at = at->right;
-		_AVL_link_r(at, newn);
-		_AVL_balance(at);
+		internal_link_r(at, newn);
+		internal_balance(at);
 		return newn;
 	}
 	/// Insert new data in the tree, before at
 	template<typename... Args>
-	NodeP _AVL_insert(NodeP at, Args&&... args)
+	NodeP internal_insert(NodeP at, Args&&... args)
 	{
-		return _AVL_insert_node(at, _AVL_node_new(std::forward<Args>(args)...));
+		return internal_insert_node(at, internal_node_new(std::forward<Args>(args)...));
 	}
 
-	NodeP _AVL_nth(std::size_t idx)
+	NodeP internal_nth(std::size_t idx)
 	{
-		if (idx==size()) return _AVL_last_node();
+		if (idx==size()) return internal_last_node();
 		assert(idx < size());
 
 		static NodeP (*fndi)(Core& c, NodeP, std::size_t) = [](Core& c, NodeP p, std::size_t idx) -> NodeP
@@ -162,20 +165,20 @@ class avl_vector
 
 		return fndi(core, core.root->left, (int)idx);
 	}
-	const Node* _AVL_nth(std::size_t idx) const
+	const Node* internal_nth(std::size_t idx) const
 	{
-		return ((avl_vector*)this)->_AVL_nth(idx);
+		return const_cast<vector*>(this)->internal_nth(idx);
 	}
 
 	/// Insert data in its sorted position
 	/// Only works if container is sorted (binary search)
-	NodeP _AVL_insert_sorted(const T& data)
+	NodeP internal_insert_sorted(const T& data)
 	{
 		NodeP node = core.root;
 		if (node->left == core.nil)
 		{
-			_AVL_link_l(node, _AVL_node_new(data));
-			_AVL_balance(node);
+			internal_link_l(node, internal_node_new(data));
+			internal_balance(node);
 			return node;
 		}
 		node = node->left;
@@ -185,16 +188,16 @@ class avl_vector
 			{
 				if (node->left == core.nil)
 				{
-					_AVL_link_l(node, _AVL_node_new(data));
-					_AVL_balance(node);
+					internal_link_l(node, internal_node_new(data));
+					internal_balance(node);
 					return node;
 				}
 				node = node->left;
 			} else {
 				if (node->right == core.nil)
 				{
-					_AVL_link_r(node, _AVL_node_new(data));
-					_AVL_balance(node);
+					internal_link_r(node, internal_node_new(data));
+					internal_balance(node);
 					return node;
 				}
 				node = node->right;
@@ -202,17 +205,17 @@ class avl_vector
 		}
 	}
 
-	void _AVL_full_node_swap(NodeP n1, NodeP n2)
+	void internal_full_node_swap(NodeP n1, NodeP n2)
 	{
 		NodeP  new_n1p = n2->parent;
 		NodeP  new_n1l = n2->left;
 		NodeP  new_n1r = n2->right;
-		NodeP*  n1_lnk = _AVL_is_left(n2) ? &new_n1p->left : &new_n1p->right;
+		NodeP*  n1_lnk = internal_is_left(n2) ? &new_n1p->left : &new_n1p->right;
 
 		NodeP  new_n2p = n1->parent;
 		NodeP  new_n2l = n1->left;
 		NodeP  new_n2r = n1->right;
-		NodeP*  n2_lnk = _AVL_is_left(n1) ? &new_n2p->left : &new_n2p->right;
+		NodeP*  n2_lnk = internal_is_left(n1) ? &new_n2p->left : &new_n2p->right;
 
 		if (n2->parent == n1)
 		{
@@ -254,67 +257,67 @@ class avl_vector
 		#undef SWP
 	}
 
-	auto _AVL_relink(NodeP n1, NodeP n2)
+	auto internal_relink(NodeP n1, NodeP n2)
 	{
-		if (_AVL_is_left(n1))
-			_AVL_link_l(n1->parent, n2);
+		if (internal_is_left(n1))
+			internal_link_l(n1->parent, n2);
 		else
-			_AVL_link_r(n1->parent, n2);
+			internal_link_r(n1->parent, n2);
 	};
 
-	NodeP _AVL_unlink_node(NodeP node)
+	NodeP internal_unlink_node(NodeP node)
 	{
 		bool ln = node->left == core.nil;
 		bool rn = node->right == core.nil;
 
 		if (ln&&rn)
 		{
-			_AVL_relink(node, core.nil);
-			_AVL_balance(node->parent);
+			internal_relink(node, core.nil);
+			internal_balance(node->parent);
 		}
 		else if (ln)
 		{
-			_AVL_relink(node, node->right);
-			_AVL_balance(node->right);
+			internal_relink(node, node->right);
+			internal_balance(node->right);
 		}
 		else if (rn)
 		{
-			_AVL_relink(node, node->left);
-			_AVL_balance(node->left);
+			internal_relink(node, node->left);
+			internal_balance(node->left);
 		}
 		else
 		{
 			auto bal = node->balance();
 			if (bal >= 0)
 			{
-				NodeP succ = _AVL_next_node(node);
-				_AVL_full_node_swap(node, succ);
-				return _AVL_unlink_node(node);
+				NodeP succ = internal_next_node(node);
+				internal_full_node_swap(node, succ);
+				return internal_unlink_node(node);
 			} else {
-				NodeP pred = _AVL_prev_node(node);
-				_AVL_full_node_swap(node, pred);
-				return _AVL_unlink_node(node);
+				NodeP pred = internal_prev_node(node);
+				internal_full_node_swap(node, pred);
+				return internal_unlink_node(node);
 			}
 		}
 		return node;
 	}
 
-	void _AVL_destruct_node(NodeP p)
+	void internal_destruct_node(NodeP p)
 	{
 		p->~Node();
 		allocator_type{}.deallocate(p, 1);
 	}
 
 	/// Removes a given node from the tree.
-	void _AVL_delete_node(NodeP node)
+	void internal_delete_node(NodeP node)
 	{
-		NodeP p = _AVL_unlink_node(node);
-		_AVL_destruct_node(p);
+		NodeP p = internal_unlink_node(node);
+		internal_destruct_node(p);
 	}
 
 	/// Searches the tree for a node containing the given data.
 	/// Only works if container is sorted (binary search)
-	NodeP _AVL_search_node(const T& what)
+	NodeP internal_search_node(const T& what)
 	{
 		NodeP node = core.root->left;
 
@@ -332,13 +335,13 @@ class avl_vector
 	}
 
 	/// Searches the tree for earliest node larger than data (upper bound)
-	NodeP _AVL_sorted_insert_position(const T& data)
+	NodeP internal_sorted_insert_position(const T& data)
 	{
 		NodeP node = core.root->left;
 		NodeP lwl = core.root;
 
 		if (node == core.nil)
-			return lwl;
+			return core.root;
 
 		while (true)
 		{
@@ -357,7 +360,7 @@ class avl_vector
 	}
 
 	/// Searches the tree for first node equal to, or first node larger than data
-	NodeP _AVL_lower_bound(const T& data)
+	NodeP internal_lower_bound(const T& data)
 	{
 		NodeP node = core.root->left;
 		NodeP lwl = core.root;
@@ -390,45 +393,66 @@ class avl_vector
 
 	/*
 	/// Searches the tree for all nodes equal to data, return range
-	std::pair<NodeP,NodeP> _AVL_equal_range(const T& data)
+	std::pair<NodeP,NodeP> internal_equal_range(const T& data)
 	{
 		NodeP node = core.root->left;
-		NodeP lwl = core.root;
-		NodeP feq = nullptr;
+		NodeP last_lower = nullptr;
+		NodeP first_bigger = nullptr;
 
 		if (node == core.nil)
 			return {core.root, core.root};
 
 		while (true)
 		{
-			if (data < node->item)
+			if (node->item < data)
 			{
+				if (!last_lower)
+					last_lower = node;
+				else if (last_lower->item < node->item)
+					last_lower = node;
 				if (node->left == core.nil) break;
 				node = node->left;
-				lwl = node;
 			}
 			else if (node->item < data)
 			{
+				if (!first_bigger)
+					first_bigger = node;
+				else if (node->item < first_bigger->item)
+					first_bigger = node;
 				if (node->right == core.nil) break;
 				node = node->right;
 			}
 			else
 			{
-				feq = node;
-				while ((feq->left != core.nil) && (feq->left->item == data))
-					feq = feq->left;
-				// todo: find actual end marker
+				break;
 			}
 		}
-		if (feq)
-			return {feq, lwl};
-		else
-			return {lwl, lwl};
+		if (!last_lower)
+			last_lower = internal_first_node();
+		if (!first_bigger)
+			first_bigger = internal_last_node();
+		while (true)
+		{
+			if (last_lower->item < data)
+				last_lower = internal_next_node(last_lower);
+			else
+				break;
+		}
+		while (true)
+		{
+			auto p = internal_prev_node(first_bigger);
+			if (!(p->item < data))
+				first_bigger = p;
+			else
+				break;
+		}
+
+		return {last_lower, first_bigger};
 	}
 	*/
 
 	/// Returns the first node, or sentry.
-	NodeP _AVL_first_node()
+	NodeP internal_first_node()
 	{
 		NodeP node = core.root->left;
 
@@ -442,13 +466,13 @@ class avl_vector
 	}
 
 	/// Returns the node after the last. (end marker)
-	NodeP _AVL_last_node()
+	NodeP internal_last_node()
 	{
 		return core.root;
 	}
 
 	/// Returns the last actual node
-	NodeP _AVL_last_payload_node()
+	NodeP internal_last_payload_node()
 	{
 		if (empty()) return core.root;
 		NodeP n = core.root->left;
@@ -459,7 +483,7 @@ class avl_vector
 	}
 
 	/// Returns the predecessor of the given node.
-	NodeP _AVL_prev_node(NodeP n)
+	NodeP internal_prev_node(NodeP n)
 	{
 		if (n == core.root)
 		{
@@ -489,7 +513,7 @@ class avl_vector
 	}
 
 	/// Returns the successor of the given node.
-	NodeP _AVL_next_node(NodeP n)
+	NodeP internal_next_node(NodeP n)
 	{
 		if (n == core.root)
 		{
@@ -520,13 +544,13 @@ class avl_vector
 		return n;
 	}
 
-	void _AVL_balance(NodeP node)
+	void internal_balance(NodeP node)
 	{
 		while (node != core.root)
 		{
 			NodeP n, par = node->parent;
 
-			_AVL_updHW(node);
+			internal_updHW(node);
 
 			int balance = node->balance();
 
@@ -537,65 +561,65 @@ class avl_vector
 				par = node->left;
 				int lb = node->left->balance();
 				if (lb <= -1)
-					n = _AVL_rotate_right(node);
+					n = internal_rotate_right(node);
 				else
-					n = _AVL_rotate_left_right(node);
+					n = internal_rotate_left_right(node);
 			}
 			else if (balance >= +2)
 			{
 				par = node->right;
 				int rb = node->right->balance();
 				if (rb >= +1)
-					n = _AVL_rotate_left(node);
+					n = internal_rotate_left(node);
 				else
-					n = _AVL_rotate_right_left(node);
+					n = internal_rotate_right_left(node);
 			}
 			node = par;
 			assert(node != core.nil);
 		}
 	}
 
-	NodeP _AVL_rotate_left(NodeP node)
+	NodeP internal_rotate_left(NodeP node)
 	{
 		NodeP right = node->right;
 		NodeP rightLeft = right->left;
 
-		_AVL_relink(node, right);
-		_AVL_link_l(right, node);
-		_AVL_link_r(node, rightLeft);
+		internal_relink(node, right);
+		internal_link_l(right, node);
+		internal_link_r(node, rightLeft);
 
-		_AVL_updHW(node);
+		internal_updHW(node);
 
 		return right;
 	}
 
-	NodeP _AVL_rotate_right(NodeP node)
+	NodeP internal_rotate_right(NodeP node)
 	{
 		NodeP left = node->left;
 		NodeP leftRight = left->right;
 
-		_AVL_relink(node, left);
-		_AVL_link_r(left, node);
-		_AVL_link_l(node, leftRight);
+		internal_relink(node, left);
+		internal_link_r(left, node);
+		internal_link_l(node, leftRight);
 
-		_AVL_updHW(node);
+		internal_updHW(node);
 
 		return left;
 	}
 
-	NodeP _AVL_rotate_left_right(NodeP node)
+	NodeP internal_rotate_left_right(NodeP node)
 	{
-		_AVL_link_l(node, _AVL_rotate_left(node->left));
-		return _AVL_rotate_right(node);
+		internal_link_l(node, internal_rotate_left(node->left));
+		return internal_rotate_right(node);
 	}
 
-	NodeP _AVL_rotate_right_left(NodeP node)
+	NodeP internal_rotate_right_left(NodeP node)
 	{
-		_AVL_link_r(node, _AVL_rotate_right(node->right));
-		return _AVL_rotate_left(node);
+		internal_link_r(node, internal_rotate_right(node->right));
+		return internal_rotate_left(node);
 	}
 
-	static void _AVL_updHW(NodeP node)
+	static void internal_updHW(NodeP node)
 	{
 		node->height = std::max(node->left->height, node->right->height) + 1;
 		node->weight = node->left->weight + node->right->weight + 1;
@@ -608,22 +632,22 @@ class avl_vector
 		bool sorted;
 	};
 
-	SR _AVL_is_sub_sorted(NodeP node) const
+	SR internal_is_sub_sorted(NodeP node) const
 	{
 		assert(!node->sentry());
 		bool ln = node->left == core.nil;
 		bool rn = node->right == core.nil;
 
-		SR result{ &node->item, &node->item, true };
+		SR result{&node->item, &node->item, true};
 
-		if (ln&&rn)
+		if (ln && rn)
 		{
 			return result;
 		}
 
 		if (result.sorted && !ln)
 		{
-			SR lft = _AVL_is_sub_sorted(node->left);
+			SR lft = internal_is_sub_sorted(node->left);
 			if (!lft.sorted)
 				result.sorted = false;
 			if (node->item < *lft.max)
@@ -633,7 +657,7 @@ class avl_vector
 
 		if (result.sorted && !rn)
 		{
-			SR rgt = _AVL_is_sub_sorted(node->right);
+			SR rgt = internal_is_sub_sorted(node->right);
 			if (!rgt.sorted)
 				result.sorted = false;
 			if (*rgt.min < node->item)
@@ -645,7 +669,7 @@ class avl_vector
 	}
 
 	template<typename... Args>
-	NodeP _AVL_node_new(Args&&... args)
+	NodeP internal_node_new(Args&&... args)
 	{
 		NodeP p = allocator_type{}.allocate(1);
 		new (p) Node(payload_tag{}, std::forward<Args>(args)...);
@@ -654,7 +678,7 @@ class avl_vector
 		return p;
 	}
 
-	bool _AVL_integrity(NodeP node) const
+	bool internal_integrity(NodeP node) const
 	{
 		if (node == core.nil) return true;
 
@@ -680,13 +704,13 @@ class avl_vector
 		if (node->left != core.nil)
 		{
 			if (node->left->parent != node) return false;
-			if (!_AVL_integrity(node->left)) return false;
+			if (!internal_integrity(node->left)) return false;
 		}
 
 		if (node->right != core.nil)
 		{
 			if (node->right->parent != node) return false;
-			if (!_AVL_integrity(node->right)) return false;
+			if (!internal_integrity(node->right)) return false;
 		}
 
 		return true;
@@ -698,12 +722,12 @@ class avl_vector
 		bool pop;
 	};
 
-	std::string _AVL_print_trunks(Trunk *p) const
+	std::string internal_print_trunks(Trunk *p) const
 	{
 		if (!p) {
 			return "";
 		}
-		auto str = _AVL_print_trunks(p->prev);
+		auto str = internal_print_trunks(p->prev);
 		if (p->pop)
 		{
 			assert(!str.empty());
@@ -714,7 +738,7 @@ class avl_vector
 		return str;
 	}
 
-	void _AVL_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left, bool utf8=false) const
+	void internal_print_tree(std::ostream& out, bool pp, NodeP n, Trunk *prev, bool is_left, bool utf8=false) const
 	{
 		if (n == core.nil)
 			return;
@@ -722,7 +746,7 @@ class avl_vector
 		Trunk this_disp = { prev, "    ", false };
 
 		std::string prev_str = this_disp.str;
-		_AVL_print_tree(out, pp, n->right, &this_disp, true, utf8);
+		internal_print_tree(out, pp, n->right, &this_disp, true, utf8);
 
 		static auto HL = "\xe2\x94\x80"s;
 		static auto VL = "\xe2\x94\x82"s;
@@ -758,12 +782,14 @@ class avl_vector
 			prev->pop = false;
 		}
 
-		out << _AVL_print_trunks(&this_disp);
+		out << internal_print_trunks(&this_disp);
 		if (utf8)
 		{
-			out << HL << SQ << n->item << "\n";
+			out << HL << SQ << n->item;
 		} else {
 			out << " " << n->item;
+		}
+		{
 			if (pp)
 				out << "{0x" << std::hex << ((intptr_t)n) << std::dec << "} ";
 			out << "\n";
@@ -781,12 +807,12 @@ class avl_vector
 			this_disp.str += "|";
 		this_disp.pop = false;
 
-		_AVL_print_tree(out, pp, n->left, &this_disp, false, utf8);
+		internal_print_tree(out, pp, n->left, &this_disp, false, utf8);
 	}
 
 	typedef std::vector<NodeP> VNP;
 
-	NodeP _AVL_hang(NodeP* ap, NodeP* bp)
+	NodeP internal_hang(NodeP* ap, NodeP* bp)
 	{
 		assert(ap <= bp);
 		auto sz = bp - ap;
@@ -801,65 +827,65 @@ class avl_vector
 		}
 		auto center = sz/2;
 		NodeP* cp = ap+center;
-		_AVL_link_l(*cp, _AVL_hang(ap, cp));
-		_AVL_link_r(*cp, _AVL_hang(cp+1, bp));
-		_AVL_updHW(*cp);
-		assert(_AVL_integrity(*cp));
+		internal_link_l(*cp, internal_hang(ap, cp));
+		internal_link_r(*cp, internal_hang(cp+1, bp));
+		internal_updHW(*cp);
+		assert(internal_integrity(*cp));
 		return *cp;
 	}
-	NodeP _AVL_hang(VNP& vnp)
+	NodeP internal_hang(VNP& vnp)
 	{
 		NodeP* ptr = vnp.data();
 		std::size_t sz = vnp.size();
-		return _AVL_hang(ptr, ptr+sz);
+		return internal_hang(ptr, ptr+sz);
 	}
-	std::size_t _AVL_flatten(VNP& vnp)
+	std::size_t internal_flatten(VNP& vnp)
 	{
 		vnp.clear();
 		auto sz = core.root->left->weight;
 		vnp.reserve(sz);
-		NodeP n = _AVL_first_node();
-		NodeP e = _AVL_last_node();
+		NodeP n = internal_first_node();
+		NodeP e = internal_last_node();
 		while (n != e)
 		{
 			vnp.push_back(n);
-			n = _AVL_next_node(n);
+			n = internal_next_node(n);
 		}
 		assert(sz == vnp.size());
 		return sz;
 	}
-	std::size_t _AVL_flatten_insert(VNP& target, NodeP breakp, VNP& inserted)
+	std::size_t internal_flatten_insert(VNP& target, NodeP breakp, VNP& inserted)
 	{
 		target.clear();
 		auto sz = core.root->left->weight + inserted.size();
 		target.reserve(sz);
-		NodeP n = _AVL_first_node();
-		NodeP e = _AVL_last_node();
+		NodeP n = internal_first_node();
+		NodeP e = internal_last_node();
 		while (true)
 		{
 			if (n == breakp)
 				target.insert(target.end(), inserted.begin(), inserted.end());
 			if (n == e) break;
 			target.push_back(n);
-			n = _AVL_next_node(n);
+			n = internal_next_node(n);
 		}
 		assert(sz == target.size());
 		return sz;
 	}
 
-	void _AVL_insert_range(NodeP n, VNP& vnp)
+	void internal_insert_range(NodeP n, VNP& vnp)
 	{
 		if (size() > vnp.size())
 		{
 			for (NodeP p : vnp)
 			{
-				n = _AVL_insert_node(n, p);
-				n = _AVL_next_node(n);
+				n = internal_insert_node(n, p);
+				n = internal_next_node(n);
 			}
 		} else {
 			VNP vnp_new;
-			_AVL_flatten_insert(vnp_new, n, vnp);
-			_AVL_link_l(core.root, _AVL_hang(vnp_new));
+			internal_flatten_insert(vnp_new, n, vnp);
+			internal_link_l(core.root, internal_hang(vnp_new));
 		}
 	}
 
@@ -871,7 +897,7 @@ class avl_vector
 		else                return  0;
 	}
 
-	mutable avl_vector* me = this;
+	mutable vector* me = this;
 
 public:
 	typedef std::size_t size_type;
@@ -889,7 +915,7 @@ friend
 	struct iterator;
 
 	/// Creates a new empty tree.
-	avl_vector()
+	vector()
 	{
 		NodeP p = allocator_type{}.allocate(2);
 		core.root = new (p+0) Node{ sentry_tag{} };
@@ -898,45 +924,45 @@ friend
 		core.nil  ->setnil(core.nil);
 	}
 	template<typename It>
-	avl_vector(It b, It e)
-		: avl_vector()
+	vector(It b, It e)
+		: vector()
 	{
 		VNP vpn;
-		if constexpr(isRanIt<It>)
+		if constexpr(detail::isRanIt<It>)
 		{
 			auto sz = e-b;
 			vpn.reserve(sz);
 		}
 		while (b != e)
-			vpn.push_back(_AVL_node_new(*b++));
-		_AVL_link_l(core.root, _AVL_hang(vpn));
+			vpn.push_back(internal_node_new(*b++));
+		internal_link_l(core.root, internal_hang(vpn));
 	}
-	avl_vector(std::initializer_list<T> il)
-		: avl_vector(il.begin(), il.end())
+	vector(std::initializer_list<T> il)
+		: vector(il.begin(), il.end())
 	{}
-	avl_vector(std::size_t sz, const T& val)
-		: avl_vector()
+	vector(std::size_t sz, const T& val)
+		: vector()
 	{
 		VNP vpn;
 		vpn.reserve(sz);
 		while (sz--)
-			vpn.push_back(_AVL_node_new(val));
-		_AVL_link_l(core.root, _AVL_hang(vpn));
+			vpn.push_back(internal_node_new(val));
+		internal_link_l(core.root, internal_hang(vpn));
 	}
-	avl_vector(const avl_vector& other)
-		: avl_vector(other.begin(), other.end())
+	vector(const vector& other)
+		: vector(other.begin(), other.end())
 	{}
-	avl_vector(avl_vector&& other)
-		: avl_vector()
+	vector(vector&& other)
+		: vector()
 	{
 		swap(other);
 	}
-	avl_vector& operator=(const avl_vector& other)
+	vector& operator=(const vector& other)
 	{
 		assign(other.begin(), other.end());
 		return *this;
 	}
-	avl_vector& operator=(std::initializer_list<T> il)
+	vector& operator=(std::initializer_list<T> il)
 	{
 		assign(il.begin(), il.end());
 		return *this;
@@ -946,13 +972,13 @@ friend
 	{
 		clear();
 		VNP vpn;
-		if constexpr(isRanIt<It>)
+		if constexpr(detail::isRanIt<It>)
 		{
 			vpn.reserve(e-b);
 		}
 		while (b != e)
-			vpn.push_back(_AVL_node_new(*b++));
-		_AVL_link_l(core.root, _AVL_hang(vpn));
+			vpn.push_back(internal_node_new(*b++));
+		internal_link_l(core.root, internal_hang(vpn));
 	}
 	void assign(std::initializer_list<T> il)
 	{
@@ -962,15 +988,15 @@ friend
 	{
 		VNP vnp;
 		while (n--)
-			vnp.push_back(_AVL_node_new(val));
-		_AVL_link_l(core.root, _AVL_hang(vnp));
+			vnp.push_back(internal_node_new(val));
+		internal_link_l(core.root, internal_hang(vnp));
 	}
-	avl_vector& operator=(avl_vector&& other) noexcept
+	vector& operator=(vector&& other) noexcept
 	{
 		swap(other);
 		return *this;
 	}
-	void swap(avl_vector& other) noexcept
+	void swap(vector& other) noexcept
 	{
 		using std::swap;
 		swap(core.root, other.core.root);
@@ -985,17 +1011,17 @@ friend
 	{
 		if (sz == size()) return;
 		VNP vnp; vnp.reserve(sz);
-		_AVL_flatten(vnp);
+		internal_flatten(vnp);
 		while (sz < vnp.size())
 		{
-			_AVL_delete_node(vnp.back());
+			internal_delete_node(vnp.back());
 			vnp.pop_back();
 		}
 		while (sz > vnp.size())
 		{
-			vnp.push_back(_AVL_node_new(val));
+			vnp.push_back(internal_node_new(val));
 		}
-		_AVL_link_l(core.root, _AVL_hang(vnp));
+		internal_link_l(core.root, internal_hang(vnp));
 		assert(size() == sz);
 	}
 
@@ -1004,25 +1030,25 @@ friend
 	bool is_sorted() const
 	{
 		if (size() <= 1) return true;
-		return _AVL_is_sub_sorted(core.root->left).sorted;
+		return internal_is_sub_sorted(core.root->left).sorted;
 	}
 
 	void clear()
 	{
-		static void (*rec_clr)(avl_vector&, NodeP);
-		rec_clr = [](avl_vector& me, NodeP node)
+		static void (*rec_clr)(vector&, NodeP);
+		rec_clr = [](vector& me, NodeP node)
 		{
 			if (node==me.core.nil) return;
 			rec_clr(me, node->left);
 			rec_clr(me, node->right);
-			me._AVL_destruct_node(node);
+			me.internal_destruct_node(node);
 		};
 
 		rec_clr(*this, core.root->left);
 		core.root->left = core.nil;
 	}
 
-	~avl_vector()
+	~vector()
 	{
 		clear();
 		assert(core.root->sentry() && core.nil->sentry());
@@ -1043,12 +1069,12 @@ friend
 		if (core.root->parent != core.nil) return false;
 		if (core.root->right != core.nil) return false;
 
-		return _AVL_integrity(core.root->left);
+		return internal_integrity(core.root->left);
 	}
 
 	void print_tree(std::ostream& out, bool printpointer = false, bool utf8=false) const
 	{
-		_AVL_print_tree(out, printpointer, core.root->left, nullptr, true, utf8);
+		internal_print_tree(out, printpointer, core.root->left, nullptr, true, utf8);
 	}
 
 	struct iterator
@@ -1061,28 +1087,28 @@ friend
 		iterator() = default;
 		T& operator*() const { return node->item; }
 		T* operator->() const { return &node->item; }
-		iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
-		iterator& operator--() { node = avl->_AVL_prev_node(node); return *this; }
-		iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		iterator operator--(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
-		bool operator==(const iterator& other) const { assert(avl == other.avl); return node == other.node; }
-		bool operator!=(const iterator& other) const { assert(avl == other.avl); return node != other.node; }
-		bool operator <(const iterator& other) const { return avl->_AVL_indexof(node)  < avl->_AVL_indexof(other.node); }
-		bool operator<=(const iterator& other) const { return avl->_AVL_indexof(node) <= avl->_AVL_indexof(other.node); }
-		bool operator >(const iterator& other) const { return avl->_AVL_indexof(node)  > avl->_AVL_indexof(other.node); }
-		bool operator>=(const iterator& other) const { return avl->_AVL_indexof(node) >= avl->_AVL_indexof(other.node); }
-		std::ptrdiff_t operator-(const iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(node))-std::ptrdiff_t(avl->_AVL_indexof(other.node)); }
-		iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
-		iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		iterator& operator++() { node = avp->internal_next_node(node); return *this; }
+		iterator& operator--() { node = avp->internal_prev_node(node); return *this; }
+		iterator operator++(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
+		iterator operator--(int) { auto tmp = *this; node = avp->internal_prev_node(node); return tmp; }
+		bool operator==(const iterator& other) const { assert(avp == other.avp); return node == other.node; }
+		bool operator!=(const iterator& other) const { assert(avp == other.avp); return node != other.node; }
+		bool operator <(const iterator& other) const { return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
+		bool operator<=(const iterator& other) const { return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
+		bool operator >(const iterator& other) const { return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
+		bool operator>=(const iterator& other) const { return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
+		std::ptrdiff_t operator-(const iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(node))-std::ptrdiff_t(avp->internal_indexof(other.node)); }
+		iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
+		iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
 		iterator operator+(std::ptrdiff_t ofs) const { iterator tmp = *this; tmp += ofs; return tmp; }
 		iterator operator-(std::ptrdiff_t ofs) const { iterator tmp = *this; tmp -= ofs; return tmp; }
 	friend
-		class avl_vector;
+		class vector;
 	friend
 		struct const_iterator;
 	private:
-		iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
-		avl_vector* avl = nullptr;
+		iterator(vector* avp, Node* node) : avp(avp), node(node) {}
+		vector* avp = nullptr;
 		Node* node = nullptr;
 	};
 
@@ -1094,32 +1120,32 @@ friend
 		typedef const T& reference;
 		typedef std::ptrdiff_t difference_type;
 		const_iterator() = default;
-		const_iterator(iterator i) : avl(i.avl), node(i.node) {}
+		const_iterator(iterator i) : avp(i.avp), node(i.node) {}
 		const T& operator*() const { return node->item; }
 		const T* operator->() const { return &node->item; }
-		const_iterator& operator++() { node = avl->_AVL_next_node(node); return *this; }
-		const_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
-		const_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		const_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		bool operator==(const const_iterator& other) const { assert(avl == other.avl); return node == other.node; }
-		bool operator!=(const const_iterator& other) const { assert(avl == other.avl); return node != other.node; }
-		bool operator <(const const_iterator& other) const { return avl->_AVL_indexof(node)  < avl->_AVL_indexof(other.node); }
-		bool operator<=(const const_iterator& other) const { return avl->_AVL_indexof(node) <= avl->_AVL_indexof(other.node); }
-		bool operator >(const const_iterator& other) const { return avl->_AVL_indexof(node)  > avl->_AVL_indexof(other.node); }
-		bool operator>=(const const_iterator& other) const { return avl->_AVL_indexof(node) >= avl->_AVL_indexof(other.node); }
-		std::ptrdiff_t operator-(const const_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(node)) - std::ptrdiff_t(avl->_AVL_indexof(other.node)); }
-		const_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
-		const_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
+		const_iterator& operator++() { node = avp->internal_next_node(node); return *this; }
+		const_iterator& operator--() { node = avp->internal_next_node(node); return *this; }
+		const_iterator operator++(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
+		const_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
+		bool operator==(const const_iterator& other) const { assert(avp == other.avp); return node == other.node; }
+		bool operator!=(const const_iterator& other) const { assert(avp == other.avp); return node != other.node; }
+		bool operator <(const const_iterator& other) const { return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
+		bool operator<=(const const_iterator& other) const { return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
+		bool operator >(const const_iterator& other) const { return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
+		bool operator>=(const const_iterator& other) const { return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
+		std::ptrdiff_t operator-(const const_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(node)) - std::ptrdiff_t(avp->internal_indexof(other.node)); }
+		const_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
+		const_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
 		const_iterator operator+(std::ptrdiff_t ofs) const { const_iterator tmp = *this; tmp += ofs; return tmp; }
 		const_iterator operator-(std::ptrdiff_t ofs) const { const_iterator tmp = *this; tmp -= ofs; return tmp; }
 	friend
-		class avl_vector;
+		class vector;
 	private:
-		const_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
-		avl_vector* avl = nullptr;
+		const_iterator(vector* avp, Node* node) : avp(avp), node(node) {}
+		vector* avp = nullptr;
 		Node* node = nullptr;
 	};
-	
+
 	struct reverse_iterator
 	{
 		typedef std::bidirectional_iterator_tag iterator_category;
@@ -1130,28 +1156,28 @@ friend
 		reverse_iterator() = default;
 		T& operator*() const { return node->item; }
 		T* operator->() const { return &node->item; }
-		reverse_iterator& operator++() { node = avl->_AVL_prev_node(node); return *this; }
-		reverse_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
-		reverse_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
-		reverse_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		bool operator==(const reverse_iterator& other) const { assert(avl == other.avl); return node == other.node; }
-		bool operator!=(const reverse_iterator& other) const { assert(avl == other.avl); return node != other.node; }
-		bool operator <(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  < avl->_AVL_indexof(node); }
-		bool operator<=(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node) <= avl->_AVL_indexof(node); }
-		bool operator >(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  > avl->_AVL_indexof(node); }
-		bool operator>=(const reverse_iterator& other) const { return avl->_AVL_indexof(other.node) >= avl->_AVL_indexof(node); }
-		std::ptrdiff_t operator-(const reverse_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(other.node))-std::ptrdiff_t(avl->_AVL_indexof(node)); }
-		reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
-		reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		reverse_iterator& operator++() { node = avp->internal_prev_node(node); return *this; }
+		reverse_iterator& operator--() { node = avp->internal_next_node(node); return *this; }
+		reverse_iterator operator++(int) { auto tmp = *this; node = avp->internal_prev_node(node); return tmp; }
+		reverse_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
+		bool operator==(const reverse_iterator& other) const { assert(avp == other.avp); return node == other.node; }
+		bool operator!=(const reverse_iterator& other) const { assert(avp == other.avp); return node != other.node; }
+		bool operator <(const reverse_iterator& other) const { return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
+		bool operator<=(const reverse_iterator& other) const { return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
+		bool operator >(const reverse_iterator& other) const { return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
+		bool operator>=(const reverse_iterator& other) const { return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
+		std::ptrdiff_t operator-(const reverse_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(other.node))-std::ptrdiff_t(avp->internal_indexof(node)); }
+		reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
+		reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
 		reverse_iterator operator+(std::ptrdiff_t ofs) const { reverse_iterator tmp = *this; tmp -= ofs; return tmp; }
 		reverse_iterator operator-(std::ptrdiff_t ofs) const { reverse_iterator tmp = *this; tmp += ofs; return tmp; }
 	friend
-		class avl_vector;
+		class vector;
 	friend
 		struct const_iterator;
 	private:
-		reverse_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
-		avl_vector* avl = nullptr;
+		reverse_iterator(vector* avp, Node* node) : avp(avp), node(node) {}
+		vector* avp = nullptr;
 		Node* node = nullptr;
 	};
 
@@ -1165,52 +1191,53 @@ friend
 		const_reverse_iterator() = default;
 		const T& operator*() const { return node->item; }
 		const T* operator->() const { return &node->item; }
-		const_reverse_iterator& operator++() { node = avl->_AVL_prev_node(node); return *this; }
-		const_reverse_iterator& operator--() { node = avl->_AVL_next_node(node); return *this; }
-		const_reverse_iterator operator++(int) { auto tmp = *this; node = avl->_AVL_prev_node(node); return tmp; }
-		const_reverse_iterator operator--(int) { auto tmp = *this; node = avl->_AVL_next_node(node); return tmp; }
-		bool operator==(const const_reverse_iterator& other) const { assert(avl == other.avl); return node == other.node; }
-		bool operator!=(const const_reverse_iterator& other) const { assert(avl == other.avl); return node != other.node; }
-		bool operator <(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  < avl->_AVL_indexof(node); }
-		bool operator<=(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node) <= avl->_AVL_indexof(node); }
-		bool operator >(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node)  > avl->_AVL_indexof(node); }
-		bool operator>=(const const_reverse_iterator& other) const { return avl->_AVL_indexof(other.node) >= avl->_AVL_indexof(node); }
-		std::ptrdiff_t operator-(const const_reverse_iterator& other) const { return std::ptrdiff_t(avl->_AVL_indexof(other.node))-std::ptrdiff_t(avl->_AVL_indexof(node)); }
-		const_reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) - ofs); return *this; }
-		const_reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avl->_AVL_nth(avl->_AVL_indexof(node) + ofs); return *this; }
+		const_reverse_iterator& operator++() { node = avp->internal_prev_node(node); return *this; }
+		const_reverse_iterator& operator--() { node = avp->internal_next_node(node); return *this; }
+		const_reverse_iterator operator++(int) { auto tmp = *this; node = avp->internal_prev_node(node); return tmp; }
+		const_reverse_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
+		bool operator==(const const_reverse_iterator& other) const { assert(avp == other.avp); return node == other.node; }
+		bool operator!=(const const_reverse_iterator& other) const { assert(avp == other.avp); return node != other.node; }
+		bool operator <(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
+		bool operator<=(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
+		bool operator >(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
+		bool operator>=(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
+		std::ptrdiff_t operator-(const const_reverse_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(other.node))-std::ptrdiff_t(avp->internal_indexof(node)); }
+		const_reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
+		const_reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
 		const_reverse_iterator operator+(std::ptrdiff_t ofs) const { const_reverse_iterator tmp = *this; tmp -= ofs; return tmp; }
 		const_reverse_iterator operator-(std::ptrdiff_t ofs) const { const_reverse_iterator tmp = *this; tmp += ofs; return tmp; }
 	friend
-		class avl_vector;
+		class vector;
 	friend
 		struct const_iterator;
 	private:
-		const_reverse_iterator(avl_vector* avl, Node* node) : avl(avl), node(node) {}
-		avl_vector* avl = nullptr;
+		const_reverse_iterator(vector* avp, Node* node) : avp(avp), node(node) {}
+		vector* avp = nullptr;
 		Node* node = nullptr;
 	};
 
-	iterator begin() { return {this, _AVL_first_node()}; }
-	iterator end()   { return {this, _AVL_last_node()}; }
+	iterator begin() { return {this, internal_first_node()}; }
+	iterator end()   { return {this, internal_last_node()}; }
 
-	iterator begin()  const { return {me, me->_AVL_first_node()}; }
-	iterator end()    const { return {me, me->_AVL_last_node()}; }
-	iterator cbegin() const { return begin(); }
-	iterator cend()   const { return end(); }
+	const_iterator begin()  const { return {me, me->internal_first_node()}; }
+	const_iterator end()    const { return {me, me->internal_last_node()}; }
+	const_iterator cbegin() const { return begin(); }
+	const_iterator cend()   const { return end(); }
 
-	reverse_iterator rbegin() { return {this, _AVL_last_payload_node()}; }
-	reverse_iterator rend() { return {this, _AVL_last_node()}; }
+	reverse_iterator rbegin() { return {this, internal_last_payload_node()}; }
+	reverse_iterator rend()   { return {this, internal_last_node()}; }
 
-	const_reverse_iterator rbegin() const { return {me, me->_AVL_last_payload_node()}; }
-	const_reverse_iterator rend() const { return {me, me->_AVL_last_node()}; }
+	const_reverse_iterator rbegin()  const { return {me, me->internal_last_payload_node()}; }
+	const_reverse_iterator rend()    const { return {me, me->internal_last_node()}; }
 	const_reverse_iterator crbegin() const { return rbegin(); }
-	const_reverse_iterator crend() const { return rend(); }
+	const_reverse_iterator crend()   const { return rend(); }
 
-	iterator nth(std::size_t idx) { return {this, _AVL_nth(idx)}; }
+	iterator nth(std::size_t idx) { return {this, internal_nth(idx)}; }
+	const_iterator nth(std::size_t idx) const { return {me, me->internal_nth(idx)}; }
 
 	iterator insert(iterator itr, const T& item)
 	{
-		auto p = _AVL_insert(itr.node, item);
+		auto p = internal_insert(itr.node, item);
 		return {this, p};
 	}
 	template<typename It>
@@ -1224,21 +1251,21 @@ friend
 		}
 		while (b != e)
 		{
-			vnp.push_back( _AVL_node_new(*b) );
+			vnp.push_back( internal_node_new(*b) );
 			++b;
 		}
-		_AVL_insert_range(itr.node, vnp);
+		internal_insert_range(itr.node, vnp);
 	}
 	template<typename... Args>
 	iterator emplace(iterator itr, Args&&... args)
 	{
-		auto p = _AVL_insert(itr.node, std::forward<Args>(args)...);
+		auto p = internal_insert(itr.node, std::forward<Args>(args)...);
 		return {this, p};
 	}
 	iterator erase(iterator itr)
 	{
-		auto p = _AVL_next_node(itr.node);
-		_AVL_delete_node(itr.node);
+		auto p = internal_next_node(itr.node);
+		internal_delete_node(itr.node);
 		return {this, p};
 	}
 	iterator erase(iterator b, iterator e)
@@ -1250,86 +1277,86 @@ friend
 		return b;
 	}
 
-	T& operator[](std::size_t idx) { return _AVL_nth(idx)->item; }
-	const T& operator[](std::size_t idx) const { return _AVL_nth(idx)->item; }
+	T& operator[](std::size_t idx) { return internal_nth(idx)->item; }
+	const T& operator[](std::size_t idx) const { return internal_nth(idx)->item; }
 
 	T& at(std::size_t idx)
 	{
 		if (idx >= size())
 			throw std::out_of_range("index out of range");
-		return _AVL_nth(idx)->item;
+		return internal_nth(idx)->item;
 	}
 	const T& at(std::size_t idx) const
 	{
 		if (idx >= size())
 			throw std::out_of_range("index out of range");
-		return _AVL_nth(idx)->item;
+		return internal_nth(idx)->item;
 	}
 
-	T& front() { return _AVL_first_node()->item; }
-	T& back() { return _AVL_last_payload_node()->item; }
-	const T& front() const { return me->_AVL_first_node()->item; }
-	const T& back() const { return me->_AVL_last_payload_node()->item; }
+	T& front() { return internal_first_node()->item; }
+	T& back() { return internal_last_payload_node()->item; }
+	const T& front() const { return me->internal_first_node()->item; }
+	const T& back() const { return me->internal_last_payload_node()->item; }
 
 	T& push_back(const T& item)
 	{
-		auto p = _AVL_insert(_AVL_last_node(), item);
+		auto p = internal_insert(internal_last_node(), item);
 		return p->item;
 	}
 	T& push_back(T&& item)
 	{
-		auto p = _AVL_insert(_AVL_last_node(), std::move(item));
+		auto p = internal_insert(internal_last_node(), std::move(item));
 		return p->item;
 	}
 	T& push_front(const T& item)
 	{
-		auto p = _AVL_insert(_AVL_first_node(), item);
+		auto p = internal_insert(internal_first_node(), item);
 		return p->item;
 	}
 	T& push_front(T&& item)
 	{
-		auto p = _AVL_insert(_AVL_first_node(), std::move(item));
+		auto p = internal_insert(internal_first_node(), std::move(item));
 		return p->item;
 	}
 	template<typename... Args>
 	T& emplace_back(Args&&... args)
 	{
-		auto p = _AVL_insert(_AVL_last_node(), std::forward<Args>(args)...);
+		auto p = internal_insert(internal_last_node(), std::forward<Args>(args)...);
 		return p->item;
 	}
 	template<typename... Args>
 	T& emplace_front(Args&&... args)
 	{
-		auto p = _AVL_insert(_AVL_first_node(), std::forward<Args>(args)...);
+		auto p = internal_insert(internal_first_node(), std::forward<Args>(args)...);
 		return p->item;
 	}
 
-	void pop_back() { _AVL_delete_node(_AVL_last_payload_node()); }
-	void pop_front() { _AVL_delete_node(_AVL_first_node()); }
+	void pop_back() { internal_delete_node(internal_last_payload_node()); }
+	void pop_front() { internal_delete_node(internal_first_node()); }
 
 	template<typename Op = std::less<T>>
 	void sort(Op op = Op{})
 	{
 		VNP vnp;
-		_AVL_flatten(vnp);
+		internal_flatten(vnp);
 		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
 			return op(lhs->item, rhs->item);
 		};
 		std::sort(vnp.begin(), vnp.end(), nless);
-		_AVL_link_l(core.root, _AVL_hang(vnp));
+		internal_link_l(core.root, internal_hang(vnp));
 	}
 	template<typename Op = std::less<T>>
 	void stable_sort(Op op = Op{})
 	{
 		VNP vnp;
-		_AVL_flatten(vnp);
+		internal_flatten(vnp);
 		auto nless = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
 			return op(lhs->item, rhs->item);
 		};
 		std::stable_sort(vnp.begin(), vnp.end(), nless);
-		_AVL_link_l(core.root, _AVL_hang(vnp));
+		internal_link_l(core.root, internal_hang(vnp));
 	}
 
 	template<typename Op = std::equal_to<T>>
@@ -1337,7 +1364,7 @@ friend
 	{
 		if (size()<2) return;
 		VNP vnp;
-		_AVL_flatten(vnp);
+		internal_flatten(vnp);
 		VNP uni, rst;
 		auto itr = vnp.begin();
 		uni.push_back(*itr++);
@@ -1349,33 +1376,33 @@ friend
 				uni.push_back(*itr);
 			++itr;
 		}
-		_AVL_link_l(core.root, _AVL_hang(uni));
+		internal_link_l(core.root, internal_hang(uni));
 		for (auto&& p : rst)
-			_AVL_destruct_node(p);
+			internal_destruct_node(p);
 	}
 
 	void reverse()
 	{
 		VNP vnp;
-		_AVL_flatten(vnp);
+		internal_flatten(vnp);
 		std::reverse(vnp.begin(), vnp.end());
-		_AVL_link_l(core.root, _AVL_hang(vnp));
+		internal_link_l(core.root, internal_hang(vnp));
 	}
 
 	template<typename Op = std::less<T>>
-	void merge(avl_vector& other, Op op = Op{})
+	void merge(vector& other, Op op = Op{})
 	{
 		VNP me, ot, mrg;
-		_AVL_flatten(me);
-		other._AVL_flatten(ot);
+		internal_flatten(me);
+		other.internal_flatten(ot);
 		mrg.reserve(me.size()+ot.size());
 		auto cmp = [&op](NodeP lhs, NodeP rhs) -> bool
 		{
 			return op(lhs->item, rhs->item);
 		};
 		std::merge(me.begin(), me.end(), ot.begin(), ot.end(), std::back_inserter(mrg), cmp);
-		other._AVL_link_l(other.core.root, other.core.nil);
-		_AVL_link_l(core.root, _AVL_hang(mrg));
+		other.internal_link_l(other.core.root, other.core.nil);
+		internal_link_l(core.root, internal_hang(mrg));
 	}
 
 	void reserve(std::size_t) {}
@@ -1395,14 +1422,14 @@ friend
 	std::size_t remove_if(Op op)
 	{
 		std::size_t cnt = 0;
-		NodeP n = _AVL_first_node();
-		NodeP e = _AVL_last_node();
+		NodeP n = internal_first_node();
+		NodeP e = internal_last_node();
 		while (n != e)
 		{
-			NodeP t = _AVL_next_node(n);
+			NodeP t = internal_next_node(n);
 			if (op(n->item))
 			{
-				_AVL_delete_node(n);
+				internal_delete_node(n);
 				++cnt;
 			}
 			n = t;
@@ -1413,8 +1440,8 @@ friend
 	std::size_t remove_if_many(Op op)
 	{
 		std::size_t sz = size();
-		NodeP n = _AVL_first_node();
-		NodeP e = _AVL_last_node();
+		NodeP n = internal_first_node();
+		NodeP e = internal_last_node();
 		VNP keep, discard;
 		keep.reserve(sz); discard.reserve(sz);
 		while (n != e)
@@ -1423,37 +1450,37 @@ friend
 				discard.push_back(n);
 			else
 				keep.push_back(n);
-			n = _AVL_next_node(n);
+			n = internal_next_node(n);
 		}
 		for (auto x : discard)
-			_AVL_destruct_node(x);
-		AVL_link_l(core.root, _AVL_hang(keep));
+			internal_destruct_node(x);
+		AVL_link_l(core.root, internal_hang(keep));
 		return discard.size();
 	}
 
-	void splice(iterator pos, avl_vector& other)
+	void splice(iterator pos, vector& other)
 	{
 		VNP vnp_me, vnp_ot;
 
-		other._AVL_flatten(vnp_ot);
+		other.internal_flatten(vnp_ot);
 		other.core.root->left = other.core.nil;
-		_AVL_flatten_insert(vnp_me, pos.node, vnp_ot);
-		_AVL_link_l(core.root, _AVL_hang(vnp_me));
+		internal_flatten_insert(vnp_me, pos.node, vnp_ot);
+		internal_link_l(core.root, internal_hang(vnp_me));
 	}
-	void splice(iterator pos, avl_vector&& other) { splice(pos, other); }
+	void splice(iterator pos, vector&& other) { splice(pos, other); }
 
-	void splice(iterator pos, avl_vector& other, iterator it)
+	void splice(iterator pos, vector& other, iterator it)
 	{
-		NodeP n = other._AVL_unlink_node(it.node);
-		_AVL_insert_node(pos.node, n);
+		NodeP n = other.internal_unlink_node(it.node);
+		internal_insert_node(pos.node, n);
 	}
-	void splice(iterator pos, avl_vector&& other, iterator it) { splice(pos, other, it); }
+	void splice(iterator pos, vector&& other, iterator it) { splice(pos, other, it); }
 
-	void splice(iterator pos, avl_vector& other, iterator ot_beg, iterator ot_end)
+	void splice(iterator pos, vector& other, iterator ot_beg, iterator ot_end)
 	{
 		VNP me, ot, targ, rest;
-		_AVL_flatten(me);
-		other._AVL_flatten(ot);
+		internal_flatten(me);
+		other.internal_flatten(ot);
 
 		auto in_sz = me.size() + ot.size();
 		targ.reserve(in_sz);
@@ -1489,38 +1516,38 @@ friend
 
 		assert((targ.size()+rest.size()) == in_sz);
 
-		_AVL_link_l(core.root, _AVL_hang(targ));
-		_AVL_link_l(other.core.root, other._AVL_hang(rest));
+		internal_link_l(core.root, internal_hang(targ));
+		internal_link_l(other.core.root, other.internal_hang(rest));
 	}
 
-	void splice(iterator pos, avl_vector&& other, iterator ot_beg, iterator ot_end) { splice(pos,other,ot_beg,ot_end); }
+	void splice(iterator pos, vector&& other, iterator ot_beg, iterator ot_end) { splice(pos,other,ot_beg,ot_end); }
 
 	/// stable insert position for sorted containers
 	iterator upper_bound(const T& val)
 	{
-		return {this, _AVL_sorted_insert_position(val)};
+		return {this, internal_sorted_insert_position(val)};
 	}
 	/// lower_bound
 	iterator lower_bound(const T& val)
 	{
-		return {this, _AVL_lower_bound(val)};
+		return {this, internal_lower_bound(val)};
 	}
 	/// return first found item == val, or end
 	iterator binary_find(const T& val)
 	{
-		return {this, _AVL_search_node(val)};
+		return {this, internal_search_node(val)};
 	}
 	bool binary_search(const T& val) const
 	{
-		return me->_AVL_search_node(val) != core.root;
+		return me->internal_search_node(val) != core.root;
 	}
 
 	template<typename Op = std::less<T>>
-	int compare(const avl_vector& other, Op op = Op{}) const
+	int compare(const vector& other, Op op = Op{}) const
 	{
 		auto i1 = begin();
-		auto i2 = other.begin();
 		auto e1 = end();
+		auto i2 = other.begin();
 		auto e2 = other.end();
 		while (true)
 		{
@@ -1536,24 +1563,26 @@ friend
 	}
 };
 
-template<typename T, typename A> bool operator < (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-                     { return lhs.compare(rhs) < 0; }
+template<typename T, typename A> bool operator  < (const vector<T,A>& lhs, const vector<T,A>& rhs)
+                     { return lhs.compare(rhs)  < 0; }
 
-template<typename T, typename A> bool operator <= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+template<typename T, typename A> bool operator <= (const vector<T,A>& lhs, const vector<T,A>& rhs)
                      { return lhs.compare(rhs) <= 0; }
 
-template<typename T, typename A> bool operator > (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-                     { return lhs.compare(rhs) > 0; }
+template<typename T, typename A> bool operator  > (const vector<T,A>& lhs, const vector<T,A>& rhs)
+                     { return lhs.compare(rhs)  > 0; }
 
-template<typename T, typename A> bool operator >= (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+template<typename T, typename A> bool operator >= (const vector<T,A>& lhs, const vector<T,A>& rhs)
                      { return lhs.compare(rhs) >= 0; }
 
-template<typename T, typename A> bool operator == (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
-                     { if (lhs.size() != rhs.size()) return false;
+template<typename T, typename A> bool operator == (const vector<T,A>& lhs, const vector<T,A>& rhs)
+                       { if (lhs.size() != rhs.size()) return false;
                        return lhs.compare(rhs) == 0; }
 
-template<typename T, typename A> bool operator != (const avl_vector<T,A>& lhs, const avl_vector<T,A>& rhs)
+template<typename T, typename A> bool operator != (const vector<T,A>& lhs, const vector<T,A>& rhs)
                        { if (lhs.size() != rhs.size()) return true;
                        return lhs.compare(rhs) != 0; }
 
-template class avl_vector<int>;
+template class vector<int>;
+
+}

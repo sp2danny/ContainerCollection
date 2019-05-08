@@ -31,7 +31,7 @@ void all_test(std::size_t sz, bool last = false)
 	CT::clear_times();
 
 	std::vector<int> vi;
-	avl_vector<int>  ti;
+	avl::vector<int> ti;
 	std::list<int>   li;
 
 	#define ALL vi, ti, li
@@ -70,7 +70,7 @@ extern void fitting(const DataVec&, std::string);
 
 void testsuit()
 {
-	avl_vector<int> avi;
+	avl::vector<int> avi;
 	for (int i=1; i<=22; ++i) avi.push_back(i);
 	avi.print_tree(std::cout, false, true);
 

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <map>
 #include <typeinfo>
+#include <sstream>
 
 #include "container_operations.hpp"
 
@@ -20,11 +21,11 @@ namespace CT
 	extern void start_clock();
 	extern double stop_clock();
 	template<typename Excl = void*>
-	void report_times();
+	void report_times(double = 1.0, std::string = "s");
 	void clear_times();
 
 	template<typename T>
-	std::string nameof(T&&) { return typeid(T).name(); }
+	std::string nameof(T) { return typeid(T).name(); }
 
 	template<typename T = void>
 	struct fillup
@@ -33,7 +34,7 @@ namespace CT
 		void operator()(std::size_t, Args&...);
 		static std::string name() { return "fillup"s; }
 	};
-	
+
 	template<typename T = void>
 	struct integrity
 	{
@@ -84,7 +85,7 @@ namespace CT
 		insert(std::size_t count = 1) : count(count) {}
 		template<typename C1, typename... Args>
 		void operator()(C1&, Args&...);
-	
+
 		static std::string name() { return "insert"s; }
 	private:
 		std::size_t count;
@@ -226,10 +227,26 @@ namespace CT
 {
 	extern std::map<std::string, std::map<std::string, double>> time_data;
 	extern std::default_random_engine generator;
+
+	struct ListItem
+	{
+		std::string name;
+		std::string time;
+		int name_ln;
+		int bef_dot;
+		int aft_dot;
+	};
+	inline std::string space(int i)
+	{
+		if (i<0) return "";
+		std::string str;
+		while (i--) str += " ";
+		return str;
+	}
 }
 
 template<typename Excl>
-void CT::report_times()
+void CT::report_times(double multiplyer, std::string unit)
 {
 	for (auto&& x : time_data)
 	{
@@ -237,12 +254,47 @@ void CT::report_times()
 		{
 			std::cout << "Container : " << x.first << std::endl;
 			double sum = 0.0;
+			std::vector<ListItem> vli;
 			for (auto&& y : x.second)
 			{
-				std::cout << "\t" << y.first << " : " << y.second << " ms\n";
+				ListItem li;
+				li.name = y.first;
+				li.name_ln = y.first.size();
+				std::stringstream ss;
+				ss << y.second;
+				li.time = ss.str();
+				auto pos = li.time.find('.');
+				if (pos == std::string::npos)
+				{
+					li.time += ".0";
+					pos = li.time.find('.');
+				}
+				li.bef_dot = pos;
+				li.aft_dot = li.time.size() - pos - 1;
+				vli.push_back(li);
 				sum += y.second;
 			}
-			std::cout << "Container totals : " << sum << " ms\n\n";
+			int sz = vli.size();
+			if (sz)
+			{
+				int max_name_ln = vli[0].name_ln;
+				int max_bef_dot = vli[0].bef_dot;
+				int max_aft_dot = vli[0].aft_dot;
+				for(int i=1; i<sz; ++i)
+				{
+					if (vli[i].name_ln > max_name_ln) max_name_ln = vli[i].name_ln;
+					if (vli[i].bef_dot > max_bef_dot) max_bef_dot = vli[i].bef_dot;
+					if (vli[i].aft_dot > max_aft_dot) max_aft_dot = vli[i].aft_dot;
+				}
+				for (auto&& li : vli)
+				{
+					std::cout << "    " << li.name
+						<< space(max_name_ln-li.name_ln) << " : "
+						<< space(max_bef_dot-li.bef_dot) << li.time
+						<< space(max_aft_dot-li.aft_dot) << " ms\n";
+				}
+				std::cout << "Container totals : " << sum*multiplyer/1000.0 << " " << unit << "\n\n";
+			}
 		}
 	}
 }
@@ -313,12 +365,10 @@ bool CT::compare<T>::operator()(const C1& orig, const C2& first, const Args&... 
 	bool eq = true;
 	while (true)
 	{
-		if ((i1==e1) && (i2==e2)) break;
-		if ((i1==e1) || (i2==e2)) {
-			eq=false; break; }
-		if (*i1 != *i2) {
-			eq=false; break; }
-		++i1; ++i2;
+		if ((i1==e1) && (i2==e2)) break; // both at end, containers equal
+		if ((i1==e1) || (i2==e2)) { eq=false; break; } // one at end, containers not equal
+		if (*i1 != *i2) { eq=false; break; } // items differ, containers not equal
+		++i1; ++i2; // next items
 	}
 	time_data[nameof(first)][name()] += stop_clock();
 	return compare<>{}(orig, rest...) && eq;

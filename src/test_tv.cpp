@@ -10,7 +10,7 @@
 
 //template class avl_vector<int>;
 
-typedef avl_vector<int> ATI;
+typedef avl::vector<int> ATI;
 typedef std::vector<int> VI;
 
 struct Op
@@ -83,6 +83,26 @@ struct InsROp : Op
 	}
 };
 
+struct DelROp : Op
+{
+	DelROp(std::size_t pos, std::size_t sz)
+		: pos(pos), sz(sz)
+	{
+	}
+	std::size_t pos, sz;
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
+	{
+		auto p = ati.nth(pos);
+		ati.erase(p, p+sz);
+		auto pp = vi.begin() + pos;
+		vi.erase(pp, pp+sz);
+	};
+	virtual void Print(std::ostream& out) override
+	{
+		out << "Erase " << sz << " items at " << pos << std::endl;
+	}
+};
+
 struct SortOp : Op
 {
 	SortOp()
@@ -91,14 +111,30 @@ struct SortOp : Op
 	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
 	{
 		ati.sort();
-		ati.unique();
+		//ati.unique();
 		std::sort(vi.begin(), vi.end());
-		auto itr = std::unique(vi.begin(), vi.end());
-		vi.erase(itr, vi.end());
+		//auto itr = std::unique(vi.begin(), vi.end());
+		//vi.erase(itr, vi.end());
 	};
 	virtual void Print(std::ostream& out) override
 	{
-		out << "Sort + Unique" << std::endl;
+		out << "Sort" /* + Unique"*/ << std::endl;
+	}
+};
+
+struct ReverseOp : Op
+{
+	ReverseOp()
+	{
+	}
+	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
+	{
+		ati.reverse();
+		std::reverse(vi.begin(), vi.end());
+	};
+	virtual void Print(std::ostream& out) override
+	{
+		out << "Reverse" /* + Unique"*/ << std::endl;
 	}
 };
 
@@ -108,21 +144,21 @@ std::vector<OpPtr> operlist;
 
 void add_random(std::size_t& n)
 {
-	std::size_t i, m;
-	if (n)
-		i = rand()%4;
+	std::size_t i, m, j;
+	if (n>5)
+		i = rand()%6;
 	else
 		i = 0;
-	if (n>70)
+	if (n>500)
 		i = 1;
 	switch (i)
 	{
 	case 0:
-		operlist.emplace_back( std::make_unique<InsOp>(randn(n+1), randn(1000)) );
+		operlist.emplace_back(std::make_unique<InsOp>(randn(n+1), randn(1000)));
 		++n;
 		break;
 	case 1:
-		operlist.emplace_back( std::make_unique<DelOp>(randn(n)) );
+		operlist.emplace_back(std::make_unique<DelOp>(randn(n)));
 		--n;
 		break;
 	case 2:
@@ -131,7 +167,16 @@ void add_random(std::size_t& n)
 		n += m;
 		break;
 	case 3:
+		m = 1+randn(5);
+		j = randn(n - m);
+		operlist.emplace_back(std::make_unique<DelROp>(j, m));
+		n -= m;
+		break;
+	case 4:
 		operlist.emplace_back(std::make_unique<SortOp>());
+		break;
+	case 5:
+		operlist.emplace_back(std::make_unique<ReverseOp>());
 		break;
 	}
 }
@@ -139,29 +184,40 @@ void add_random(std::size_t& n)
 //#include <unistd.h>
 //#include <io.h>
 
+template<typename C1, typename C2>
+bool cmp(const C1& c1, const C2& c2)
+{
+	auto i1 = std::begin(c1);
+	auto i2 = std::begin(c2);
+	while (true)
+	{
+		bool ate1 = (i1 == std::end(c1));
+		bool ate2 = (i2 == std::end(c2));
+		if (ate1 && ate2) return true;
+		if (ate1 || ate2) return false;
+		if (*i1  !=  *i2) return false;
+		++i1; ++i2;
+	}
+}
+
 void testsuit_a()
 {
 	srand((unsigned)time(0));
 	using namespace std;
-	operlist.emplace_back( std::make_unique<InsOp>(0,0) );
-	operlist.emplace_back( std::make_unique<InsOp>(1,1) );
-	operlist.emplace_back( std::make_unique<InsOp>(2,2) );
+	operlist.emplace_back(std::make_unique<InsOp>(0, 0));
+	operlist.emplace_back(std::make_unique<InsOp>(1, 1));
+	operlist.emplace_back(std::make_unique<InsOp>(2, 2));
 
 	ATI ati;
-
-	ati = { 1, 2, 2, 3};
-	ati.print_tree(std::cout, true);
-	ati.unique();
-	ati.print_tree(std::cout, true);
-	ati.clear();
 
 	VI vi;
 	for (auto&& op : operlist)
 		op->Execute(ati, vi);
 
-	std::size_t j, i = 0, n = 3;
+	std::size_t i = 0, n = 3;
 	//std::stringstream ss;
 	bool first = true;
+	std::string breakreason;
 	while (true)
 	{
 		++i;
@@ -176,30 +232,28 @@ void testsuit_a()
 		//if (_isatty(_fileno(stdout))) std::cout << operlist.size() << "    \r";
 
 		operlist.back()->Execute(ati, vi);
-		if (!ati.integrity())
-			break;
-		if (ati.size() != n) break;
-		if (vi.size() != n) break;
-		for (j=0; j<n; ++j)
-			if (vi[j] != ati[j])
-				break;
-		if (j<n) break;
+		if (!ati.integrity()) { breakreason = "itegrety"; break; }
+		if (ati.size() != n) { breakreason = "ati.size"; break; }
+		if (vi.size() != n) { breakreason = "vi.size"; break; }
+		if (!cmp(vi,ati)) { breakreason = "cmp"; break; }
 		if ((i%25000)==0)
 		{
-			system("cls");
-			for (auto&& x : ati) std::cout << x << " ";
+			system("clear");
+			//for (auto&& x : ati) std::cout << x << " ";
 			std::cout << std::endl;
 			std::cout << i << "\n";
 			std::cout << ati.size() << "\n";
-			ati.print_tree(std::cout);
+			//ati.print_tree(std::cout, false, true);
 			std::cout << std::endl;
-			ATI ati2{ati};
-			ati2.sort();
-			for (auto&& x : ati2) std::cout << x << " ";
-			assert(ati2.integrity());
-			assert(ati2.is_sorted());
+			//ATI ati2{ati};
+			//ati2.sort();
+			//for (auto&& x : ati2) std::cout << x << " ";
+			//assert(ati2.integrity());
+			//assert(ati2.is_sorted());
 		}
 	}
+
+	std::cout << "\n --- error out here --- \n" << "break reason : " << breakreason << "\n";
 
 	ati.clear(); vi.clear();
 	std::size_t sz = operlist.size();
@@ -209,11 +263,17 @@ void testsuit_a()
 		operlist[i]->Execute(ati, vi);
 	}
 	std::cout << ati.size() << "\n";
-	ati.print_tree(std::cout);
+	ati.print_tree(std::cout, false, true);
 	std::cout << std::endl;
+	assert(cmp(vi,ati));
+	std::cout << " --- now attempting failed op --- \n";
 	operlist.back()->Print(std::cout);
 	operlist.back()->Execute(ati, vi, true);
-	ati.print_tree(std::cout);
+	ati.print_tree(std::cout, true, true);
+	assert(!cmp(vi,ati));
+	for (auto&& i : vi)
+		std::cout << i << ' ';
+	std::cout << std::endl;
 }
 
 

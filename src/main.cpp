@@ -3,10 +3,12 @@
 
 extern void testsuit();
 extern void testsuit_old();
+extern void testsuit_a();
 
 int main()
 {
-	testsuit();
-	//AsynKB::Stop();
-	//AsynKB::WaitChar();
+	testsuit_a();
+	//testsuit_old();
+	//testsuit();
+
 }
