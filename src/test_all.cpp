@@ -35,7 +35,7 @@ namespace CT
 
 #include "container_tester.hpp"
 
-void testsuit_old()
+void testsuit_performance()
 {
 	using namespace std;
 	using namespace CT;

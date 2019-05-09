@@ -4,7 +4,6 @@
     <File Name="src/splice_list.hpp"/>
     <File Name="src/splice_list_allocator.hpp"/>
     <File Name="src/inline_vector.hpp"/>
-    <File Name="src/test_tv.cpp" ExcludeProjConfig=""/>
     <File Name="src/container_operations.hpp"/>
     <File Name="src/debug_container.hpp"/>
     <File Name="src/test_all.cpp"/>
@@ -19,6 +18,7 @@
     <File Name="src/graph.cpp"/>
     <File Name="src/asyn_kb.h" ExcludeProjConfig="Release"/>
     <File Name="src/asyn_kb.cpp" ExcludeProjConfig="Release"/>
+    <File Name="src/test_integrity.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
