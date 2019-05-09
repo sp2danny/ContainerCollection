@@ -16,8 +16,6 @@
     <File Name="src/container_tester.cpp"/>
     <File Name="src/graph.h"/>
     <File Name="src/graph.cpp"/>
-    <File Name="src/asyn_kb.h" ExcludeProjConfig="Release"/>
-    <File Name="src/asyn_kb.cpp" ExcludeProjConfig="Release"/>
     <File Name="src/test_integrity.cpp"/>
   </VirtualDirectory>
   <Description/>
