@@ -223,6 +223,8 @@ public:
 	template<typename Op>
 	void sort(Op op);
 
+	void experimental_merge_sort();
+
 	void merge(splice_list& other) { merge(other, std::less<T>{}); }
 	void merge(splice_list&& other) { merge(other); }
 	template<typename Op>
@@ -609,6 +611,47 @@ template<typename Op>
 void splice_list<T>::sort(Op op)
 {
 	helper_sort(*(Sentry*)sentinel, op);
+}
+
+template<typename T>
+void splice_list<T>::experimental_merge_sort()
+{
+	NodeP leaveof = (Sentry*)sentinel;
+
+	int sz = size();
+	if (sz <= 1) return;
+
+	struct sub_merge_t
+	{
+		NodeP& leaveof;
+		void operator()(NodeP, NodeP, NodeP, NodeP, NodeP&, NodeP&)
+		{
+		}
+	} sub_merge(leaveof);
+
+	struct sub_sort_t
+	{
+		NodeP& leaveof;
+		void operator()(int n, NodeP& b, NodeP& e)
+		{
+			if (n<=2)
+			{
+				// later
+			} else {
+				NodeP ab,ae, bb,be;
+				(*this)(sz/n, ab,ae);
+				(*this)(sz-sz/n, ab,ae);
+				sub_merge(ab,ae, bb,be, b,e);
+			}
+		}
+	} sub_sort(leaveof);
+
+	NodeP ab,ae, bb,be, cb,ce;
+	sub_sort(sz/2, ab,ae);
+	sub_sort(sz-sz/2, ab,ae);
+	sub_merge(ab,ae, bb,be, cb,ce);
+	link(sentinel->next, cb);
+	link(sentinel->prev, ce);
 }
 
 template<typename T>
