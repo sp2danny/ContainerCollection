@@ -599,6 +599,21 @@ auto inline_vector<T, N>::insert(iterator where, T&& val) -> iterator
 }
 
 template<typename T, std::size_t N>
+template<typename It>
+auto inline_vector<T, N>::insert(iterator itr, It b, It e) -> iterator
+{
+	if (b==e) return itr;
+	while (true)
+	{
+		itr = insert(itr, *b);
+		++b;
+		if (b==e) break;
+		++itr;
+	}
+	return itr;
+}
+
+template<typename T, std::size_t N>
 auto inline_vector<T, N>::erase(iterator where) -> iterator
 {
 	auto e = end();

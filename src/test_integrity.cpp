@@ -1,6 +1,9 @@
 
 
 #include "avl_vector.hpp"
+#include "splice_list.hpp"
+#include "container_operations.hpp"
+#include "inline_vector.hpp"
 
 #include <iostream>
 #include <vector>
@@ -8,143 +11,148 @@
 #include <memory>
 #include <sstream>
 
-//template class avl_vector<int>;
-
-typedef avl::vector<int> ATI;
-typedef std::vector<int> VI;
-
 struct Op
 {
-	virtual ~Op() = default;
-	virtual void Execute(ATI&, VI&, bool debug = false) = 0;
-	virtual void Print(std::ostream&) = 0;
-};
-
-struct InsOp : Op
-{
-	InsOp(std::size_t pos, std::size_t val) : pos(pos), val(val) {}
-	std::size_t pos;
-	std::size_t val;
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
+	int op_num;
+	std::vector<int> op_param;
+	template<typename T>
+	void Execute(T&);
+	void Print(std::ostream&);
+	template<typename T,typename... Args>
+	void Execute(T& val, Args&&... args)
 	{
-		auto p = ati.nth(pos);
-		ati.insert(p, (int)val);
-		auto pp = vi.begin() + pos;
-		vi.insert(pp, (int)val);
-	};
-	virtual void Print(std::ostream& out) override
-	{
-		out << "Insert " << val << " at " << pos << std::endl;
+		Execute(val);
+		Execute(std::forward<Args>(args)...);
 	}
 };
 
-struct DelOp : Op
+enum OpIdx { InsOpIdx, DelOpIdx, InsROpIdx, DelROpIdx, SortOpIdx, ReverseOpIdx };
+
+struct InsOp
 {
-	DelOp(std::size_t pos) : pos(pos) {}
-	std::size_t pos;
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
 	{
-		auto p = ati.nth(pos);
-		ati.erase(p);
-		auto pp = vi.begin() + pos;
-		vi.erase(pp);
+		int val = param[0];
+		int pos = param[1];
+		auto p = CO::nth(cont, pos);
+		cont.insert(p, val);
 	};
-	virtual void Print(std::ostream& out) override
+	void Print(std::vector<int>& param, std::ostream& out)
 	{
-		out << "Delete node " << pos << std::endl;
+		out << "Insert " << param[0] << " at " << param[1] << std::endl;
 	}
 };
 
-std::size_t randn(std::size_t n)
+struct DelOp
 {
-	return (std::size_t)rand() % n;
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
+	{
+		auto p = CO::nth(cont, param[0]);
+		cont.erase(p);
+	};
+	void Print(std::vector<int>& param, std::ostream& out)
+	{
+		out << "Delete node " << param[0] << std::endl;
+	}
+};
+
+int randn(int n)
+{
+	return (int)rand() % n;
 }
 
-struct InsROp : Op
+struct InsROp
 {
-	InsROp(std::size_t pos, std::size_t sz)
-		: pos(pos)
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
 	{
-		for (std::size_t i = 0; i < sz; ++i)
-			sli.push_back((int)randn(1000));
-	}
-	std::size_t pos;
-	std::list<int> sli;
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
-	{
-		auto p = ati.nth(pos);
-		ati.insert(p, sli.begin(), sli.end());
-		auto pp = vi.begin() + pos;
-		vi.insert(pp, sli.begin(), sli.end());
+		auto p = CO::nth(cont, param[0]);
+		cont.insert(p, param.begin()+1, param.end());
 	};
-	virtual void Print(std::ostream& out) override
+	void Print(std::vector<int>& param, std::ostream& out)
 	{
-		out << "Insert " << sli.size() << " items at " << pos << std::endl;
+		out << "Insert " << param.size()-1 << " items at " << param[0] << std::endl;
 	}
 };
 
-struct DelROp : Op
+struct DelROp
 {
-	DelROp(std::size_t pos, std::size_t sz)
-		: pos(pos), sz(sz)
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
 	{
-	}
-	std::size_t pos, sz;
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
-	{
-		auto p = ati.nth(pos);
-		ati.erase(p, p+sz);
-		auto pp = vi.begin() + pos;
-		vi.erase(pp, pp+sz);
+		auto p1 = CO::nth(cont, param[0]);
+		auto p2 = CO::nth(cont, param[0]+param[1]);
+		cont.erase(p1, p2);
 	};
-	virtual void Print(std::ostream& out) override
+	void Print(std::vector<int>& param, std::ostream& out)
 	{
-		out << "Erase " << sz << " items at " << pos << std::endl;
+		out << "Erase " << param[1] << " items at " << param[0] << std::endl;
 	}
 };
 
-struct SortOp : Op
+struct SortOp
 {
-	SortOp()
+	template<typename T>
+	void Execute(std::vector<int>&, T& cont)
 	{
-	}
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
-	{
-		ati.sort();
-		//ati.unique();
-		std::sort(vi.begin(), vi.end());
-		//auto itr = std::unique(vi.begin(), vi.end());
-		//vi.erase(itr, vi.end());
+		CO::sort(cont);
 	};
-	virtual void Print(std::ostream& out) override
+	void Print(std::vector<int>&, std::ostream& out)
 	{
-		out << "Sort" /* + Unique"*/ << std::endl;
+		out << "Sort" << std::endl;
 	}
 };
 
-struct ReverseOp : Op
+struct ReverseOp
 {
-	ReverseOp()
+	template<typename T>
+	void Execute(std::vector<int>&, T& cont)
 	{
-	}
-	virtual void Execute(ATI& ati, VI& vi, [[maybe_unused]] bool debug) override
-	{
-		ati.reverse();
-		std::reverse(vi.begin(), vi.end());
+		CO::reverse(cont);
 	};
-	virtual void Print(std::ostream& out) override
+	void Print(std::vector<int>&, std::ostream& out)
 	{
-		out << "Reverse" /* + Unique"*/ << std::endl;
+		out << "Reverse" << std::endl;
 	}
 };
 
-typedef std::unique_ptr<Op> OpPtr;
+std::vector<Op> operlist;
 
-std::vector<OpPtr> operlist;
+template<typename T>
+void Op::Execute(T& cont)
+{
+	//std::cout << op_num << std::endl;
+	//for (auto&& x : op_param) std::cout << x << " ";
+	//std::cout << std::endl;
+	switch (op_num)
+	{
+		case InsOpIdx      : InsOp     {}.Execute(op_param, cont); break;
+		case DelOpIdx      : DelOp     {}.Execute(op_param, cont); break;
+		case InsROpIdx     : InsROp    {}.Execute(op_param, cont); break;
+		case DelROpIdx     : DelROp    {}.Execute(op_param, cont); break;
+		case SortOpIdx     : SortOp    {}.Execute(op_param, cont); break;
+		case ReverseOpIdx  : ReverseOp {}.Execute(op_param, cont); break;
+	}
+}
+
+void Op::Print(std::ostream& out)
+{
+	switch (op_num)
+	{
+		case InsOpIdx:     InsOp     {}.Print(op_param, out); break;
+		case DelOpIdx:     DelOp     {}.Print(op_param, out); break;
+		case InsROpIdx:    InsROp    {}.Print(op_param, out); break;
+		case DelROpIdx:    DelROp    {}.Print(op_param, out); break;
+		case SortOpIdx:    SortOp    {}.Print(op_param, out); break;
+		case ReverseOpIdx: ReverseOp {}.Print(op_param, out); break;
+	}
+}
 
 void add_random(std::size_t& n)
 {
-	std::size_t i, m, j;
+	int i, m, j;
 	if (n>5)
 		i = rand()%6;
 	else
@@ -153,30 +161,36 @@ void add_random(std::size_t& n)
 		i = 1;
 	switch (i)
 	{
-	case 0:
-		operlist.emplace_back(std::make_unique<InsOp>(randn(n+1), randn(1000)));
+	case InsOpIdx:
+		operlist.push_back({InsOpIdx, {randn(1000), randn(n+1)}});
 		++n;
 		break;
-	case 1:
-		operlist.emplace_back(std::make_unique<DelOp>(randn(n)));
+	case DelOpIdx:
+		operlist.push_back({DelOpIdx, {randn(n)}});
 		--n;
 		break;
-	case 2:
+	case InsROpIdx:
+	{
 		m = 1+randn(5);
-		operlist.emplace_back(std::make_unique<InsROp>(randn(n+1), m));
+		std::vector<int> param;
+		param.push_back(m);
+		for (int i=0; i<m; ++i)
+			param.push_back(randn(1000));
+		operlist.push_back({InsROpIdx, param});
 		n += m;
 		break;
-	case 3:
+	}
+	case DelROpIdx:
 		m = 1+randn(5);
 		j = randn(n - m);
-		operlist.emplace_back(std::make_unique<DelROp>(j, m));
+		operlist.push_back({DelROpIdx, {j, m}});
 		n -= m;
 		break;
-	case 4:
-		operlist.emplace_back(std::make_unique<SortOp>());
+	case SortOpIdx:
+		operlist.push_back({SortOpIdx, {}});
 		break;
-	case 5:
-		operlist.emplace_back(std::make_unique<ReverseOp>());
+	case ReverseOpIdx:
+		operlist.push_back({ReverseOpIdx, {}});
 		break;
 	}
 }
@@ -200,19 +214,40 @@ bool cmp(const C1& c1, const C2& c2)
 	}
 }
 
-void testsuit_a()
+template<typename C1, typename C2, typename... Args>
+bool cmp(const C1& c1, const C2& c2, const Args&... args)
+{
+	auto i1 = std::begin(c1);
+	auto i2 = std::begin(c2);
+	while (true)
+	{
+		bool ate1 = (i1 == std::end(c1));
+		bool ate2 = (i2 == std::end(c2));
+		if (ate1 && ate2) return true;
+		if (ate1 || ate2) return false;
+		if (*i1  !=  *i2) return false;
+		++i1; ++i2;
+	}
+	cmp(c1, args...);
+}
+
+void testsuit_integrity()
 {
 	srand((unsigned)time(0));
 	using namespace std;
-	operlist.emplace_back(std::make_unique<InsOp>(0, 0));
-	operlist.emplace_back(std::make_unique<InsOp>(1, 1));
-	operlist.emplace_back(std::make_unique<InsOp>(2, 2));
+	operlist.push_back({InsOpIdx, {0, 0}});
+	operlist.push_back({InsOpIdx, {1, 1}});
+	operlist.push_back({InsOpIdx, {2, 2}});
 
-	ATI ati;
+	avl::vector<int>      ati;
+	std::vector<int>      vi;
+	splice_list<int>      sli;
+	inline_vector<int,40> ivi;
 
-	VI vi;
+	#define ALL ati, vi, sli, ivi
+
 	for (auto&& op : operlist)
-		op->Execute(ati, vi);
+		op.Execute(ALL);
 
 	std::size_t i = 0, n = 3;
 	//std::stringstream ss;
@@ -223,7 +258,7 @@ void testsuit_a()
 		++i;
 		if (first)
 		{
-			operlist.emplace_back( std::make_unique<DelOp>(1) );
+			operlist.push_back({DelOpIdx,{0}});
 			--n;
 			first = false;
 		} else {
@@ -231,12 +266,14 @@ void testsuit_a()
 		}
 		//if (_isatty(_fileno(stdout))) std::cout << operlist.size() << "    \r";
 
-		operlist.back()->Execute(ati, vi);
+		operlist.back().Execute(ALL);
 		if (!ati.integrity()) { breakreason = "itegrety"; break; }
 		if (ati.size() != n) { breakreason = "ati.size"; break; }
 		if (vi.size() != n) { breakreason = "vi.size"; break; }
-		if (!cmp(vi,ati)) { breakreason = "cmp"; break; }
-		if ((i%25000)==0)
+		if (sli.size() != n) { breakreason = "sli.size"; break; }
+		if (!cmp(vi,ati)) { breakreason = "cmp.ati"; break; }
+		if (!cmp(vi,sli)) { breakreason = "cmp.sli"; break; }
+		if ((i%2500)==0)
 		{
 			system("clear");
 			//for (auto&& x : ati) std::cout << x << " ";
@@ -259,18 +296,18 @@ void testsuit_a()
 	std::size_t sz = operlist.size();
 	for (i=0; i<(sz-1); ++i)
 	{
-		operlist[i]->Print(std::cout);
-		operlist[i]->Execute(ati, vi);
+		operlist[i].Print(std::cout);
+		operlist[i].Execute(ALL);
 	}
 	std::cout << ati.size() << "\n";
 	ati.print_tree(std::cout, false, true);
 	std::cout << std::endl;
-	assert(cmp(vi,ati));
+	assert(cmp(ALL));
 	std::cout << " --- now attempting failed op --- \n";
-	operlist.back()->Print(std::cout);
-	operlist.back()->Execute(ati, vi, true);
+	operlist.back().Print(std::cout);
+	operlist.back().Execute(ALL);
 	ati.print_tree(std::cout, true, true);
-	assert(!cmp(vi,ati));
+	assert(!cmp(ALL));
 	for (auto&& i : vi)
 		std::cout << i << ' ';
 	std::cout << std::endl;

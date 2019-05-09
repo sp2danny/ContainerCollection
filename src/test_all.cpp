@@ -58,6 +58,7 @@ void testsuit_performance()
 			//#define ALL vi, vti, lti, avti
 
 			fillup<>{}(SZ, ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			insert<>{SZ}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);

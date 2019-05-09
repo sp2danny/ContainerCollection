@@ -6,6 +6,8 @@
 #endif
 
 #include <algorithm>
+#include <type_traits>
+#include <iterator>
 
 namespace CO {
 
@@ -133,12 +135,26 @@ namespace detail
 	auto remove(pick_1, C1& c1, const Itm& itm)
 		-> decltype(c1.remove(itm), void())
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: member remove on " << typeid(C1).name() << std::endl;
+		#endif
 		c1.remove(itm);
 	}
 
-	template<typename Itm>
-	auto remove(pick_2, std::vector<Itm>& c1, const Itm& itm)
+	template<typename C1, typename Itm>
+	auto remove(pick_2, C1& c1, const Itm& itm)
+		-> std::enable_if_t<
+			std::is_base_of<
+				std::random_access_iterator_tag,
+				typename std::iterator_traits<
+					decltype(std::begin(c1))
+				>::iterator_category
+			>::value
+		>
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: std::remove, then member erase on " << typeid(C1).name() << std::endl;
+		#endif
 		auto itr = std::remove(c1.begin(), c1.end(), itm);
 		c1.erase(itr, c1.end());
 	}
@@ -146,6 +162,9 @@ namespace detail
 	template<typename C1, typename Itm>
 	auto remove(pick_3, C1& c1, const Itm& itm)
 	{
+		#ifdef FULL_DIAG
+		std::cerr << "attempting: manual remove on " << typeid(C1).name() << std::endl;
+		#endif
 		for (auto iter = c1.begin(); iter != c1.end();)
 		{
 			if (itm == *iter)
@@ -174,7 +193,7 @@ namespace detail
 		if (iter == c1.end())
 			return {false, {}};
 		if (itm == *iter)
-			return { true, iter };
+			return {true, iter};
 		else
 			return {false, {}};
 	}
@@ -186,11 +205,11 @@ namespace detail
 		using std::lower_bound;
 		auto iter = lower_bound(c1.begin(), c1.end(), itm);
 		if (iter == c1.end())
-			return {false, {}};
+			return {false, iter};
 		if (itm == *iter)
 			return {true, iter};
 		else
-			return {false, {}};
+			return {false, iter};
 	}
 
 	template<typename C1, typename Itm>
@@ -200,11 +219,11 @@ namespace detail
 		using std::lower_bound;
 		auto iter = lower_bound(c1.begin(), c1.end(), itm);
 		if (iter == c1.end())
-			return {false,{}};
+			return {false, iter};
 		if (itm == *iter)
 			return {true, iter};
 		else
-			return {false,{}};
+			return {false, iter};
 	}
 
 	template<typename Cont, typename It>
@@ -332,8 +351,7 @@ void unique(C1& c1)
 }
 
 template<typename C1, typename Itm>
-auto remove(C1& c1, const Itm& itm)
-	-> decltype(std::begin(c1), void())
+void remove(C1& c1, const Itm& itm)
 {
 	detail::remove(detail::pick_1{}, c1, itm);
 }

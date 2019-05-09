@@ -51,8 +51,8 @@ public:
 	typedef const T*       const_pointer;
 	typedef std::size_t    size_type;
 	typedef std::ptrdiff_t difference_type;
-	struct iterator;
-	struct const_iterator;
+	struct  iterator;
+	struct  const_iterator;
 
 	splice_list();
 	splice_list(const splice_list&);
@@ -73,11 +73,8 @@ public:
 	void assign(It b, It e);
 
 	void assign(std::size_t n, const T& val);
-
 	void assign(std::initializer_list<T> il);
-
 	void assign(const splice_list& other);
-
 	void assign(splice_list&& other);
 
 	void swap(splice_list&) noexcept;
@@ -193,6 +190,19 @@ public:
 
 	iterator insert(iterator, const T&);
 	iterator insert(iterator, T&&);
+	template<typename It>
+	iterator insert(iterator itr, It b, It e)
+	{
+		if (b==e) return itr;
+		while (true)
+		{
+			itr = insert(itr, *b);
+			++b;
+			if (b==e) break;
+			++itr;
+		}
+		return itr;
+	}
 	template<typename... Args>
 	iterator emplace(iterator, Args&&... args);
 	iterator erase(iterator);

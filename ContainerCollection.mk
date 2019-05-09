@@ -59,7 +59,7 @@ AS       := /usr/bin/as
 ##
 ## User defined environment variables
 ##
-Objects0=$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_main.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_performance_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_item.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_container_tester.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_graph.cpp$(ObjectSuffix) $(IntermediateDirectory)/src_test_integrity.cpp$(ObjectSuffix) 
 
 
 
@@ -86,14 +86,6 @@ PreBuild:
 ##
 ## Objects
 ##
-$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix): src/test_tv.cpp $(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/test_tv.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix): src/test_tv.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_test_tv.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_test_tv.cpp$(DependSuffix) -MM "src/test_tv.cpp"
-
-$(IntermediateDirectory)/src_test_tv.cpp$(PreprocessSuffix): src/test_tv.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_test_tv.cpp$(PreprocessSuffix) "src/test_tv.cpp"
-
 $(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix): src/test_all.cpp $(IntermediateDirectory)/src_test_all.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/test_all.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_test_all.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/src_test_all.cpp$(DependSuffix): src/test_all.cpp
@@ -141,6 +133,14 @@ $(IntermediateDirectory)/src_graph.cpp$(DependSuffix): src/graph.cpp
 
 $(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix): src/graph.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_graph.cpp$(PreprocessSuffix) "src/graph.cpp"
+
+$(IntermediateDirectory)/src_test_integrity.cpp$(ObjectSuffix): src/test_integrity.cpp $(IntermediateDirectory)/src_test_integrity.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/sp2danny/extra/ContainerCollection/src/test_integrity.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_test_integrity.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_test_integrity.cpp$(DependSuffix): src/test_integrity.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_test_integrity.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/src_test_integrity.cpp$(DependSuffix) -MM "src/test_integrity.cpp"
+
+$(IntermediateDirectory)/src_test_integrity.cpp$(PreprocessSuffix): src/test_integrity.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_test_integrity.cpp$(PreprocessSuffix) "src/test_integrity.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
