@@ -17,6 +17,7 @@ public:
 	test_item& operator=(int i);
 	~test_item();
 	int compare(const test_item&) const;
+	explicit operator int() { return value; }
 friend
 	std::ostream& operator << (std::ostream&, const test_item&);
 private:
