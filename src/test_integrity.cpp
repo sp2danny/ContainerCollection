@@ -275,7 +275,8 @@ void testsuit_integrity()
 		if (!cmp(vi,sli)) { breakreason = "cmp.sli"; break; }
 		if ((i%2500)==0)
 		{
-			system("clear");
+			//system("clear");
+			system("cls");
 			//for (auto&& x : ati) std::cout << x << " ";
 			std::cout << std::endl;
 			std::cout << i << "\n";
