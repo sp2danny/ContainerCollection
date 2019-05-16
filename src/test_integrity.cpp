@@ -4,6 +4,8 @@
 #include "splice_list.hpp"
 #include "container_operations.hpp"
 #include "inline_vector.hpp"
+#include "test_item.hpp"
+#include "container_tester.hpp"
 
 #include <iostream>
 #include <vector>
@@ -157,7 +159,7 @@ void add_random(std::size_t& n)
 		i = rand()%6;
 	else
 		i = 0;
-	if (n>500)
+	if (n>2500)
 		i = 1;
 	switch (i)
 	{
@@ -195,42 +197,6 @@ void add_random(std::size_t& n)
 	}
 }
 
-//#include <unistd.h>
-//#include <io.h>
-
-template<typename C1, typename C2>
-bool cmp(const C1& c1, const C2& c2)
-{
-	auto i1 = std::begin(c1);
-	auto i2 = std::begin(c2);
-	while (true)
-	{
-		bool ate1 = (i1 == std::end(c1));
-		bool ate2 = (i2 == std::end(c2));
-		if (ate1 && ate2) return true;
-		if (ate1 || ate2) return false;
-		if (*i1  !=  *i2) return false;
-		++i1; ++i2;
-	}
-}
-
-template<typename C1, typename C2, typename... Args>
-bool cmp(const C1& c1, const C2& c2, const Args&... args)
-{
-	auto i1 = std::begin(c1);
-	auto i2 = std::begin(c2);
-	while (true)
-	{
-		bool ate1 = (i1 == std::end(c1));
-		bool ate2 = (i2 == std::end(c2));
-		if (ate1 && ate2) return true;
-		if (ate1 || ate2) return false;
-		if (*i1  !=  *i2) return false;
-		++i1; ++i2;
-	}
-	cmp(c1, args...);
-}
-
 void testsuit_integrity()
 {
 	srand((unsigned)time(0));
@@ -239,12 +205,13 @@ void testsuit_integrity()
 	operlist.push_back({InsOpIdx, {1, 1}});
 	operlist.push_back({InsOpIdx, {2, 2}});
 
-	avl::vector<int>      ati;
 	std::vector<int>      vi;
-	splice_list<int>      sli;
-	inline_vector<int,40> ivi;
 
-	#define ALL ati, vi, sli, ivi
+	avl::vector<test_item>        avi;
+	splice_list<test_item>        sli;
+	inline_vector<test_item,40>   ivi;
+
+	#define ALL avi, vi, sli, ivi
 
 	for (auto&& op : operlist)
 		op.Execute(ALL);
@@ -264,53 +231,44 @@ void testsuit_integrity()
 		} else {
 			add_random(n);
 		}
-		//if (_isatty(_fileno(stdout))) std::cout << operlist.size() << "    \r";
 
 		operlist.back().Execute(ALL);
-		if (!ati.integrity()) { breakreason = "itegrety"; break; }
-		if (ati.size() != n) { breakreason = "ati.size"; break; }
-		if (vi.size() != n) { breakreason = "vi.size"; break; }
-		if (sli.size() != n) { breakreason = "sli.size"; break; }
-		if (!cmp(vi,ati)) { breakreason = "cmp.ati"; break; }
-		if (!cmp(vi,sli)) { breakreason = "cmp.sli"; break; }
+		if (!CT::integrity<>{}(ALL)) { breakreason = "itegrety";  break; }
+		if (!CT::size<>{n}(ALL))     { breakreason = "size";      break; }
+		if (!CT::compare<>{}(ALL))   { breakreason = "compare";   break; }
+		if (test_item::error())      { breakreason = "ti_error";  break; }
+
+		//#ifdef NDEBUG
 		if ((i%2500)==0)
 		{
-			//system("clear");
-			system("cls");
-			//for (auto&& x : ati) std::cout << x << " ";
+			system("clear");
+			//system("cls");
 			std::cout << std::endl;
 			std::cout << i << "\n";
-			std::cout << ati.size() << "\n";
-			//ati.print_tree(std::cout, false, true);
-			std::cout << std::endl;
-			//ATI ati2{ati};
-			//ati2.sort();
-			//for (auto&& x : ati2) std::cout << x << " ";
-			//assert(ati2.integrity());
-			//assert(ati2.is_sorted());
+			std::cout << avi.size() << "\n";
 		}
+		//#endif
 	}
 
 	std::cout << "\n --- error out here --- \n" << "break reason : " << breakreason << "\n";
 
-	ati.clear(); vi.clear();
+	CT::clear<>{}(ALL);
 	std::size_t sz = operlist.size();
 	for (i=0; i<(sz-1); ++i)
 	{
 		operlist[i].Print(std::cout);
 		operlist[i].Execute(ALL);
 	}
-	std::cout << ati.size() << "\n";
-	ati.print_tree(std::cout, false, true);
+	std::cout << avi.size() << "\n";
+	avi.print_tree(std::cout, false, true);
 	std::cout << std::endl;
-	assert(cmp(ALL));
+	assert(CT::compare<>{}(ALL));
+	assert(CT::integrity<>{}(ALL));
 	std::cout << " --- now attempting failed op --- \n";
 	operlist.back().Print(std::cout);
 	operlist.back().Execute(ALL);
-	ati.print_tree(std::cout, true, true);
-	assert(!cmp(ALL));
-	for (auto&& i : vi)
-		std::cout << i << ' ';
+	CT::print<>{}(std::cout, ALL);
+
 	std::cout << std::endl;
 }
 

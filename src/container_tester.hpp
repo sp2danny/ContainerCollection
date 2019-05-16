@@ -219,6 +219,26 @@ namespace CT
 		void operator()(C1&, Args&...);
 	};
 
+	template<typename T = void>
+	struct clear
+	{
+		void operator()() {}
+		template<typename C1, typename... Args>
+		void operator()(C1&, Args&...);
+	};
+
+	template<typename T = void>
+	struct size
+	{
+		size(std::size_t count) : count(count) {}
+		bool operator()() { return true; }
+		template<typename C1, typename... Args>
+		bool operator()(C1&, Args&...);
+	private:
+		std::size_t count;
+	};
+
+
 }
 
 // ----------------------------------------------------------------------------
@@ -597,6 +617,22 @@ void CT::reverse<T>::operator()(C1& first, Args&... args)
 	reverse<>{}(args...);
 }
 
+template<typename T>
+template<typename C1, typename... Args>
+void CT::clear<T>::operator()(C1& first, Args&... args)
+{
+	first.clear();
+	clear<>{}(args...);
+}
+
+template<typename T>
+template<typename C1, typename... Args>
+bool CT::size<T>::operator()(C1& first, Args&... args)
+{
+	if (first.size() != count)
+		return false;
+	return (*this)(args...);
+}
 
 #ifdef STANDALONE
 
