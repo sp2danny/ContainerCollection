@@ -199,8 +199,16 @@ void add_random(std::size_t& n)
 
 void testsuit_integrity()
 {
-	srand((unsigned)time(0));
 	using namespace std;
+
+	/*{
+		avl::vector<int> avi;
+		avi = {1,2,3};
+		cout << (avi.begin() - avi.begin()) << endl;
+		cout << (avi.end()   - avi.begin()) << endl;
+	}*/
+
+	srand((unsigned)time(0));
 	operlist.push_back({InsOpIdx, {0, 0}});
 	operlist.push_back({InsOpIdx, {1, 1}});
 	operlist.push_back({InsOpIdx, {2, 2}});

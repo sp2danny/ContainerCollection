@@ -54,12 +54,9 @@ class vector
 		};
 		int balance() const
 		{
-			auto rh = right->height;
-			auto lh = left->height;
-			if (rh > lh)
-				return +int(rh-lh);
-			else
-				return -int(lh-rh);
+			int rh = right->height;
+			int lh = left->height;
+			return rh - lh;
 		}
 		void setnil(NodeP nil) { parent = left = right = nil; weight = height = 0; }
 		~Node()
@@ -73,7 +70,9 @@ class vector
 		bool sentry() const
 		{
 			if (weight||height)
+			{
 				assert(weight&&height);
+			}
 			return !(weight&&height);
 		}
 	};
@@ -971,14 +970,14 @@ friend
 	void assign(It b, It e)
 	{
 		clear();
-		VNP vpn;
+		VNP vnp;
 		if constexpr(detail::isRanIt<It>)
 		{
-			vpn.reserve(e-b);
+			vnp.reserve(e-b);
 		}
 		while (b != e)
-			vpn.push_back(internal_node_new(*b++));
-		internal_link_l(core.root, internal_hang(vpn));
+			vnp.push_back(internal_node_new(*b++));
+		internal_link_l(core.root, internal_hang(vnp));
 	}
 	void assign(std::initializer_list<T> il)
 	{
@@ -987,6 +986,7 @@ friend
 	void assign(std::size_t n, const T& val)
 	{
 		VNP vnp;
+		vnp.reserve(n);
 		while (n--)
 			vnp.push_back(internal_node_new(val));
 		internal_link_l(core.root, internal_hang(vnp));
@@ -1093,10 +1093,10 @@ friend
 		iterator operator--(int) { auto tmp = *this; node = avp->internal_prev_node(node); return tmp; }
 		bool operator==(const iterator& other) const { assert(avp == other.avp); return node == other.node; }
 		bool operator!=(const iterator& other) const { assert(avp == other.avp); return node != other.node; }
-		bool operator <(const iterator& other) const { return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
-		bool operator<=(const iterator& other) const { return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
-		bool operator >(const iterator& other) const { return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
-		bool operator>=(const iterator& other) const { return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
+		bool operator <(const iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
+		bool operator<=(const iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
+		bool operator >(const iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
+		bool operator>=(const iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
 		std::ptrdiff_t operator-(const iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(node))-std::ptrdiff_t(avp->internal_indexof(other.node)); }
 		iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
 		iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
@@ -1129,10 +1129,10 @@ friend
 		const_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
 		bool operator==(const const_iterator& other) const { assert(avp == other.avp); return node == other.node; }
 		bool operator!=(const const_iterator& other) const { assert(avp == other.avp); return node != other.node; }
-		bool operator <(const const_iterator& other) const { return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
-		bool operator<=(const const_iterator& other) const { return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
-		bool operator >(const const_iterator& other) const { return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
-		bool operator>=(const const_iterator& other) const { return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
+		bool operator <(const const_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node)  < avp->internal_indexof(other.node); }
+		bool operator<=(const const_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node) <= avp->internal_indexof(other.node); }
+		bool operator >(const const_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node)  > avp->internal_indexof(other.node); }
+		bool operator>=(const const_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(node) >= avp->internal_indexof(other.node); }
 		std::ptrdiff_t operator-(const const_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(node)) - std::ptrdiff_t(avp->internal_indexof(other.node)); }
 		const_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
 		const_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
@@ -1162,10 +1162,10 @@ friend
 		reverse_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
 		bool operator==(const reverse_iterator& other) const { assert(avp == other.avp); return node == other.node; }
 		bool operator!=(const reverse_iterator& other) const { assert(avp == other.avp); return node != other.node; }
-		bool operator <(const reverse_iterator& other) const { return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
-		bool operator<=(const reverse_iterator& other) const { return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
-		bool operator >(const reverse_iterator& other) const { return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
-		bool operator>=(const reverse_iterator& other) const { return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
+		bool operator <(const reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
+		bool operator<=(const reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
+		bool operator >(const reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
+		bool operator>=(const reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
 		std::ptrdiff_t operator-(const reverse_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(other.node))-std::ptrdiff_t(avp->internal_indexof(node)); }
 		reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
 		reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
@@ -1174,7 +1174,7 @@ friend
 	friend
 		class vector;
 	friend
-		struct const_iterator;
+		struct const_reverse_iterator;
 	private:
 		reverse_iterator(vector* avp, Node* node) : avp(avp), node(node) {}
 		vector* avp = nullptr;
@@ -1189,6 +1189,7 @@ friend
 		typedef const T& reference;
 		typedef std::ptrdiff_t difference_type;
 		const_reverse_iterator() = default;
+		const_reverse_iterator(reverse_iterator i) : avp(i.avp), node(i.node) {}
 		const T& operator*() const { return node->item; }
 		const T* operator->() const { return &node->item; }
 		const_reverse_iterator& operator++() { node = avp->internal_prev_node(node); return *this; }
@@ -1197,10 +1198,10 @@ friend
 		const_reverse_iterator operator--(int) { auto tmp = *this; node = avp->internal_next_node(node); return tmp; }
 		bool operator==(const const_reverse_iterator& other) const { assert(avp == other.avp); return node == other.node; }
 		bool operator!=(const const_reverse_iterator& other) const { assert(avp == other.avp); return node != other.node; }
-		bool operator <(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
-		bool operator<=(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
-		bool operator >(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
-		bool operator>=(const const_reverse_iterator& other) const { return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
+		bool operator <(const const_reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node)  < avp->internal_indexof(node); }
+		bool operator<=(const const_reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node) <= avp->internal_indexof(node); }
+		bool operator >(const const_reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node)  > avp->internal_indexof(node); }
+		bool operator>=(const const_reverse_iterator& other) const { assert(avp == other.avp); return avp->internal_indexof(other.node) >= avp->internal_indexof(node); }
 		std::ptrdiff_t operator-(const const_reverse_iterator& other) const { return std::ptrdiff_t(avp->internal_indexof(other.node))-std::ptrdiff_t(avp->internal_indexof(node)); }
 		const_reverse_iterator& operator+=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) - ofs); return *this; }
 		const_reverse_iterator& operator-=(std::ptrdiff_t ofs) { node = avp->internal_nth(avp->internal_indexof(node) + ofs); return *this; }
@@ -1208,8 +1209,6 @@ friend
 		const_reverse_iterator operator-(std::ptrdiff_t ofs) const { const_reverse_iterator tmp = *this; tmp += ofs; return tmp; }
 	friend
 		class vector;
-	friend
-		struct const_iterator;
 	private:
 		const_reverse_iterator(vector* avp, Node* node) : avp(avp), node(node) {}
 		vector* avp = nullptr;
@@ -1244,8 +1243,7 @@ friend
 	void insert(iterator itr, It b, It e)
 	{
 		VNP vnp;
-		typedef typename std::iterator_traits<It>::iterator_category ItCat;
-		if constexpr (std::is_same<ItCat, std::random_access_iterator_tag>::value)
+		if constexpr (detail::isRanIt<It>)
 		{
 			vnp.reserve(e - b);
 		}
@@ -1270,9 +1268,26 @@ friend
 	}
 	iterator erase(iterator b, iterator e)
 	{
-		while (b != e)
+		std::size_t n = e-b;
+		std::size_t sz = size();
+		if (n > (sz/2))
 		{
-			b = erase(b);
+			auto ix = internal_indexof(b.node);
+			VNP vnp;
+			internal_flatten(vnp);
+			auto p = vnp.begin();
+			auto b = p+ix;
+			auto e = p+ix+n;
+			for (auto i=b; i!=e; ++i)
+				internal_destruct_node(*i);
+			vnp.erase(b, e);
+			internal_link_l(core.root, internal_hang(vnp));
+			return {this, internal_nth(ix)};
+		} else {
+			while (b != e)
+			{
+				b = erase(b);
+			}
 		}
 		return b;
 	}
@@ -1576,11 +1591,11 @@ template<typename T, typename A> bool operator >= (const vector<T,A>& lhs, const
                      { return lhs.compare(rhs) >= 0; }
 
 template<typename T, typename A> bool operator == (const vector<T,A>& lhs, const vector<T,A>& rhs)
-                       { if (lhs.size() != rhs.size()) return false;
+                     { if (lhs.size() != rhs.size()) return false;
                        return lhs.compare(rhs) == 0; }
 
 template<typename T, typename A> bool operator != (const vector<T,A>& lhs, const vector<T,A>& rhs)
-                       { if (lhs.size() != rhs.size()) return true;
+                     { if (lhs.size() != rhs.size()) return true;
                        return lhs.compare(rhs) != 0; }
 
 template class vector<int>;

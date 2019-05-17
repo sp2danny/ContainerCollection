@@ -16,8 +16,8 @@ public:
 	test_item& operator=(test_item&&) noexcept;
 	test_item& operator=(int i);
 	~test_item();
-	int compare(const test_item&) const;
-	explicit operator int() { return value; }
+	long long compare(const test_item&) const;
+	explicit operator int() const;
 friend
 	std::ostream& operator << (std::ostream&, const test_item&);
 private:
@@ -29,21 +29,21 @@ public:
 	static bool error();
 };
 
-/**/ inline bool operator < (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) < 0; }
+/**/ inline bool operator  < (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs)  < 0ll; }
 
 /**/ inline bool operator <= (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) <= 0; }
+{ return lhs.compare(rhs) <= 0ll; }
 
 /**/ inline bool operator == (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) == 0; }
+{ return lhs.compare(rhs) == 0ll; }
 
 /**/ inline bool operator != (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) != 0; }
+{ return lhs.compare(rhs) != 0ll; }
 
-/**/ inline bool operator > (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) > 0; }
+/**/ inline bool operator  > (const test_item& lhs, const test_item& rhs)
+{ return lhs.compare(rhs)  > 0ll; }
 
 /**/ inline bool operator >= (const test_item& lhs, const test_item& rhs)
-{ return lhs.compare(rhs) >= 0; }
+{ return lhs.compare(rhs) >= 0ll; }
 

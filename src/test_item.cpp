@@ -210,10 +210,23 @@ std::ostream& operator << (std::ostream& out, const test_item& item)
 	return out;
 }
 
-int test_item::compare(const test_item& rhs) const
+test_item::operator int() const
+{
+	if (state == test_item::uninitialized)
+		add_report("reading uninitialized object");
+	if (state == test_item::movedfrom)
+		add_report("reading movedfrom object");
+	if (state == test_item::deleted)
+		add_report("reading deleted object");
+	if (std::memcmp(magic, pr, 8) != 0)
+		add_report("reading garbled object");
+	return value;
+}
+
+long long test_item::compare(const test_item& rhs) const
 {
 	auto& lhs = *this;
-	
+
 	if (lhs.state == test_item::uninitialized)
 		add_report("reading uninitialized object");
 	if (lhs.state == test_item::movedfrom)
@@ -222,7 +235,7 @@ int test_item::compare(const test_item& rhs) const
 		add_report("reading deleted object");
 	if (std::memcmp(lhs.magic, pr, 8) != 0)
 		add_report("reading garbled object");
-		
+
 	if (rhs.state == test_item::uninitialized)
 		add_report("reading uninitialized object");
 	if (rhs.state == test_item::movedfrom)
@@ -232,7 +245,7 @@ int test_item::compare(const test_item& rhs) const
 	if (std::memcmp(rhs.magic, pr, 8) != 0)
 		add_report("reading garbled object");
 
-	return lhs.value - rhs.value;
+	return (long long)(lhs.value) - (long long)(rhs.value);
 }
 
 
