@@ -1,5 +1,6 @@
 
 
+#include "avl_array/avl_array.hpp"
 #include "avl_vector.hpp"
 #include "container_operations.hpp"
 #include "container_tester.hpp"
@@ -194,13 +195,6 @@ void add_random(std::size_t &n) {
 void testsuit_integrity() {
   using namespace std;
 
-  /*{
-                  avl::vector<int> avi;
-                  avi = {1,2,3};
-                  cout << (avi.begin() - avi.begin()) << endl;
-                  cout << (avi.end()   - avi.begin()) << endl;
-  }*/
-
   srand((unsigned)time(0));
   operlist.push_back({InsOpIdx, {0, 0}});
   operlist.push_back({InsOpIdx, {1, 1}});
@@ -210,8 +204,10 @@ void testsuit_integrity() {
   avl::vector<test_item> avi;
   splice_list<test_item> sli;
   inline_vector<test_item, 40> ivi;
+// mkr::avl_array<int>          aai;
 
 #define ALL vi, avi, sli, ivi
+  //, aai
 
   for (auto &&op : operlist)
     op.Execute(ALL);
@@ -230,21 +226,26 @@ void testsuit_integrity() {
       add_random(n);
     }
 
-    operlist.back().Execute(ALL);
-    if (!CT::integrity<>{}(ALL)) {
-      breakreason = "itegrety";
-      break;
-    }
-    if (!CT::size<>{n}(ALL)) {
-      breakreason = "size";
-      break;
-    }
-    if (!CT::compare<>{}(ALL)) {
-      breakreason = "compare";
-      break;
-    }
-    if (test_item::error()) {
-      breakreason = "ti_error";
+    try {
+      operlist.back().Execute(ALL);
+      if (!CT::integrity<>{}(ALL)) {
+        breakreason = "integrity";
+        break;
+      }
+      if (!CT::size<>{n}(ALL)) {
+        breakreason = "size";
+        break;
+      }
+      if (!CT::compare<>{}(ALL)) {
+        breakreason = "compare";
+        break;
+      }
+      if (test_item::error()) {
+        breakreason = "ti_error";
+        break;
+      }
+    } catch (...) {
+      breakreason = "exception";
       break;
     }
 
@@ -268,6 +269,7 @@ void testsuit_integrity() {
     avl::vector<test_item> avi;
     splice_list<test_item> sli;
     inline_vector<test_item, 40> ivi;
+    // mkr::avl_array<int>          aai;
 
     std::size_t sz = operlist.size();
     for (i = 0; i < (sz - 1); ++i) {
@@ -283,6 +285,7 @@ void testsuit_integrity() {
     operlist.back().Print(std::cout);
     operlist.back().Execute(ALL);
     CT::print<>{}(std::cout, ALL);
+    assert(CT::integrity<>{}(ALL));
   }
 
   std::cout << std::endl;

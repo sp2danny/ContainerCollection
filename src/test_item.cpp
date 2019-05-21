@@ -6,7 +6,9 @@ unsigned char un[8] = {22, 33, 44, 55, 66, 77, 88, 99};
 unsigned char pr[8] = {12, 13, 14, 15, 16, 17, 18, 19};
 unsigned char mf[8] = {89, 78, 67, 56, 45, 34, 23, 12};
 unsigned char dl[8] = {98, 87, 76, 65, 54, 43, 32, 21};
+
 std::vector<std::string> report;
+
 unsigned long long cc = 0, dc = 0;
 } // namespace detail
 

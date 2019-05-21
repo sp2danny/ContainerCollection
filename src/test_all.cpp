@@ -1,4 +1,5 @@
 
+#include "avl_array/avl_array.hpp"
 #include "avl_vector.hpp"
 #include "inline_vector.hpp"
 #include "splice_list.hpp"
@@ -31,6 +32,8 @@ std::string nameof(inline_vector<test_item, SML>) {
 std::string nameof(inline_vector<test_item, BIG>) {
   return "inline_vector<test_item," + std::to_string(BIG) + ">"s;
 }
+
+std::string nameof(mkr::avl_array<int>) { return "mkr::avl_array<int>"s; }
 
 struct None {};
 } // namespace CT

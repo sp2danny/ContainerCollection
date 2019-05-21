@@ -18,6 +18,7 @@ void merge_unique(C1 &c1, C2 &c2, C3 &c3) {
 
   auto i1 = c1.begin();
   auto i2 = c2.begin();
+
   decltype(c3.begin()) last;
 
   auto take_1 = [&]() {

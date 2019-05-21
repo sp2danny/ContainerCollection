@@ -23,7 +23,7 @@ template <typename Excl = void *>
 void report_times(double = 1.0, std::string = "s");
 void clear_times();
 
-template <typename T> std::string nameof(T) { return typeid(T).name(); }
+template <typename T> std::string nameof(const T &) { return typeid(T).name(); }
 
 template <typename T = void> struct fillup {
   template <typename... Args> void operator()(std::size_t, Args &...);
@@ -264,7 +264,7 @@ template <typename T>
 template <typename C1, typename... Args>
 bool CT::integrity<T>::operator()(C1 &first, Args &... rest) {
   if (!CO::integrity(first)) {
-    std::cerr << "\nintegrity failedd for " << nameof(first) << "\n";
+    std::cerr << "\nintegrity failed for " << nameof(first) << "\n";
     return false;
   }
   return CT::integrity<>{}(rest...);
@@ -455,8 +455,9 @@ template <typename T>
 template <typename C1, typename... Args>
 void CT::print<T>::operator()(std::ostream &out, C1 &first, Args &... rest) {
   out << nameof(first) << "\n";
+  out << "(" << first.size() << ")";
   for (auto &&x : first) {
-    out << x << ' ';
+    out << ' ' << x;
   }
   out << std::endl;
   print<>{}(out, rest...);
