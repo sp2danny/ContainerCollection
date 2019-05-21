@@ -7,14 +7,19 @@
 /*
 struct Image
 {
-                                Image(int, int);
-                                void PutPixel(int, int, RGB);
-                                void Save(std::ostream&);
-                                void Save(std::string fn);
+                                                                Image(int, int);
+                                                                void
+PutPixel(int, int, RGB);
+                                                                void
+Save(std::ostream&);
+                                                                void
+Save(std::string fn);
 private:
-                                int idx(int, int) const;
-                                int w, h;
-                                std::vector<RGB> pixels;
+                                                                int idx(int,
+int) const;
+                                                                int w, h;
+                                                                std::vector<RGB>
+pixels;
 };
 */
 

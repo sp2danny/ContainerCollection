@@ -575,17 +575,23 @@ auto inline_vector<T, N>::erase(iterator b, iterator e) -> iterator {
 /*
 int main()
 {
-                                inline_vector<int,12> vi = {11,22,33};
-                                vi.push_back(3); vi.push_back(5);
+                                                                inline_vector<int,12>
+vi = {11,22,33};
+                                                                vi.push_back(3);
+vi.push_back(5);
 vi.push_back(7);
-                                vi.push_back(2); vi.push_back(4);
+                                                                vi.push_back(2);
+vi.push_back(4);
 vi.push_back(6);
-                                vi.insert(vi.begin()+3, 11); vi.push_back(0);
-                                vi.shrink_to_fit();
-                                for (auto&& i : vi)
-                                                                std::cout << i
+                                                                vi.insert(vi.begin()+3,
+11); vi.push_back(0);
+                                                                vi.shrink_to_fit();
+                                                                for (auto&& i :
+vi)
+                                                                                                                                std::cout << i
 << " ";
-                                std::cout << "\n" << vi.capacity() << "\n";
+                                                                std::cout <<
+"\n" << vi.capacity() << "\n";
 }
 */
 

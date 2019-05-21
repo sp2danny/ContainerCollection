@@ -349,76 +349,75 @@ template <typename T, typename A = std::allocator<T>> class vector {
   /// Searches the tree for all nodes equal to data, return range
   std::pair<NodeP,NodeP> internal_equal_range(const T& data)
   {
-                                  NodeP node = core.root->left;
-                                  NodeP last_lower = nullptr;
-                                  NodeP first_bigger = nullptr;
+                                                                  NodeP node =
+  core.root->left;
+                                                                  NodeP
+  last_lower = nullptr;
+                                                                  NodeP
+  first_bigger = nullptr;
 
-                                  if (node == core.nil)
-                                                                  return
+                                                                  if (node ==
+  core.nil)
+                                                                                                                                  return
   {core.root, core.root};
 
-                                  while (true)
-                                  {
-                                                                  if (node->item
+                                                                  while (true)
+                                                                  {
+                                                                                                                                  if (node->item
   < data)
-                                                                  {
-                                                                                                  if (!last_lower)
-                                                                                                                                  last_lower =
+                                                                                                                                  {
+                                                                                                                                                                                                  if (!last_lower)
+                                                                                                                                                                                                                                                                  last_lower =
   node;
-                                                                                                  else if (last_lower->item <
-  node->item)
-                                                                                                                                  last_lower =
-  node;
-                                                                                                  if (node->left == core.nil)
-  break;
-                                                                                                  node = node->left;
-                                                                  }
-                                                                  else if
+                                                                                                                                                                                                  else if
+  (last_lower->item < node->item) last_lower = node; if (node->left == core.nil)
+  break; node = node->left;
+                                                                                                                                  }
+                                                                                                                                  else if
   (node->item < data)
-                                                                  {
-                                                                                                  if (!first_bigger)
-                                                                                                                                  first_bigger =
+                                                                                                                                  {
+                                                                                                                                                                                                  if (!first_bigger)
+                                                                                                                                                                                                                                                                  first_bigger =
   node;
-                                                                                                  else if (node->item <
-  first_bigger->item)
-                                                                                                                                  first_bigger =
-  node;
-                                                                                                  if (node->right == core.nil)
-  break;
-                                                                                                  node = node->right;
+                                                                                                                                                                                                  else if (node->item
+  < first_bigger->item) first_bigger = node; if (node->right == core.nil) break;
+  node = node->right;
+                                                                                                                                  }
+                                                                                                                                  else
+                                                                                                                                  {
+                                                                                                                                                                                                  break;
+                                                                                                                                  }
                                                                   }
-                                                                  else
-                                                                  {
-                                                                                                  break;
-                                                                  }
-                                  }
-                                  if (!last_lower)
-                                                                  last_lower =
-  internal_first_node();
-                                  if (!first_bigger)
-                                                                  first_bigger =
-  internal_last_node();
-                                  while (true)
-                                  {
                                                                   if
+  (!last_lower)
+                                                                                                                                  last_lower =
+  internal_first_node();
+                                                                  if
+  (!first_bigger)
+                                                                                                                                  first_bigger =
+  internal_last_node();
+                                                                  while (true)
+                                                                  {
+                                                                                                                                  if
   (last_lower->item < data)
-                                                                                                  last_lower =
+                                                                                                                                                                                                  last_lower =
   internal_next_node(last_lower);
-                                                                  else
-                                                                                                  break;
-                                  }
-                                  while (true)
-                                  {
-                                                                  auto p =
+                                                                                                                                  else
+                                                                                                                                                                                                  break;
+                                                                  }
+                                                                  while (true)
+                                                                  {
+                                                                                                                                  auto p =
   internal_prev_node(first_bigger);
-                                                                  if (!(p->item
+                                                                                                                                  if (!(p->item
   < data))
-                                                                                                  first_bigger = p;
-                                                                  else
-                                                                                                  break;
-                                  }
+                                                                                                                                                                                                  first_bigger = p;
+                                                                                                                                  else
+                                                                                                                                                                                                  break;
+                                                                  }
 
-                                  return {last_lower, first_bigger};
+                                                                  return
+  {last_lower, first_bigger};
   }
   */
 
