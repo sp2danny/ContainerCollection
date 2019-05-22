@@ -22,9 +22,9 @@ namespace avl
 
 namespace detail
 {
-template<typename It>
-constexpr bool isRanIt =
-	std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
+	template<typename It>
+	constexpr bool isRanIt =
+		std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<It>::iterator_category>::value;
 }
 
 using namespace std::literals;
@@ -257,10 +257,10 @@ class vector
 
 		uint32_t tmp;
 
-#define SWP(a, b)                                                                                                      \
-	tmp = a;                                                                                                           \
-	a   = b;                                                                                                           \
-	b   = tmp
+#define SWP(a, b)                                                                                                     \
+		tmp = a;                                                                                                      \
+		a   = b;                                                                                                      \
+		b   = tmp
 
 		SWP(n1->weight, n2->weight);
 		SWP(n1->height, n2->height);
@@ -410,77 +410,63 @@ class vector
 
 	/*
 	/// Searches the tree for all nodes equal to data, return range
-	std::pair<NodeP,NodeP> internal_equal_range(const T& data)
+	std::pair<NodeP, NodeP> internal_equal_range(const T& data)
 	{
-																	NodeP node =
-	core.root->left;
-																	NodeP
-	last_lower = nullptr;
-																	NodeP
-	first_bigger = nullptr;
+		NodeP node         = core.root->left;
+		NodeP last_lower   = nullptr;
+		NodeP first_bigger = nullptr;
 
-																	if (node ==
-	core.nil)
-																																	return
-	{core.root, core.root};
+		if (node == core.nil)
+			return {core.root, core.root};
 
-																	while (true)
-																	{
-																																	if (node->item
-	< data)
-																																	{
-																																																	if (!last_lower)
-																																																																	last_lower =
-	node;
-																																																	else if
-	(last_lower->item < node->item) last_lower = node; if (node->left == core.nil)
-	break; node = node->left;
-																																	}
-																																	else if
-	(node->item < data)
-																																	{
-																																																	if (!first_bigger)
-																																																																	first_bigger =
-	node;
-																																																	else if (node->item
-	< first_bigger->item) first_bigger = node; if (node->right == core.nil) break;
-	node = node->right;
-																																	}
-																																	else
-																																	{
-																																																	break;
-																																	}
-																	}
-																	if
-	(!last_lower)
-																																	last_lower =
-	internal_first_node();
-																	if
-	(!first_bigger)
-																																	first_bigger =
-	internal_last_node();
-																	while (true)
-																	{
-																																	if
-	(last_lower->item < data)
-																																																	last_lower =
-	internal_next_node(last_lower);
-																																	else
-																																																	break;
-																	}
-																	while (true)
-																	{
-																																	auto p =
-	internal_prev_node(first_bigger);
-																																	if (!(p->item
-	< data))
-																																																	first_bigger = p;
-																																	else
-																																																	break;
-																	}
+		while (true)
+		{
+			if (node->item < data)
+			{
+				if (!last_lower)
+					last_lower = node;
+				else if (last_lower->item < node->item)
+					last_lower = node;
+				if (node->left == core.nil)
+					break;
+				node = node->left;
+			}
+			else if (node->item < data)
+			{
+				if (!first_bigger)
+					first_bigger = node;
+				else if (node->item < first_bigger->item)
+					first_bigger = node;
+				if (node->right == core.nil)
+					break;
+				node = node->right;
+			}
+			else
+			{
+				break;
+			}
+		}
+		if (!last_lower)
+			last_lower = internal_first_node();
+		if (!first_bigger)
+			first_bigger = internal_last_node();
+		while (true)
+		{
+			if (last_lower->item < data)
+				last_lower = internal_next_node(last_lower);
+			else
+				break;
+		}
+		while (true)
+		{
+			auto p = internal_prev_node(first_bigger);
+			if (!(p->item < data))
+				first_bigger = p;
+			else
+				break;
+		}
 
-																	return
-	{last_lower, first_bigger};
+		return {last_lower, first_bigger};
 	}
 	*/
 
@@ -761,9 +747,9 @@ class vector
 
 	struct Trunk
 	{
-		Trunk*      prev;
+		Trunk* prev;
 		std::string str;
-		bool        pop;
+		bool pop;
 	};
 
 	std::string internal_print_trunks(Trunk* p) const
@@ -875,8 +861,7 @@ class vector
 	{
 		assert(ap <= bp);
 		auto sz = bp - ap;
-		if (!sz)
-			return core.nil;
+		if (!sz) return core.nil;
 		if (sz == 1)
 		{
 			NodeP n   = *ap;
@@ -884,8 +869,8 @@ class vector
 			n->left = n->right = core.nil;
 			return n;
 		}
-		auto   center = sz / 2;
-		NodeP* cp     = ap + center;
+		auto center = sz / 2;
+		NodeP* cp = ap + center;
 		internal_link_l(*cp, internal_hang(ap, cp));
 		internal_link_r(*cp, internal_hang(cp + 1, bp));
 		internal_updHW(*cp);
@@ -894,7 +879,7 @@ class vector
 	}
 	NodeP internal_hang(VNP& vnp)
 	{
-		NodeP*      ptr = vnp.data();
+		NodeP* ptr = vnp.data();
 		std::size_t sz  = vnp.size();
 		return internal_hang(ptr, ptr + sz);
 	}
@@ -972,8 +957,8 @@ public:
 	typedef const T&       const_reference;
 	typedef T*             pointer;
 	typedef const T*       const_pointer;
-	struct iterator;
-	struct const_iterator;
+	struct                 iterator;
+	struct                 const_iterator;
 	typedef typename std::allocator_traits<A>::template rebind_alloc<Node> allocator_type;
 
 	friend struct iterator;
@@ -985,7 +970,7 @@ public:
 		core.root = new (p + 0) Node{sentry_tag{}};
 		core.nil  = new (p + 1) Node{sentry_tag{}};
 		core.root->setnil(core.nil);
-		core.nil->setnil(core.nil);
+		core.nil ->setnil(core.nil);
 	}
 	template<typename It>
 	vector(It b, It e) : vector()

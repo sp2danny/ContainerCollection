@@ -62,6 +62,7 @@ std::string nameof(mkr::avl_array<int>)
 struct None
 {
 };
+
 } // namespace CT
 
 #include "container_tester.hpp"
@@ -89,61 +90,40 @@ void testsuit_performance()
 			//#define ALL vi, vti, lti, avti
 
 			fillup<>{}(SZ, ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			insert<>{SZ}(ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			erase<>{(SZ * 3) / 2}(ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
-			if (ok)
-				for (std::size_t j = 0; ok && (j < REP); ++j)
-				{
-					if (ok)
-						insert<>{SZ}(ALL);
-					if (ok)
-						ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-					if (ok)
-						erase<>{SZ}(ALL);
-					if (ok)
-						ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-					if (ok)
-						nth_swap<>{SZ}(ALL);
-					if (ok)
-						ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-				}
+			if (ok) for (std::size_t j = 0; ok && (j < REP); ++j)
+			{
+				if (ok) insert<>{SZ}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+				if (ok) erase<>{SZ}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+				if (ok) nth_swap<>{SZ}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			}
 
-			if (ok)
-				CT::sort<>{}(ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) CT::sort<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
-			if (ok)
-				CT::unique<>{}(ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) CT::unique<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			for (size_t j = 0; ok && (j < REP); ++j)
 			{
-				if (ok)
-					splice_merge<>{}(ALL);
-				if (ok)
-					ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-				if (ok)
-					ok = is_sorted(vi.begin(), vi.end());
+				if (ok) splice_merge<>{}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+				if (ok) ok = is_sorted(vi.begin(), vi.end());
 			}
 
-			if (ok)
-				CT::remove<>{}(test_item{SZ / 2}, ALL);
-			if (ok)
-				binary_find_swap<>{}(test_item{SZ / 3}, test_item{2 * SZ / 3}, ALL);
-			if (ok)
-				CT::reverse<>{}(ALL);
-			if (ok)
-				ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) CT::remove<>{}(test_item{SZ / 2}, ALL);
+			if (ok) binary_find_swap<>{}(test_item{SZ / 3}, test_item{2 * SZ / 3}, ALL);
+			if (ok) CT::reverse<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			if (!ok)
 			{

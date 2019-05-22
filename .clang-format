@@ -35,7 +35,7 @@ BraceWrapping:
   IndentBraces:    false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
-  SplitEmptyNamespace: false
+  SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakBeforeInheritanceComma: false
@@ -79,7 +79,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
-NamespaceIndentation: None
+NamespaceIndentation: Inner
 ObjCBinPackProtocolList: Auto
 ObjCBlockIndentWidth: 4
 ObjCSpaceAfterProperty: false
@@ -117,5 +117,5 @@ StatementMacros:
   - QT_REQUIRE_VERSION
 TabWidth:        4
 UseTab:          ForContinuationAndIndentation
-...
+
 

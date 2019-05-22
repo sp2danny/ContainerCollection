@@ -34,7 +34,7 @@ template<typename T = void>
 struct fillup
 {
 	template<typename... Args>
-	void               operator()(std::size_t, Args&...);
+	void operator()(std::size_t, Args&...);
 	static std::string name() { return "fillup"s; }
 };
 
@@ -43,7 +43,7 @@ struct integrity
 {
 	bool operator()() { return true; }
 	template<typename C1, typename... Args>
-	bool               operator()(C1&, Args&...);
+	bool operator()(C1&, Args&...);
 	static std::string name() { return "integrity"s; }
 };
 
@@ -172,9 +172,7 @@ template<typename T = void>
 struct remove
 {
 	template<typename Itm>
-	void operator()(const Itm&)
-	{
-	}
+	void operator()(const Itm&) {}
 
 	template<typename Itm, typename C1, typename... Args>
 	void operator()(const Itm&, C1&, Args&...);
@@ -197,9 +195,7 @@ template<typename T = void>
 struct binary_find_swap
 {
 	template<typename Itm>
-	void operator()(const Itm&, const Itm&)
-	{
-	}
+	void operator()(const Itm&, const Itm&) {}
 
 	template<typename Itm, typename C1, typename... Args>
 	void operator()(const Itm&, const Itm&, C1&, Args&...);
@@ -261,15 +257,15 @@ private:
 namespace CT
 {
 extern std::map<std::string, std::map<std::string, double>> time_data;
-extern std::default_random_engine                           generator;
+extern std::default_random_engine generator;
 
 struct ListItem
 {
 	std::string name;
 	std::string time;
-	int         name_ln;
-	int         bef_dot;
-	int         aft_dot;
+	int name_ln;
+	int bef_dot;
+	int aft_dot;
 };
 inline std::string space(int i)
 {
@@ -290,7 +286,7 @@ void CT::report_times(double multiplyer, std::string unit)
 		if (nameof(Excl{}) != x.first)
 		{
 			std::cout << "Container : " << x.first << std::endl;
-			double                sum = 0.0;
+			double sum = 0.0;
 			std::vector<ListItem> vli;
 			for (auto&& y : x.second)
 			{
@@ -355,7 +351,7 @@ void CT::fillup<T>::operator()(std::size_t sz, Args&... args)
 {
 	init();
 	std::uniform_int_distribution<int> distribution(1, (int)sz);
-	std::vector<int>                   vi;
+	std::vector<int> vi;
 	for (auto i = 0u; i < sz; ++i)
 	{
 		auto num = distribution(generator);
@@ -448,10 +444,10 @@ void CT::insert<T>::operator()(C1& first, Args&... rest)
 	init();
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		auto                               sz = first.size();
+		auto sz = first.size();
 		std::uniform_int_distribution<int> distribution(1, (int)count);
-		std::size_t                        idx = std::uniform_int_distribution<std::size_t>{0, sz}(generator);
-		auto                               num = distribution(generator);
+		std::size_t idx = std::uniform_int_distribution<std::size_t>{0, sz}(generator);
+		auto num = distribution(generator);
 		insert_nth<>{}(idx, num, first, rest...);
 	}
 }
@@ -567,7 +563,7 @@ template<typename C1, typename... Args>
 void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 {
 	init();
-	int         sz   = (int)first.size();
+	int sz   = (int)first.size();
 	std::size_t idx1 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
 	std::size_t idx2 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
 	if (idx1 > idx2)
@@ -575,7 +571,7 @@ void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 	start_clock();
 	auto itr1 = nth(first, idx1);
 	auto itr2 = nth(first, idx2);
-	C1   other;
+	C1 other;
 	splice(first, itr1, itr2, other, other.begin());
 	merge(first, other);
 	time_data[nameof(first)][name()] += stop_clock();
