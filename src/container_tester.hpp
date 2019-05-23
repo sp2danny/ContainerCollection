@@ -563,7 +563,7 @@ template<typename C1, typename... Args>
 void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 {
 	init();
-	int sz   = (int)first.size();
+	int sz = (int)first.size();
 	std::size_t idx1 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
 	std::size_t idx2 = std::uniform_int_distribution<int>{0, sz - 1}(generator);
 	if (idx1 > idx2)

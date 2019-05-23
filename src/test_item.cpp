@@ -10,7 +10,7 @@ unsigned char dl[8] = {98, 87, 76, 65, 54, 43, 32, 21};
 
 std::vector<std::string> report;
 
-unsigned long long cc = 0, dc = 0;
+signed long long cc = 0, dc = 0, cnp = 0;
 } // namespace detail
 
 void add_report(std::string str)
@@ -30,7 +30,21 @@ const std::vector<std::string>& test_item::report()
 		if (cc < dc)
 			add_report("over-deleted : "s + std::to_string(dc - cc));
 	}
+	if (cnp)
+	{
+		add_report("stray non-proper : "s + std::to_string(cnp));
+	}
 	return detail::report;
+}
+
+int test_item::active_count()
+{
+	return cc - dc;
+}
+
+int test_item::stray_nonproper()
+{
+	return cnp;
 }
 
 bool test_item::error()
@@ -51,6 +65,7 @@ test_item::test_item()
 
 	std::memcpy(magic, un, 8);
 	state = uninitialized;
+	++cnp;
 	++cc;
 }
 
@@ -111,6 +126,9 @@ test_item::test_item(test_item&& other)
 	if (std::memcmp(other.magic, pr, 8) != 0)
 		add_report("copying garbled object");
 
+	if (other.state == proper)
+		++cnp;
+
 	value = other.value;
 	std::memcpy(magic, pr, 8);
 	state = proper;
@@ -139,6 +157,9 @@ test_item& test_item::operator=(const test_item& other)
 	if (std::memcmp(other.magic, pr, 8) != 0)
 		add_report("copying garbled object");
 
+	if (state != proper)
+		--cnp;
+
 	value = other.value;
 	std::memcpy(magic, pr, 8);
 	state = proper;
@@ -165,6 +186,11 @@ test_item& test_item::operator=(test_item&& other) noexcept
 	if (std::memcmp(other.magic, pr, 8) != 0)
 		add_report("copying garbled object");
 
+	if (state != proper)
+		--cnp;
+	if (other.state == proper)
+		++cnp;
+
 	value = other.value;
 	std::memcpy(magic, pr, 8);
 	state = proper;
@@ -182,6 +208,9 @@ test_item& test_item::operator=(int val)
 	if (state == deleted)
 		add_report("assigning object in deleted space");
 
+	if (state != proper)
+		--cnp;
+
 	value = val;
 	std::memcpy(magic, pr, 8);
 	state = proper;
@@ -195,6 +224,10 @@ test_item::~test_item()
 		add_report("double delete");
 	if (state == deleted)
 		add_report("double delete");
+
+	if (state != proper)
+		--cnp;
+
 	std::memcpy(magic, dl, 8);
 	state = deleted;
 	++dc;

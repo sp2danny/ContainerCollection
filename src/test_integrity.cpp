@@ -31,12 +31,14 @@ struct Op
 
 enum OpIdx
 {
-	InsOpIdx,
+	InsOpIdx = 0,
 	DelOpIdx,
 	InsROpIdx,
 	DelROpIdx,
 	SortOpIdx,
-	ReverseOpIdx
+	ReverseOpIdx,
+	SpliceOpIdx,
+	OpCount
 };
 
 struct InsOp
@@ -120,6 +122,24 @@ struct ReverseOp
 	void Print(std::vector<int>&, std::ostream& out) { out << "Reverse" << std::endl; }
 };
 
+struct SpliceOp
+{
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
+	{
+		auto it_cut_in = CO::nth(cont, param[0]);
+		auto it_cut_ut = CO::nth(cont, param[0] + param[1]);
+		T tmp;
+		CO::splice(cont,it_cut_in,it_cut_ut, tmp,tmp.begin());
+		auto it_ins = CO::nth(cont, param[2]);
+		cont.insert(it_ins, tmp.begin(), tmp.end());
+	};
+	void Print(std::vector<int>& param, std::ostream& out)
+	{
+		out << "Splice " << param[1] << " from " << param[0] << ", insert at " << param[2] << std::endl;
+	}
+};
+
 std::vector<Op> operlist;
 
 template<typename T>
@@ -136,6 +156,7 @@ void Op::Execute(T& cont)
 	case DelROpIdx:    DelROp    {}.Execute(op_param, cont); break;
 	case SortOpIdx:    SortOp    {}.Execute(op_param, cont); break;
 	case ReverseOpIdx: ReverseOp {}.Execute(op_param, cont); break;
+	case SpliceOpIdx:  SpliceOp  {}.Execute(op_param, cont); break;
 	}
 }
 
@@ -149,17 +170,18 @@ void Op::Print(std::ostream& out)
 	case DelROpIdx:    DelROp    {}.Print(op_param, out); break;
 	case SortOpIdx:    SortOp    {}.Print(op_param, out); break;
 	case ReverseOpIdx: ReverseOp {}.Print(op_param, out); break;
+	case SpliceOpIdx:  SpliceOp  {}.Print(op_param, out); break;
 	}
 }
 
 void add_random(std::size_t& n)
 {
-	int i, m, j;
+	int i, m, j, k;
 	if (n > 5)
-		i = rand() % 6;
+		i = rand() % OpCount;
 	else
 		i = 0;
-	if (n > 2500)
+	if (n > 25'000)
 		i = 1;
 	switch (i)
 	{
@@ -194,6 +216,14 @@ void add_random(std::size_t& n)
 	case ReverseOpIdx:
 		operlist.push_back({ReverseOpIdx, {}});
 		break;
+	case SpliceOpIdx:
+		m = 1 + randn(5);
+		j = randn(n - m);
+		k = randn(n - m);
+		operlist.push_back({SpliceOpIdx, {j, m, k}});
+		break;
+	default:
+		std::cerr << "unknown op\n";
 	}
 }
 
@@ -210,10 +240,10 @@ void testsuit_integrity()
 	avl::vector<test_item>       avi;
 	splice_list<test_item>       sli;
 	inline_vector<test_item, 40> ivi;
-	// mkr::avl_array<int>          aai;
+	//mkr::avl_array<int>          aai;
 
 #define ALL vi, avi, sli, ivi
-	//, aai
+//, aai
 
 	for (auto&& op : operlist)
 		op.Execute(ALL);
@@ -256,6 +286,16 @@ void testsuit_integrity()
 				breakreason = "ti_error";
 				break;
 			}
+			if (test_item::active_count() != (int(n)*3))
+			{
+				breakreason = "active count";
+				break;
+			}
+			if (test_item::stray_nonproper() != 0)
+			{
+				breakreason = "stray nonproper, "s + std::to_string(test_item::stray_nonproper());
+				break;
+			}
 		}
 		catch (...)
 		{
@@ -266,11 +306,13 @@ void testsuit_integrity()
 		//#ifdef NDEBUG
 		if ((i % 2500) == 0)
 		{
-			system("clear");
+			//system("clear");
 			// system("cls");
-			std::cout << std::endl;
-			std::cout << i << "\n";
-			std::cout << avi.size() << "\n";
+			//std::cout << std::endl;
+			std::cout << i << " -- ";
+			std::cout << avi.size() << " -- ";
+			std::cout << test_item::active_count() << "    \r";
+			std::cout << std::flush;
 		}
 		//#endif
 	}
@@ -284,7 +326,7 @@ void testsuit_integrity()
 		avl::vector<test_item>       avi;
 		splice_list<test_item>       sli;
 		inline_vector<test_item, 40> ivi;
-		// mkr::avl_array<int>          aai;
+		//mkr::avl_array<int>          aai;
 
 		std::size_t sz = operlist.size();
 		for (i = 0; i < (sz - 1); ++i)

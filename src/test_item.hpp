@@ -33,7 +33,9 @@ private:
 
 public:
 	static const std::vector<std::string>& report();
-	static bool                            error();
+	static bool error();
+	static int active_count();
+	static int stray_nonproper();
 };
 
 /**/ inline bool operator<(const test_item& lhs, const test_item& rhs)

@@ -20,9 +20,41 @@
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
+  <VirtualDirectory Name="avl_array">
+    <File Name="src/avl_array/avl_array.hpp"/>
+    <VirtualDirectory Name="detail">
+      <File Name="src/avl_array/detail/aa_alloc.hpp"/>
+      <File Name="src/avl_array/detail/aa_assign.hpp"/>
+      <File Name="src/avl_array/detail/aa_balance.hpp"/>
+      <File Name="src/avl_array/detail/aa_begin_end.hpp"/>
+      <File Name="src/avl_array/detail/aa_build_list.hpp"/>
+      <File Name="src/avl_array/detail/aa_build_tree.hpp"/>
+      <File Name="src/avl_array/detail/aa_compare.hpp"/>
+      <File Name="src/avl_array/detail/aa_constr_destr.hpp"/>
+      <File Name="src/avl_array/detail/aa_erase.hpp"/>
+      <File Name="src/avl_array/detail/aa_front_back.hpp"/>
+      <File Name="src/avl_array/detail/aa_insert.hpp"/>
+      <File Name="src/avl_array/detail/aa_move.hpp"/>
+      <File Name="src/avl_array/detail/aa_npsv.hpp"/>
+      <File Name="src/avl_array/detail/aa_random_access.hpp"/>
+      <File Name="src/avl_array/detail/aa_size.hpp"/>
+      <File Name="src/avl_array/detail/aa_sorted_search_tree.hpp"/>
+      <File Name="src/avl_array/detail/data_provider.hpp"/>
+      <File Name="src/avl_array/detail/empty_number.hpp"/>
+      <File Name="src/avl_array/detail/exception.hpp"/>
+      <File Name="src/avl_array/detail/forward_decl.hpp"/>
+      <File Name="src/avl_array/detail/helper_fun_iter.hpp"/>
+      <File Name="src/avl_array/detail/helper_fun_node.hpp"/>
+      <File Name="src/avl_array/detail/iterator.hpp"/>
+      <File Name="src/avl_array/detail/iterator_reverse.hpp"/>
+      <File Name="src/avl_array/detail/node.hpp"/>
+      <File Name="src/avl_array/detail/node_with_data.hpp"/>
+      <File Name="src/avl_array/detail/rollback_list.hpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="" C_Options="" Assembler="">
+      <Compiler Options="-Wall -Wextra -Werror -pedantic -std=c++17 -Wsign-compare" C_Options="" Assembler="">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="">
@@ -31,7 +63,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="clang( tags/RELEASE_600/final )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Wall -Wextra -Werror -pedantic -std=c++17" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="-O0 -g" Required="yes">
@@ -73,7 +105,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="clang( tags/RELEASE_600/final )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3 -DNDEBUG -Wall -Wextra -Werror -pedantic -std=c++17" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-O3 -DNDEBUG" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="-O3" Required="yes">

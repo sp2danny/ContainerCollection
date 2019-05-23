@@ -257,18 +257,19 @@ class vector
 
 		uint32_t tmp;
 
-#define SWP(a, b)                                                                                                     \
-		tmp = a;                                                                                                      \
-		a   = b;                                                                                                      \
+#define SWP(a, b)        \
+		tmp = a;         \
+		a   = b;         \
 		b   = tmp
 
 		SWP(n1->weight, n2->weight);
 		SWP(n1->height, n2->height);
 
 #undef SWP
+
 	}
 
-	auto internal_relink(NodeP n1, NodeP n2)
+	void internal_relink(NodeP n1, NodeP n2)
 	{
 		if (internal_is_left(n1))
 			internal_link_l(n1->parent, n2);
@@ -640,8 +641,13 @@ class vector
 
 	static void internal_updHW(NodeP node)
 	{
-		node->height = std::max(node->left->height, node->right->height) + 1;
-		node->weight = node->left->weight + node->right->weight + 1;
+		std::uint32_t tmp;
+		tmp = std::max(node->left->height, node->right->height) + 1;
+		assert(tmp < (1<<5));
+		node->height = tmp;
+		tmp = node->left->weight + node->right->weight + 1;
+		assert(tmp < (1<<27));
+		node->weight = tmp;
 	}
 
 	struct SR // SortResult
@@ -1040,6 +1046,7 @@ public:
 		swap(core.nil, other.core.nil);
 	}
 	std::size_t size() const { return core.root->left->weight; }
+	std::ptrdiff_t ssize() const { return static_cast<std::ptrdiff_t>(core.root->left->weight); }
 
 	void resize(std::size_t sz, const T& val = T{})
 	{
@@ -1591,6 +1598,9 @@ public:
 
 	T&       operator[](std::size_t idx) { return internal_nth(idx)->item; }
 	const T& operator[](std::size_t idx) const { return internal_nth(idx)->item; }
+
+	T&       operator[](std::ptrdiff_t idx) { return internal_nth(idx)->item; }
+	const T& operator[](std::ptrdiff_t idx) const { return internal_nth(idx)->item; }
 
 	T& at(std::size_t idx)
 	{
