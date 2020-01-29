@@ -13,8 +13,9 @@
 template<typename T, std::size_t N>
 class inline_vector
 {
-	static constexpr bool cne  = noexcept(T(std::declval<T>()));
-	static constexpr bool triv = false; // std::is_trivially_copyable<T>::value;
+	static constexpr bool cne  = std::is_nothrow_copy_constructible<T>::value;
+	static constexpr bool triv = std::is_trivially_copyable<T>::value;
+	static constexpr bool mne  = std::is_nothrow_move_constructible<T>:value;
 public:
 	// types
 	typedef T              value_type;
@@ -29,15 +30,15 @@ public:
 
 	// construction
 	inline_vector() noexcept;
-	inline_vector(const inline_vector&);
-	inline_vector(inline_vector&&) noexcept(cne || triv);
+	inline_vector(const inline_vector&) noexcept(cne || triv);
+	inline_vector(inline_vector&&) noexcept(mne || cne || triv);
 	explicit inline_vector(size_type, const T& = T{});
 	template<typename It>
 	inline_vector(It, It);
 	inline_vector(std::initializer_list<T>);
 
 	// misc
-	void swap(inline_vector&);
+	void swap(inline_vector&) noexcept(mne || cne || triv);
 
 	// destruction
 	void clear();
