@@ -39,12 +39,12 @@ const std::vector<std::string>& test_item::report()
 
 int test_item::active_count()
 {
-	return cc - dc;
+	return int(cc - dc);
 }
 
 int test_item::stray_nonproper()
 {
-	return cnp;
+	return (int)cnp;
 }
 
 bool test_item::error()

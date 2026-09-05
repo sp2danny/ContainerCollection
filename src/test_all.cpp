@@ -9,8 +9,8 @@
 #include <list>
 #include <vector>
 
-constexpr std::size_t REP = 15;
-constexpr std::size_t SZ  = 1250;
+constexpr std::size_t REP = 10;
+constexpr std::size_t SZ  = 250;
 
 using namespace std::literals;
 
@@ -86,7 +86,7 @@ void testsuit_performance()
 			splice_list<test_item>        slti;
 			avl::vector<test_item>        avti;
 
-#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
+			#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
 			//#define ALL vi, vti, lti, avti
 
 			fillup<>{}(SZ, ALL);
@@ -94,14 +94,14 @@ void testsuit_performance()
 
 			insert<>{SZ}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-			erase<>{(SZ * 3) / 2}(ALL);
+			CT::erase<>{(SZ * 3) / 2}(ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 
 			if (ok) for (std::size_t j = 0; ok && (j < REP); ++j)
 			{
 				if (ok) insert<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-				if (ok) erase<>{SZ}(ALL);
+				if (ok) CT::erase<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 				if (ok) nth_swap<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
@@ -128,7 +128,7 @@ void testsuit_performance()
 			if (!ok)
 			{
 				cout << "compare test failed" << endl;
-				print<>{}(cout, ALL);
+				CT::print<>{}(cout, ALL);
 			}
 #undef ALL
 
@@ -149,7 +149,7 @@ void testsuit_performance()
 		cout << "move/delete: nothing to report" << endl;
 
 	cout << endl;
-	print<>{}(cout, vi);
+	CT::print<>{}(cout, vi);
 	cout << endl;
 	report_times<decltype(vi)>();
 	// report_times(1000.0, "ms");

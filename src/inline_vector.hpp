@@ -15,7 +15,7 @@ class inline_vector
 {
 	static constexpr bool cne  = std::is_nothrow_copy_constructible<T>::value;
 	static constexpr bool triv = std::is_trivially_copyable<T>::value;
-	static constexpr bool mne  = std::is_nothrow_move_constructible<T>:value;
+	static constexpr bool mne  = std::is_nothrow_move_constructible<T>::value;
 public:
 	// types
 	typedef T              value_type;
@@ -141,7 +141,7 @@ inline_vector<T, N>::inline_vector() noexcept
 }
 
 template<typename T, std::size_t N>
-inline_vector<T, N>::inline_vector(const inline_vector& other)
+inline_vector<T, N>::inline_vector(const inline_vector& other) noexcept(cne || triv)
 {
 	if (other.ic.size <= N)
 	{
@@ -170,7 +170,7 @@ inline_vector<T, N>::inline_vector(const inline_vector& other)
 }
 
 template<typename T, std::size_t N>
-inline_vector<T, N>::inline_vector(inline_vector&& other) noexcept(cne || triv)
+inline_vector<T, N>::inline_vector(inline_vector&& other) noexcept(mne || cne || triv)
 {
 	if (other.ic.size <= N)
 	{
@@ -269,7 +269,7 @@ void inline_vector<T, N>::make_heap()
 
 // misc
 template<typename T, std::size_t N>
-void inline_vector<T, N>::swap(inline_vector& other)
+void inline_vector<T, N>::swap(inline_vector& other) noexcept(mne || cne || triv)
 {
 	make_heap();
 	other.make_heap();

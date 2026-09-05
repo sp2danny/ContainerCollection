@@ -12,6 +12,7 @@ obj
 *.bmp
 *-data.txt
 *.aps
+bin/
 
 # Prerequisites
 *.d

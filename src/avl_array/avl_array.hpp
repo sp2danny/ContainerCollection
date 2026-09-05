@@ -141,11 +141,11 @@ public:
   typedef avl_array<T, A, W, P> my_class;
   typedef rollback_list<T, A, W, P> rollback_list_t;
 
-  typedef typename A::value_type value_type;
-  typedef typename A::reference reference;
-  typedef typename A::const_reference const_reference;
-  typedef typename A::pointer pointer;
-  typedef typename A::const_pointer const_pointer;
+  typedef typename A::value_type          value_type;
+  typedef typename A::value_type&         reference;
+  typedef typename A::value_type const &  const_reference;
+  typedef typename A::value_type*         pointer;
+  typedef typename A::value_type const *  const_pointer;
 
   typedef std::ptrdiff_t difference_type;
   typedef std::size_t size_type;
@@ -157,7 +157,9 @@ public:
   typedef avl_array_rev_iter<T, A, W, P, const_reference, const_pointer>
       const_reverse_iterator;
 
-  typedef typename A::template rebind<payload_node_t>::other allocator_t;
+  typedef std::allocator_traits<A>::template rebind_alloc<payload_node_t> allocator_t;
+
+  //typedef typename A::template rebind<payload_node_t>::other allocator_t;
 
 // ---------------------- CONCEPT CHECKS -----------------------
 #ifdef BOOST_CLASS_REQUIRE
