@@ -242,8 +242,7 @@ void testsuit_integrity()
 	inline_vector<test_item, 40> ivi;
 	//mkr::avl_array<int>          aai;
 
-#define ALL vi, avi, sli, ivi
-//, aai
+	#define ALL vi, avi, sli, ivi
 
 	for (auto&& op : operlist)
 		op.Execute(ALL);

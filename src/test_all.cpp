@@ -59,10 +59,6 @@ std::string nameof(mkr::avl_array<int>)
 	return "mkr::avl_array<int>"s;
 }
 
-struct None
-{
-};
-
 } // namespace CT
 
 #include "container_tester.hpp"
@@ -151,6 +147,6 @@ void testsuit_performance()
 	cout << endl;
 	CT::print<>{}(cout, vi);
 	cout << endl;
-	report_times<decltype(vi)>();
+	report_times<decltype(vi)>(1000.0f, "ms");
 	// report_times(1000.0, "ms");
 }
