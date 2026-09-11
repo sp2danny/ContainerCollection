@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <compare>
 
 class test_item
 {
@@ -19,6 +20,9 @@ public:
 	long long            compare(const test_item&) const;
 	explicit             operator int() const;
 	friend std::ostream& operator<<(std::ostream&, const test_item&);
+
+	auto operator<=>(const test_item& ti) const { return int(*this) <=> int(ti); }
+	bool operator==(const test_item& ti) const { return ((*this)<=>ti) == 0; }
 
 private:
 	unsigned char magic[8];
@@ -38,32 +42,3 @@ public:
 	static int stray_nonproper();
 };
 
-/**/ inline bool operator<(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) < 0ll;
-}
-
-/**/ inline bool operator<=(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) <= 0ll;
-}
-
-/**/ inline bool operator==(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) == 0ll;
-}
-
-/**/ inline bool operator!=(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) != 0ll;
-}
-
-/**/ inline bool operator>(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) > 0ll;
-}
-
-/**/ inline bool operator>=(const test_item& lhs, const test_item& rhs)
-{
-	return lhs.compare(rhs) >= 0ll;
-}

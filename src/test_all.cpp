@@ -8,9 +8,10 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <print>
 
-constexpr std::size_t REP = 10;
-constexpr std::size_t SZ  = 250;
+constexpr std::size_t REP = 2;
+constexpr std::size_t SZ  = 1'000'000;
 
 using namespace std::literals;
 
@@ -77,13 +78,18 @@ void testsuit_performance()
 			vi.clear();
 			vector<test_item>             vti;
 			list<test_item>               lti;
-			inline_vector<test_item, SML> ivtis;
-			inline_vector<test_item, BIG> ivtib;
+			//inline_vector<test_item, SML> ivtis;
+			//inline_vector<test_item, BIG> ivtib;
 			splice_list<test_item>        slti;
 			avl::vector<test_item>        avti;
 
-			#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
+			//auto x = slti <=> slti;
+
+			//std::println("{}", x==0 );
+
+			//#define ALL vi, vti, lti, ivtis, ivtib, slti, avti
 			//#define ALL vi, vti, lti, avti
+			#define ALL vi, vti, lti, slti, avti
 
 			fillup<>{}(SZ, ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);

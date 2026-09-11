@@ -11,6 +11,7 @@
 #include <limits>
 #include <memory>
 #include <utility>
+#include <compare>
 
 // -------------------------------------------------------------------------------------------------------------
 
@@ -225,17 +226,14 @@ public:
 	template<typename Op>
 	void sort(Op op);
 
-	void experimental_merge_sort();
+	// void experimental_merge_sort();
 
 	void merge(splice_list& other) { merge(other, std::less<T>{}); }
 	void merge(splice_list&& other) { merge(other); }
 	template<typename Op>
 	void merge(splice_list& other, Op op);
 	template<typename Op>
-	void merge(splice_list&& other, Op op)
-	{
-		merge(other, op);
-	}
+	void merge(splice_list&& other, Op op) { merge(other, op); }
 
 	void unique() { unique(std::equal_to<T>{}); }
 	template<class Eq>
@@ -254,6 +252,9 @@ public:
 	}
 
 	int compare(const splice_list& other) const;
+
+	auto operator<=>(const splice_list&) const
+		-> decltype( std::declval<T>() <=> std::declval<T>() );
 
 	bool operator==(const splice_list& other) const;
 	bool operator!=(const splice_list& other) const;
@@ -616,47 +617,6 @@ void splice_list<T>::sort(Op op)
 	helper_sort(*(Sentry*)sentinel, op);
 }
 
-template<typename T>
-void splice_list<T>::experimental_merge_sort()
-{
-	NodeP leaveof = (Sentry*)sentinel;
-
-	int sz = size();
-	if (sz <= 1)
-		return;
-
-	struct sub_merge_t
-	{
-		NodeP& leaveof;
-		void   operator()(NodeP, NodeP, NodeP, NodeP, NodeP&, NodeP&) {}
-	} sub_merge(leaveof);
-
-	struct sub_sort_t
-	{
-		NodeP& leaveof;
-		void   operator()(int n, NodeP& b, NodeP& e)
-		{
-			if (n <= 2)
-			{
-				// later
-			}
-			else
-			{
-				NodeP ab, ae, bb, be;
-				(*this)(sz / n, ab, ae);
-				(*this)(sz - sz / n, ab, ae);
-				sub_merge(ab, ae, bb, be, b, e);
-			}
-		}
-	} sub_sort(leaveof);
-
-	NodeP ab, ae, bb, be, cb, ce;
-	sub_sort(sz / 2, ab, ae);
-	sub_sort(sz - sz / 2, ab, ae);
-	sub_merge(ab, ae, bb, be, cb, ce);
-	link(sentinel->next, cb);
-	link(sentinel->prev, ce);
-}
 
 template<typename T>
 template<typename Op>
@@ -855,6 +815,30 @@ Pred splice_list<T>::remove_if(Pred pred)
 			++i;
 	}
 	return pred;
+}
+
+template<typename T>
+auto splice_list<T>::operator<=>(const splice_list& other) const
+	-> decltype( std::declval<T>() <=> std::declval<T>() )
+{
+	auto me_iter = begin();
+	auto ot_iter = other.begin();
+	while (true)
+	{
+		bool me_ate = (me_iter == end());
+		bool ot_ate = (ot_iter == other.end());
+		if (me_ate && ot_ate)
+			return std::strong_ordering::equal;
+		if (me_ate)
+			return std::strong_ordering::less;
+		if (ot_ate)
+			return std::strong_ordering::greater;
+		auto res = (*me_iter) <=> (*ot_iter);
+		if (res != 0) return res;
+		++me_iter;
+		++ot_iter;
+	}
+
 }
 
 template<typename T>
