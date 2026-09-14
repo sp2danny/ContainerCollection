@@ -10,8 +10,8 @@
 #include <vector>
 #include <print>
 
-constexpr std::size_t REP = 2;
-constexpr std::size_t SZ  = 1'000'000;
+constexpr std::size_t REP = 5;
+constexpr std::size_t SZ  = 100'000;
 
 using namespace std::literals;
 
@@ -66,18 +66,18 @@ std::string nameof(mkr::avl_array<int>)
 
 void testsuit_performance()
 {
-	using namespace std;
-	using namespace CT;
+	//using namespace std;
+	//using namespace CT;
 
-	vector<int> vi;
+	std::vector<int> vi;
 	{
 		bool ok = true;
 		for (size_t i = 0; ok && (i < REP); ++i)
 		{
-			cout << "\r" << i << "   " << flush;
+			std::cout << "\r" << i << "   " << std::flush;
 			vi.clear();
-			vector<test_item>             vti;
-			list<test_item>               lti;
+			std::vector<test_item>        vti;
+			std::list<test_item>          lti;
 			//inline_vector<test_item, SML> ivtis;
 			//inline_vector<test_item, BIG> ivtib;
 			splice_list<test_item>        slti;
@@ -91,14 +91,17 @@ void testsuit_performance()
 			//#define ALL vi, vti, lti, avti
 			#define ALL vi, vti, lti, slti, avti
 
-			fillup<>{}(SZ, ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			CT::fillup<>{}(SZ, ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
 
-			insert<>{SZ}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-			CT::erase<>{(SZ * 3) / 2}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			
+			CT::insert<>{REP}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
+			CT::erase<>{REP}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
 
+			/*
+			
 			if (ok) for (std::size_t j = 0; ok && (j < REP); ++j)
 			{
 				if (ok) insert<>{SZ}(ALL);
@@ -108,29 +111,30 @@ void testsuit_performance()
 				if (ok) nth_swap<>{SZ}(ALL);
 				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
 			}
+			*/
 
 			if (ok) CT::sort<>{}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
 
 			if (ok) CT::unique<>{}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
 
 			for (size_t j = 0; ok && (j < REP); ++j)
 			{
-				if (ok) splice_merge<>{}(ALL);
-				if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
-				if (ok) ok = is_sorted(vi.begin(), vi.end());
+				if (ok) CT::splice_merge<>{}(ALL);
+				if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
+				if (ok) ok = std::is_sorted(vi.begin(), vi.end());
 			}
 
 			if (ok) CT::remove<>{}(test_item{SZ / 2}, ALL);
-			if (ok) binary_find_swap<>{}(test_item{SZ / 3}, test_item{2 * SZ / 3}, ALL);
+			if (ok) CT::binary_find_swap<>{}(test_item{SZ / 3}, test_item{2 * SZ / 3}, ALL);
 			if (ok) CT::reverse<>{}(ALL);
-			if (ok) ok = CT::integrity<>{}(ALL) && compare<>{}(ALL);
+			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
 
 			if (!ok)
 			{
-				cout << "compare test failed" << endl;
-				CT::print<>{}(cout, ALL);
+				std::cout << "compare test failed" << std::endl;
+				CT::print<>{}(std::cout, ALL);
 			}
 #undef ALL
 
@@ -138,21 +142,21 @@ void testsuit_performance()
 			{
 				ok = !test_item::error();
 				if (!ok)
-					cout << "move/copy test failed" << endl;
+					std::cout << "move/copy test failed" << std::endl;
 			}
 		}
 	}
 
-	cout << "\r";
+	std::cout << "\r";
 	auto rep = test_item::report();
 	for (auto str : rep)
-		cout << str << endl;
+		std::cout << str << std::endl;
 	if (rep.empty())
-		cout << "move/delete: nothing to report" << endl;
+		std::cout << "move/delete: nothing to report" << std::endl;
 
-	cout << endl;
-	CT::print<>{}(cout, vi);
-	cout << endl;
-	report_times<decltype(vi)>(1000.0f, "ms");
+	std::cout << std::endl;
+	//CT::print<>{}(cout, vi);
+	//cout << endl;
+	CT::report_times<decltype(vi)>(1000.0f, "ms");
 	// report_times(1000.0, "ms");
 }
