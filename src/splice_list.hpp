@@ -96,9 +96,9 @@ public:
 	void pop_front();
 
 	template<typename... Args>
-	void emplace_back(Args&&... args);
+	T& emplace_back(Args&&... args);
 	template<typename... Args>
-	void emplace_front(Args&&... args);
+	T& emplace_front(Args&&... args);
 
 	struct iterator : std::iterator<std::bidirectional_iterator_tag, T>
 	{
@@ -489,20 +489,22 @@ void splice_list<T>::push_front(T&& t)
 
 template<typename T>
 template<typename... Args>
-void splice_list<T>::emplace_back(Args&&... args)
+T& splice_list<T>::emplace_back(Args&&... args)
 {
 	NodeP p = helper_makenode(std::forward<Args>(args)...);
 	link(sentinel->prev, p);
 	link(p, sentinel);
+	return p->value;
 }
 
 template<typename T>
 template<typename... Args>
-void splice_list<T>::emplace_front(Args&&... args)
+T& splice_list<T>::emplace_front(Args&&... args)
 {
 	NodeP p = helper_makenode(std::forward<Args>(args)...);
 	link(p, sentinel->next);
 	link(sentinel, p);
+	return p->value;
 }
 
 template<typename T>
@@ -838,7 +840,6 @@ auto splice_list<T>::operator<=>(const splice_list& other) const
 		++me_iter;
 		++ot_iter;
 	}
-
 }
 
 template<typename T>

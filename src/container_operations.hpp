@@ -209,11 +209,11 @@ auto binary_find(pick_3, C1&& c1, const Itm& itm) -> std::pair<bool, decltype(c1
 	using std::lower_bound;
 	auto iter = lower_bound(c1.begin(), c1.end(), itm);
 	if (iter == c1.end())
-		return {false, iter};
+		return {false, {}};
 	if (itm == *iter)
 		return {true, iter};
 	else
-		return {false, iter};
+		return {false, {}};
 }
 
 template<typename C1, typename Itm>
@@ -222,11 +222,11 @@ auto binary_find(pick_4, const C1& c1, const Itm& itm) -> std::pair<bool, typena
 	using std::lower_bound;
 	auto iter = lower_bound(c1.begin(), c1.end(), itm);
 	if (iter == c1.end())
-		return {false, iter};
+		return {false, {}};
 	if (itm == *iter)
 		return {true, iter};
 	else
-		return {false, iter};
+		return {false, {}};
 }
 
 template<typename Cont, typename It>

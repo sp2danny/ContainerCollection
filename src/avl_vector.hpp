@@ -169,7 +169,7 @@ class vector
 
 		return fndi(core, core.root->left, (int)idx);
 	}
-	const Node* internal_nth(std::size_t idx) const { return const_cast<vector*>(this)->internal_nth(idx); }
+	const Node* internal_nth(std::size_t idx) const { return me->internal_nth(idx); }
 
 	/// Insert data in its sorted position
 	/// Only works if container is sorted (binary search)
@@ -1723,6 +1723,14 @@ public:
 	void        shrink_to_fit() {}
 	std::size_t capacity() const { return max_size(); }
 	std::size_t max_size() const { return (1ul << 27) - 1ul; }
+
+	template<typename Itm>
+	auto remove(const Itm& value) ->
+		decltype( std::declval<Itm>() == std::declval<T>() , std::size_t{} )
+	{
+		auto op = [&value](const T& itm) { return itm == value; };
+		return remove_if(op);
+	}
 
 	std::size_t remove(const T& value)
 	{

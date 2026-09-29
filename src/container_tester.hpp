@@ -51,13 +51,9 @@ template<typename T = void>
 struct copy_to
 {
 	template<typename C1>
-	void operator()(const C1&)
-	{
-	}
-
+	void operator()(const C1&) {}
 	template<typename C1, typename C2, typename... Args>
 	void operator()(const C1&, C2&, Args&...);
-
 	static std::string name() { return "copy_to"s; }
 };
 
@@ -65,14 +61,9 @@ template<typename T = void>
 struct compare
 {
 	template<typename C1>
-	bool operator()(const C1&)
-	{
-		return true;
-	}
-
+	bool operator()(const C1&) { return true; }
 	template<typename C1, typename C2, typename... Args>
 	bool operator()(const C1&, const C2&, const Args&...);
-
 	static std::string name() { return "compare"s; }
 };
 
@@ -80,10 +71,8 @@ template<typename T = void>
 struct insert_nth
 {
 	void operator()(std::size_t, int) {}
-
 	template<typename C1, typename... Args>
 	void operator()(std::size_t, int, C1&, Args&...);
-
 	static std::string name() { return "insert_nth"s; }
 };
 
@@ -93,9 +82,7 @@ struct insert
 	insert(std::size_t count = 1) : count(count) {}
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "insert"s; }
-
 private:
 	std::size_t count;
 };
@@ -104,10 +91,8 @@ template<typename T = void>
 struct erase_nth
 {
 	void operator()(std::size_t) {}
-
 	template<typename C1, typename... Args>
 	void operator()(std::size_t, C1&, Args&...);
-
 	static std::string name() { return "erase_nth"s; }
 };
 
@@ -117,9 +102,7 @@ struct erase
 	erase(std::size_t count = 1) : count(count) {}
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "erase"s; }
-
 private:
 	std::size_t count;
 };
@@ -128,10 +111,8 @@ template<typename T = void>
 struct sort
 {
 	void operator()() {}
-
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "sort"s; }
 };
 
@@ -139,10 +120,8 @@ template<typename T = void>
 struct unique
 {
 	void operator()() {}
-
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "unique"s; }
 };
 
@@ -150,10 +129,8 @@ template<typename T = void>
 struct sort_unique
 {
 	void operator()() {}
-
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "sort_unique"s; }
 };
 
@@ -161,10 +138,8 @@ template<typename T = void>
 struct print
 {
 	void operator()(std::ostream&) {}
-
 	template<typename C1, typename... Args>
 	void operator()(std::ostream&, C1&, Args&...);
-
 	static std::string name() { return "print"s; }
 };
 
@@ -173,10 +148,8 @@ struct remove
 {
 	template<typename Itm>
 	void operator()(const Itm&) {}
-
 	template<typename Itm, typename C1, typename... Args>
 	void operator()(const Itm&, C1&, Args&...);
-
 	static std::string name() { return "remove"s; }
 };
 
@@ -184,10 +157,8 @@ template<typename T = void>
 struct splice_merge
 {
 	void operator()() {}
-
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
-
 	static std::string name() { return "splice_merge"s; }
 };
 
@@ -196,10 +167,8 @@ struct binary_find_swap
 {
 	template<typename Itm>
 	void operator()(const Itm&, const Itm&) {}
-
 	template<typename Itm, typename C1, typename... Args>
 	void operator()(const Itm&, const Itm&, C1&, Args&...);
-
 	static std::string name() { return "binary_find_swap"s; }
 };
 
@@ -228,6 +197,7 @@ struct reverse
 	void operator()() {}
 	template<typename C1, typename... Args>
 	void operator()(C1&, Args&...);
+	static std::string name() { return "reverse"s; }
 };
 
 template<typename T = void>
@@ -625,7 +595,9 @@ template<typename T>
 template<typename C1, typename... Args>
 void CT::reverse<T>::operator()(C1& first, Args&... args)
 {
+	start_clock();
 	CO::reverse(first);
+	time_data[nameof(first)][name()] += stop_clock();
 	reverse<>{}(args...);
 }
 
