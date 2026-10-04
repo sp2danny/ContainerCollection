@@ -84,9 +84,10 @@ public:
 	void clear();
 
 	std::size_t size() const noexcept;
+	int         ssize() const noexcept;
 	bool        empty() const noexcept;
 
-	constexpr static std::size_t max_size() { return std::numeric_limits<std::size_t>::max(); }
+	constexpr static std::size_t max_size() noexcept { return std::numeric_limits<std::size_t>::max(); }
 
 	void push_back(const T&);
 	void push_back(T&&);
@@ -189,6 +190,9 @@ public:
 	const_reverse_iterator crbegin() const { return const_reverse_iterator{end()}; }
 	const_reverse_iterator crend() const { return const_reverse_iterator{begin()}; }
 
+	iterator nth(int i) { return std::next(begin(), i); }
+	const_iterator nth(int i) const { return std::next(begin(), i); }
+
 	iterator insert(iterator, const T&);
 	iterator insert(iterator, T&&);
 	template<typename It>
@@ -255,13 +259,6 @@ public:
 
 	auto operator<=>(const splice_list&) const
 		-> decltype( std::declval<T>() <=> std::declval<T>() );
-
-	bool operator==(const splice_list& other) const;
-	bool operator!=(const splice_list& other) const;
-	bool operator<(const splice_list& other) const;
-	bool operator<=(const splice_list& other) const;
-	bool operator>(const splice_list& other) const;
-	bool operator>=(const splice_list& other) const;
 
 private:
 	template<typename Stream>
@@ -433,6 +430,19 @@ std::size_t splice_list<T>::size() const noexcept
 {
 	NodeP       p  = sentinel->next;
 	std::size_t sz = 0;
+	while (p != sentinel)
+	{
+		p = p->next;
+		++sz;
+	}
+	return sz;
+}
+
+template<typename T>
+int splice_list<T>::ssize() const noexcept
+{
+	NodeP  p  = sentinel->next;
+	int    sz = 0;
 	while (p != sentinel)
 	{
 		p = p->next;
@@ -823,6 +833,7 @@ template<typename T>
 auto splice_list<T>::operator<=>(const splice_list& other) const
 	-> decltype( std::declval<T>() <=> std::declval<T>() )
 {
+	using Res = decltype( std::declval<T>() <=> std::declval<T>() );
 	auto me_iter = begin();
 	auto ot_iter = other.begin();
 	while (true)
@@ -830,11 +841,11 @@ auto splice_list<T>::operator<=>(const splice_list& other) const
 		bool me_ate = (me_iter == end());
 		bool ot_ate = (ot_iter == other.end());
 		if (me_ate && ot_ate)
-			return std::strong_ordering::equal;
+			return (Res)std::strong_ordering::equal;
 		if (me_ate)
-			return std::strong_ordering::less;
+			return (Res)std::strong_ordering::less;
 		if (ot_ate)
-			return std::strong_ordering::greater;
+			return (Res)std::strong_ordering::greater;
 		auto res = (*me_iter) <=> (*ot_iter);
 		if (res != 0) return res;
 		++me_iter;
@@ -866,38 +877,4 @@ int splice_list<T>::compare(const splice_list& other) const
 	}
 }
 
-template<typename T>
-bool splice_list<T>::operator==(const splice_list& other) const
-{
-	return compare(other) == 0;
-}
 
-template<typename T>
-bool splice_list<T>::operator!=(const splice_list& other) const
-{
-	return compare(other) != 0;
-}
-
-template<typename T>
-bool splice_list<T>::operator<(const splice_list& other) const
-{
-	return compare(other) < 0;
-}
-
-template<typename T>
-bool splice_list<T>::operator<=(const splice_list& other) const
-{
-	return compare(other) <= 0;
-}
-
-template<typename T>
-bool splice_list<T>::operator>(const splice_list& other) const
-{
-	return compare(other) > 0;
-}
-
-template<typename T>
-bool splice_list<T>::operator>=(const splice_list& other) const
-{
-	return compare(other) >= 0;
-}

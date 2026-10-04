@@ -9,9 +9,10 @@
 #include <list>
 #include <vector>
 #include <print>
+#include <compare>
 
-constexpr std::size_t REP = 3;
-constexpr std::size_t SZ  = 2'000;
+constexpr std::size_t REP = 5;
+constexpr std::size_t SZ  = 250'000;
 
 using namespace std::literals;
 
@@ -72,8 +73,19 @@ std::string nameof(mkr::avl_array<int>)
 
 #include "container_tester.hpp"
 
+struct XX {
+	auto operator<=>(const XX&) const
+	{
+		return std::weak_ordering::equivalent;
+	}
+};
+
+splice_list<XX> a,b;
+
 void testsuit_performance()
 {
+	bool l = (a < b);
+
 	//using namespace std;
 	//using namespace CT;
 

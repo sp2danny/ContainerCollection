@@ -1001,7 +1001,7 @@ public:
 		internal_link_l(core.root, internal_hang(vpn));
 	}
 	vector(const vector& other) : vector(other.begin(), other.end()) {}
-	vector(vector&& other) : vector() { swap(other); }
+	vector(vector&& other) noexcept : vector() { swap(other); }
 	vector& operator=(const vector& other)
 	{
 		assign(other.begin(), other.end());
