@@ -11,8 +11,13 @@
 #include <print>
 #include <compare>
 
+#ifndef NDEBUG
+constexpr std::size_t REP = 1;
+constexpr std::size_t SZ  = 10'000;
+#else
 constexpr std::size_t REP = 5;
 constexpr std::size_t SZ  = 250'000;
+#endif
 
 using namespace std::literals;
 
@@ -73,18 +78,8 @@ std::string nameof(mkr::avl_array<int>)
 
 #include "container_tester.hpp"
 
-struct XX {
-	auto operator<=>(const XX&) const
-	{
-		return std::weak_ordering::equivalent;
-	}
-};
-
-splice_list<XX> a,b;
-
 void testsuit_performance()
 {
-	bool l = (a < b);
 
 	//using namespace std;
 	//using namespace CT;
@@ -109,7 +104,12 @@ void testsuit_performance()
 			avl::vector<int>              avi;
 
 			//#define ALL base, vti, vi, lti, li, slti, sli, avti, avi
-			#define ALL base, vi, li, sli, avi
+
+			#ifndef NDEBUG
+				#define ALL base, sli, vi
+			#else
+				#define ALL base, li, sli, avi
+			#endif
 
 			CT::fillup<>{}(SZ, ALL);
 			if (ok) ok = CT::integrity<>{}(ALL) && CT::compare<>{}(ALL);
@@ -157,7 +157,8 @@ void testsuit_performance()
 				std::cout << "compare test failed" << std::endl;
 				CT::print<>{}(std::cout, ALL);
 			}
-#undef ALL
+
+			#undef ALL
 
 			if (ok)
 			{

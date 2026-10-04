@@ -236,11 +236,11 @@ void testsuit_integrity()
 	operlist.push_back({InsOpIdx, {1, 1}});
 	operlist.push_back({InsOpIdx, {2, 2}});
 
-	std::vector<int>             vi;
-	avl::vector<test_item>       avi;
-	splice_list<test_item>       sli;
-	inline_vector<test_item, 40> ivi;
-	//mkr::avl_array<int>          aai;
+	std::vector<int>              vi;
+	avl::vector<test_item>        avi;
+	splice_list<test_item>        sli;
+	inline_vector<test_item, 40>  ivi;
+	//mkr::avl_array<int>           aai;
 
 	#define ALL vi, avi, sli, ivi
 

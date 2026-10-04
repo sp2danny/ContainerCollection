@@ -325,21 +325,25 @@ inline void avl_array<T, A, W, P>::splice(
 
 template <class T, class A, class W, class P>
 inline void
-avl_array<T, A, W, P>::splice(typename avl_array<T, A, W, P>::iterator dst,
-                              [[maybe_unused]]
-                              typename avl_array<T, A, W, P>::my_class &src,
-                              typename avl_array<T, A, W, P>::iterator src_from,
-                              typename avl_array<T, A, W, P>::iterator src_to) {
-  difference_type n;
+avl_array<T, A, W, P>::splice(
+    typename avl_array<T, A, W, P>::iterator dst,
+    typename avl_array<T, A, W, P>::my_class &src,
+    typename avl_array<T, A, W, P>::iterator src_from,
+    typename avl_array<T, A, W, P>::iterator src_to
+)
+{
+    (void)src;
 
-  AA_ASSERT_HO(owner(dst.ptr) == this);
-  AA_ASSERT_HO(owner(src_from.ptr) == &src);
-  AA_ASSERT_HO(owner(src_to.ptr) == &src);
+    difference_type n;
 
-  n = src_to - src_from;
+    AA_ASSERT_HO(owner(dst.ptr) == this);
+    AA_ASSERT_HO(owner(src_from.ptr) == &src);
+    AA_ASSERT_HO(owner(src_to.ptr) == &src);
 
-  if (n > 0)
-    move_nodes(src_from, n, dst.ptr);
+    n = src_to - src_from;
+
+    if (n > 0)
+        move_nodes(src_from, n, dst.ptr);
 }
 
 template <class T, class A, class W, class P>
