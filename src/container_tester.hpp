@@ -539,11 +539,11 @@ void CT::splice_merge<T>::operator()(C1& first, Args&... rest)
 	if (idx1 > idx2)
 		std::swap(idx1, idx2);
 	start_clock();
-	auto itr1 = nth(first, idx1);
-	auto itr2 = nth(first, idx2);
+	auto itr1 = CO::nth(first, idx1);
+	auto itr2 = CO::nth(first, idx2);
 	C1 other;
-	splice(first, itr1, itr2, other, other.begin());
-	merge(first, other);
+	CO::splice(first, itr1, itr2, other, other.begin());
+	CO::merge(first, other);
 	time_data[nameof(first)][name()] += stop_clock();
 	splice_merge<>{}(rest...);
 }
@@ -553,8 +553,8 @@ template<typename Itm, typename C1, typename... Args>
 void CT::binary_find_swap<T>::operator()(const Itm& itm1, const Itm& itm2, C1& first, Args&... rest)
 {
 	start_clock();
-	auto r1 = binary_find(first, itm1);
-	auto r2 = binary_find(first, itm2);
+	auto r1 = CO::binary_find(first, itm1);
+	auto r2 = CO::binary_find(first, itm2);
 	if (r1.first && r2.first)
 	{
 		using std::swap;
@@ -569,8 +569,8 @@ template<typename C1, typename... Args>
 void CT::nth_swap<T>::swp(std::size_t idx1, std::size_t idx2, C1& first, Args&... rest)
 {
 	start_clock();
-	auto itr1 = nth(first, idx1);
-	auto itr2 = nth(first, idx2);
+	auto itr1 = CO::nth(first, idx1);
+	auto itr2 = CO::nth(first, idx2);
 	using std::swap;
 	std::swap(*itr1, *itr2);
 	time_data[nameof(first)][name()] += stop_clock();

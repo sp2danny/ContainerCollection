@@ -38,6 +38,7 @@ enum OpIdx
 	SortOpIdx,
 	ReverseOpIdx,
 	SpliceOpIdx,
+	PushBackOpIdx,
 	OpCount
 };
 
@@ -140,6 +141,22 @@ struct SpliceOp
 	}
 };
 
+struct PushBackOp
+{
+	template<typename T>
+	void Execute(std::vector<int>& param, T& cont)
+	{
+		int val = param[0];
+		CO::push_back(cont, val);
+		//cont.insert(p, val);
+	};
+	void Print(std::vector<int>& param, std::ostream& out)
+	{
+		out << "PushBack " << param[0] << std::endl;
+	}
+};
+
+
 std::vector<Op> operlist;
 
 template<typename T>
@@ -150,13 +167,14 @@ void Op::Execute(T& cont)
 	// std::cout << std::endl;
 	switch (op_num)
 	{
-	case InsOpIdx:     InsOp     {}.Execute(op_param, cont); break;
-	case DelOpIdx:     DelOp     {}.Execute(op_param, cont); break;
-	case InsROpIdx:    InsROp    {}.Execute(op_param, cont); break;
-	case DelROpIdx:    DelROp    {}.Execute(op_param, cont); break;
-	case SortOpIdx:    SortOp    {}.Execute(op_param, cont); break;
-	case ReverseOpIdx: ReverseOp {}.Execute(op_param, cont); break;
-	case SpliceOpIdx:  SpliceOp  {}.Execute(op_param, cont); break;
+	case InsOpIdx:       InsOp       {}.Execute(op_param, cont); break;
+	case DelOpIdx:       DelOp       {}.Execute(op_param, cont); break;
+	case InsROpIdx:      InsROp      {}.Execute(op_param, cont); break;
+	case DelROpIdx:      DelROp      {}.Execute(op_param, cont); break;
+	case SortOpIdx:      SortOp      {}.Execute(op_param, cont); break;
+	case ReverseOpIdx:   ReverseOp   {}.Execute(op_param, cont); break;
+	case SpliceOpIdx:    SpliceOp    {}.Execute(op_param, cont); break;
+	case PushBackOpIdx:  PushBackOp  {}.Execute(op_param, cont); break;
 	}
 }
 
@@ -164,13 +182,14 @@ void Op::Print(std::ostream& out)
 {
 	switch (op_num)
 	{
-	case InsOpIdx:     InsOp     {}.Print(op_param, out); break;
-	case DelOpIdx:     DelOp     {}.Print(op_param, out); break;
-	case InsROpIdx:    InsROp    {}.Print(op_param, out); break;
-	case DelROpIdx:    DelROp    {}.Print(op_param, out); break;
-	case SortOpIdx:    SortOp    {}.Print(op_param, out); break;
-	case ReverseOpIdx: ReverseOp {}.Print(op_param, out); break;
-	case SpliceOpIdx:  SpliceOp  {}.Print(op_param, out); break;
+	case InsOpIdx:       InsOp       {}.Print(op_param, out); break;
+	case DelOpIdx:       DelOp       {}.Print(op_param, out); break;
+	case InsROpIdx:      InsROp      {}.Print(op_param, out); break;
+	case DelROpIdx:      DelROp      {}.Print(op_param, out); break;
+	case SortOpIdx:      SortOp      {}.Print(op_param, out); break;
+	case ReverseOpIdx:   ReverseOp   {}.Print(op_param, out); break;
+	case SpliceOpIdx:    SpliceOp    {}.Print(op_param, out); break;
+	case PushBackOpIdx:  PushBackOp  {}.Print(op_param, out); break;
 	}
 }
 
@@ -222,6 +241,11 @@ void add_random(std::size_t& n)
 		k = randn(n - m);
 		operlist.push_back({SpliceOpIdx, {j, m, k}});
 		break;
+	case PushBackOpIdx:
+		m = 1 + randn(5);
+		operlist.push_back({SpliceOpIdx, {m}});
+		++n;
+		break;
 	default:
 		std::cerr << "unknown op\n";
 	}
@@ -240,9 +264,9 @@ void testsuit_integrity()
 	avl::vector<test_item>        avi;
 	splice_list<test_item>        sli;
 	inline_vector<test_item, 40>  ivi;
-	//mkr::avl_array<int>           aai;
+	// mkr::avl_array<test_item>     aai;
 
-	#define ALL vi, avi, sli, ivi
+	#define ALL vi, avi, sli, ivi //, aai
 
 	for (auto&& op : operlist)
 		op.Execute(ALL);

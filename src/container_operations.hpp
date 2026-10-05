@@ -315,7 +315,35 @@ auto reverse(pick_2, Cont& c1) -> decltype(std::reverse(c1.begin(), c1.end()), v
 	std::reverse(c1.begin(), c1.end());
 }
 
+
+
+template<typename Cont, typename Itm>
+auto push_back(pick_1, Cont& c1, const Itm& itm) -> decltype(c1.push_back(itm), void())
+{
+#ifdef FULL_DIAG
+	std::cerr << "attempting: member push_back " << typeid(Cont).name() << std::endl;
+#endif
+	c1.push_back(itm);
+}
+
+template<typename Cont, typename Itm>
+auto push_back(pick_2, Cont& c1, const Itm& itm) -> void
+{
+#ifdef FULL_DIAG
+	std::cerr << "attempting: insert at end " << typeid(Cont).name() << std::endl;
+#endif
+	c1.insert(c1.end(), itm);
+}
+
+
 } // namespace detail
+
+template<typename Cont, typename Itm>
+void push_back(Cont& c1, const Itm& itm)
+{
+	return detail::push_back(detail::pick_1{}, c1, itm);
+}
+
 
 template<typename Cont>
 void reverse(Cont& c1)
@@ -373,4 +401,4 @@ void merge(Cont& c1, Cont& c2)
 
 } // namespace CO
 
-using namespace CO;
+// using namespace CO;
