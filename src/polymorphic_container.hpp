@@ -174,12 +174,12 @@ private:
 		void swap(Item&) noexcept;
 		void clear();
 
-		bool operator<(const Item& i) { return (*value) < *i; }
-		bool operator<=(const Item& i) { return (*value) <= *i; }
-		bool operator>(const Item& i) { return (*value) > *i; }
-		bool operator>=(const Item& i) { return (*value) >= *i; }
-		bool operator==(const Item& i) { return (*value) == *i; }
-		bool operator!=(const Item& i) { return (*value) != *i; }
+		bool operator  < (const Item& i) { return (*value)  < *i; }
+		bool operator <= (const Item& i) { return (*value) <= *i; }
+		bool operator  > (const Item& i) { return (*value)  > *i; }
+		bool operator >= (const Item& i) { return (*value) >= *i; }
+		bool operator == (const Item& i) { return (*value) == *i; }
+		bool operator != (const Item& i) { return (*value) != *i; }
 	};
 
 	template<typename U>
@@ -349,7 +349,7 @@ void swap(polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& r
 }
 
 template<typename T, template<typename...> class U, template<typename...> class A>
-int polymorphic_container<T, Underlying, Allocator>::compare(const polymorphic_container& rhs) const
+int polymorphic_container<T, U, A>::compare(const polymorphic_container& rhs) const
 {
 	auto   li  = lhs.begin();
 	auto   ri  = rhs.begin();
