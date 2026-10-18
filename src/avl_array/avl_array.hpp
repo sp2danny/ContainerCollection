@@ -40,6 +40,7 @@
 #include <iterator>
 #include <memory>
 #include <utility>
+#include <initializer_list>
 
 //////////////////////////////////////////////////////////////////
 
@@ -324,6 +325,10 @@ public:
   void insert(const reverse_iterator &it, long n, const_reference t);
 
   template <class IT> void insert(iterator it, IT from, IT to);
+
+  template <typename R> auto insert(iterator it, R&& r) -> decltype( std::begin(r) != std::end(r), void() ) { insert(it, std::begin(r), std::end(r) ); }
+
+  void insert(iterator it, std::initializer_list<T> il) { insert(it, std::begin(il), std::end(il) ); }
 
   template <class IT> void insert(reverse_iterator it, IT from, IT to);
 

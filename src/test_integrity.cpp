@@ -8,6 +8,8 @@
 #include "splice_list.hpp"
 #include "test_item.hpp"
 
+// #include "polymorphic_container.hpp"
+
 #include <iostream>
 #include <list>
 #include <memory>
@@ -243,7 +245,7 @@ void add_random(std::size_t& n)
 		break;
 	case PushBackOpIdx:
 		m = 1 + randn(5);
-		operlist.push_back({SpliceOpIdx, {m}});
+		operlist.push_back({PushBackOpIdx, {m}});
 		++n;
 		break;
 	default:
@@ -260,13 +262,13 @@ void testsuit_integrity()
 	operlist.push_back({InsOpIdx, {1, 1}});
 	operlist.push_back({InsOpIdx, {2, 2}});
 
-	std::vector<int>              vi;
-	avl::vector<test_item>        avi;
-	splice_list<test_item>        sli;
-	inline_vector<test_item, 40>  ivi;
-	// mkr::avl_array<test_item>     aai;
+	std::vector<int>                        vi;
+	avl::vector<test_item>                  avi;
+	splice_list<test_item>                  sli;
+	inline_vector<test_item, 40>            ivi;
+	//ext::polymorphic_container<test_item>   epci;
 
-	#define ALL vi, avi, sli, ivi //, aai
+	#define ALL vi, avi, sli, ivi //, epci
 
 	for (auto&& op : operlist)
 		op.Execute(ALL);
@@ -326,8 +328,11 @@ void testsuit_integrity()
 			break;
 		}
 
-		//#ifdef NDEBUG
+		#ifdef NDEBUG
 		if ((i % 2500) == 0)
+		#else
+		if ((i % 100) == 0)
+		#endif
 		{
 			//system("clear");
 			// system("cls");

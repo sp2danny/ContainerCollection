@@ -197,11 +197,11 @@ private:
 	typedef typename underlying_container::const_iterator                         underlying_const_iterator;
 	typedef typename std::iterator_traits<underlying_iterator>::iterator_category underlying_iterator_category;
 
-	template<typename U>
+	template<typename TT, typename UU>
 	struct sub_or_same
 	{
-		using CT                = detail::clean<T>;
-		using CU                = detail::clean<U>;
+		using CT                = detail::clean<TT>;
+		using CU                = detail::clean<UU>;
 		static const bool value = std::is_base_of<CT, CU>::value || std::is_same<CT, CU>::value;
 	};
 
@@ -261,7 +261,7 @@ private:
 	iterator explicit_insert(const_iterator, U&&);
 
 public:
-	template<typename U, typename = std::enable_if_t<sub_or_same<U>::value>>
+	template<typename U, typename = std::enable_if_t<sub_or_same<T,U>::value>>
 	iterator insert(const_iterator i, U&& u) // creates copy
 	{
 		return explicit_insert<detail::clean<U>>(i, std::forward<U>(u));
@@ -275,7 +275,7 @@ public:
 		const_iterator, T*,
 		const Deleter&); // takes ownership, uses custom deleter
 
-	template<typename U = T, typename... Args, typename = std::enable_if_t<sub_or_same<U>::value>>
+	template<typename U = T, typename... Args, typename = std::enable_if_t<sub_or_same<T,U>::value>>
 	iterator emplace(const_iterator, Args&&...);
 
 	iterator erase(const_iterator i) { return {data.erase(i.iter)}; }
@@ -286,7 +286,7 @@ public:
 		insert(end(), std::forward<Args>(args)...);
 	}
 
-	template<typename U = T, typename... Args, typename = std::enable_if_t<sub_or_same<U>::value>>
+	template<typename U = T, typename... Args, typename = std::enable_if_t<sub_or_same<T,U>::value>>
 	void emplace_back(Args&&... args)
 	{
 		emplace<U>(end(), std::forward<Args>(args)...);
@@ -303,14 +303,14 @@ public:
 	T& operator[](std::size_t idx)
 	{
 		static_assert(
-			detail::sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
+			sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
 			"underlying container does not support random access");
 		return begin()[idx];
 	}
 	const T& operator[](std::size_t idx) const
 	{
 		static_assert(
-			detail::sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
+			sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
 			"underlying container does not support random access");
 		return begin()[idx];
 	}
@@ -318,7 +318,7 @@ public:
 	T& at(std::size_t idx)
 	{
 		static_assert(
-			detail::sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
+			sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
 			"underlying container does not support random access");
 		if (idx >= size())
 			throw std::out_of_range{"index"};
@@ -327,7 +327,7 @@ public:
 	const T& at(std::size_t idx) const
 	{
 		static_assert(
-			detail::sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
+			sub_or_same<underlying_iterator_category, std::random_access_iterator_tag>::value,
 			"underlying container does not support random access");
 		if (idx >= size())
 			throw std::out_of_range{"index"};
@@ -351,9 +351,9 @@ void swap(polymorphic_container<T, U, A>& lhs, polymorphic_container<T, U, A>& r
 template<typename T, template<typename...> class U, template<typename...> class A>
 int polymorphic_container<T, U, A>::compare(const polymorphic_container& rhs) const
 {
+	auto&& lhs = *this;
 	auto   li  = lhs.begin();
 	auto   ri  = rhs.begin();
-	auto&& lhs = *this;
 	while (true)
 	{
 		bool le = (li == lhs.end());

@@ -24,11 +24,13 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\performance_tester.cpp" />
     <ClCompile Include="src\test_all.cpp" />
+    <ClCompile Include="src\test_avl.cpp" />
     <ClCompile Include="src\test_integrity.cpp" />
     <ClCompile Include="src\test_item.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\asyn_kb.h" />
+    <ClInclude Include="src\avl_array\avl_array.hpp" />
     <ClInclude Include="src\avl_vector.hpp" />
     <ClInclude Include="src\container_operations.hpp" />
     <ClInclude Include="src\container_tester.hpp" />

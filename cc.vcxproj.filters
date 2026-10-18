@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Header Files\AVL">
+      <UniqueIdentifier>{ac71f4f2-47c1-41c2-9e69-37ce90520cc2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\test_all.cpp">
@@ -34,6 +37,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\test_integrity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\test_avl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -67,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="src\asyn_kb.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\avl_array\avl_array.hpp">
+      <Filter>Header Files\AVL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
